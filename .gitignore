@@ -1,0 +1,45 @@
+# Raw + derived data never enters git (DIRECTIVE rule 7).
+# Raw lives outside the OneDrive tree entirely: C:\data\tarn\ -> /data in Docker.
+data/raw/
+data/lake/
+data/work/
+
+# Warehouse build artifacts
+warehouse/*.duckdb
+warehouse/*.duckdb.wal
+warehouse/target/
+warehouse/dbt_packages/
+warehouse/logs/
+.user.yml
+
+# Streaming state
+streaming/checkpoints/
+streaming/_out/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
+
+# NOTE: site/data/*.parquet and site/vendor/ ARE committed on purpose. They are the demo's
+# payload — GitHub Pages has no pipeline to rebuild them from, and the directive requires
+# DuckDB-WASM be vendored rather than pulled from a CDN. They are generated artifacts that
+# happen to be deliverables.
+site/dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Scratch note (an idea for a possible Stage 4b), not project content.
+buff.md
