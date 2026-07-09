@@ -1,0 +1,26 @@
+# Tarn — pinned runtime. Exact versions matter: every bench artifact records them.
+# Installed inside the Docker image (DIRECTIVE rule 8: Spark never runs on native Windows).
+
+# Stage 1 — distributed batch
+pyspark==3.5.3
+
+# Stage 2 — lakehouse / warehouse
+duckdb==1.1.3
+dbt-core==1.8.9
+dbt-duckdb==1.8.4
+pyarrow==17.0.0
+pandas==2.2.3
+
+# Stage 3 — streaming
+kafka-python==2.0.2
+# kafka-python does NOT vendor its compression codecs: asking for compression_type='lz4'
+# without this raises "Libraries for lz4 compression codec not found" at producer
+# construction. It failed silently behind a redirected log the first time.
+lz4==4.3.3
+
+# Stage 4 — graph
+neo4j==5.27.0
+
+# Tooling
+pytest==8.3.4
+ruff==0.8.4
