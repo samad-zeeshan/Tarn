@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: lake
+    description: >
+      The Parquet lake written by Stage 1 (pipeline/sessionize.py, pipeline/rollup.py).
+      These are external tables: DuckDB reads the Parquet files in place. Nothing is
+      copied into the warehouse until a mart materializes it.
+    meta:
+      external_location: "read_parquet('{{ var('lake_path') }}/{name}/**/*.parquet', hive_partitioning=1, union_by_name=1)"
+    tables:
+      - name: auth
+        description: "Every parsed authentication event. Partitioned by event_date."
+      - name: auth-sessions
+        identifier: auth-sessions
+        description: "Logon sessions: consecutive events per (identity, source host), 30-min idle gap."
+      - name: rollup
+        description: "Per-identity daily rollups produced by Spark (Stage 1)."
+      - name: redteam
+        description: >
+          LANL's 749 labelled red-team compromise events, landed in the lake as Parquet by
+          pipeline/sessionize.py. Ground truth — the reason every layer can answer "would
+          this have caught the attacker?" instead of "how many rows are there?".
+      - name: streaming_windows
+        description: >
+          1-minute tumbling windows emitted by the Stage-3 Structured Streaming job. Absent
+          until Stage 3 has run; mart_streaming_windows is the only model that reads it.
