@@ -1,0 +1,171 @@
+version: 2
+
+models:
+  # ---------------------------------------------------------------------------------
+  - name: fact_auth_event
+    description: |
+      **Grain: one row per authentication event.** The atomic fact of the warehouse — all
+      1,051,430,459 of them.
+
+      **Materialized as a VIEW over the Parquet lake, and joined on NATURAL keys.** Both
+      decisions were reversals, and the model header explains them at length. Short version:
+      materializing cost 35 GB and climbing to duplicate a 9.9 GB lake on the same disk, and
+      the four md5 surrogate keys cost ~40 billion hash computations across the test suite
+      while buying nothing — LANL's natural keys (`U292@DOM1`, `C1065`) are already short,
+      immutable, and dictionary-encoded by Parquet.
+
+      Referential integrity is enforced across every one of the 1.05e9 rows regardless: the
+      `relationships` tests below simply join on the natural key.
+
+      `is_off_hours` is derived from the MEASURED diurnal band (bench/diurnal.json), not an
+      assumed 9-to-5 — LANL has no wall-clock time, so an assumed business day would be
+      fiction. `is_redteam` is set by joining the full (time, user, src, dst) tuple against
+      the 749 labelled compromise events; joining on user alone would smear the label across
+      each compromised identity's entire benign history.
+    columns:
+      - name: src_user
+        description: "FK -> dim_identity.identity_name. The authenticating identity."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_identity')
+              field: identity_name
+      - name: src_computer
+        description: "FK -> dim_computer.computer_name (the host authenticated FROM)."
+        data_tests:
+          - relationships:
+              to: ref('dim_computer')
+              field: computer_name
+      - name: dst_computer
+        description: "FK -> dim_computer.computer_name (the host authenticated TO)."
+        data_tests:
+          - relationships:
+              to: ref('dim_computer')
+              field: computer_name
+      - name: event_date
+        description: "FK -> dim_time.calendar_date (day grain)."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_time')
+              field: calendar_date
+      - name: event_count
+        description: "Additive measure, always 1. Sums to the event count of any slice."
+        data_tests: [not_null]
+      - name: is_redteam
+        description: "True iff this exact event is one of LANL's 749 labelled compromise events."
+        data_tests: [not_null]
+      - name: outcome
+        data_tests:
+          - accepted_values:
+              values: ["Success", "Fail"]
+              config:
+                # LANL leaves the field as '?' on a minority of rows; those become NULL in
+                # staging and are legitimately neither Success nor Fail.
+                where: "outcome is not null"
+
+  # ---------------------------------------------------------------------------------
+  - name: dim_identity
+    description: |
+      **Grain: one row per authenticating identity** (human user or machine account),
+      keyed on the raw `src_user` string as it appears in the corpus.
+
+      **SCD: Type 1.** Stated deliberately rather than left implicit. The corpus is a
+      58-day snapshot containing no identity-mutation events — a user is never renamed
+      mid-stream — so there is no history to slowly change. Attributes are corpus-wide
+      aggregates and a rebuild overwrites them in place.
+
+      Machine accounts (trailing `$`) are the majority of traffic and are KEPT. Whether to
+      exclude them is an analytical decision each query makes for itself; filtering them
+      here would silently change every downstream number.
+    columns:
+      - name: identity_key
+        data_tests: [unique, not_null]
+      - name: identity_name
+        data_tests: [unique, not_null]
+      - name: is_machine_account
+        data_tests: [not_null]
+      - name: is_compromised
+        description: "True iff this identity appears in LANL's red-team ground truth (104 of them)."
+        data_tests: [not_null]
+      - name: total_auth_events
+        data_tests: [not_null]
+
+  # ---------------------------------------------------------------------------------
+  - name: dim_computer
+    description: |
+      **Grain: one row per host**, whether it appeared as a source, a destination, or both.
+      The union matters: server-like hosts appear almost exclusively as destinations, and
+      without them the fact's `dst_computer_key` would fail its relationships test.
+
+      **SCD: Type 1**, same reasoning as dim_identity.
+
+      `is_redteam_pivot` marks the four hosts the red team launched from — a tiny flag with
+      outsized analytical value: it is the entry point for the Stage-4 blast-radius queries.
+    columns:
+      - name: computer_key
+        data_tests: [unique, not_null]
+      - name: computer_name
+        data_tests: [unique, not_null]
+      - name: host_role
+        data_tests:
+          - accepted_values:
+              values: ["destination_only", "source_only", "server_like", "workstation_like"]
+      - name: is_redteam_pivot
+        data_tests: [not_null]
+
+  # ---------------------------------------------------------------------------------
+  - name: dim_time
+    description: |
+      **Grain: one row per day of the corpus** (58 rows).
+
+      `day_index` and `week_index` are REAL — they are just `t / 86400`. `calendar_date` is
+      a LABEL: LANL ships relative seconds and pipeline/common.py anchors t=0 to 2015-01-01
+      so the lake has a partition key. The anchor is arbitrary, which is exactly why this
+      dimension exposes **no day-of-week column** — it would be fiction, and no model in
+      the project uses one.
+    columns:
+      - name: time_key
+        data_tests: [unique, not_null]
+      - name: calendar_date
+        data_tests: [unique, not_null]
+      - name: day_index
+        data_tests: [unique, not_null]
+      - name: has_redteam_activity
+        data_tests: [not_null]
+
+  # ---------------------------------------------------------------------------------
+  - name: mart_daily_identity_rollup
+    description: |
+      **Grain: one row per (identity, day).** The analytics-facing aggregate that Q1-Q5 and
+      the demo's SQL workbench read.
+
+      Pass-through of Spark's Stage-1 rollup, conformed into the star and enriched with
+      each identity's OWN trailing 30-day baseline (excluding the current day, so a spike
+      cannot inflate the baseline it is measured against).
+
+      Z-scores are NULL — deliberately, not zero — when fewer than 3 baseline days exist or
+      the baseline has no variance. A z-score computed from one prior day is noise wearing a
+      lab coat; emitting it as a number would let it rank in Q1/Q4.
+    columns:
+      - name: identity_key
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_identity')
+              field: identity_key
+      - name: time_key
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_time')
+              field: time_key
+      - name: auth_count
+        data_tests: [not_null]
+      - name: distinct_dst_computers
+        description: "Fan-out: distinct destination hosts this identity touched today. The lateral-movement precursor."
+        data_tests: [not_null]
+      - name: is_redteam_day
+        data_tests: [not_null]
+    # The (identity, day) grain claim is enforced by tests/assert_rollup_grain_is_unique.sql
+    # — a grain documented but unchecked is just a comment.
