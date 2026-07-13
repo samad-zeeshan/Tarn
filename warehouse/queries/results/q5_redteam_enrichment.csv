@@ -1,0 +1,7 @@
+detector,redteam_days_total,redteam_days_caught,redteam_days_MISSED,recall_pct,alerts_raised,precision_pct,identity_days_scanned,lift_over_random
+ANY of Q1-Q4,181.0,62.0,119.0,34.3,63891.0,0.097,1604500,8.6
+Q3 new access paths (>=5 new hosts/day),181.0,56.0,125.0,30.9,33319.0,0.168,1604500,14.9
+TWO OR MORE of Q1-Q4,181.0,22.0,159.0,12.2,2599.0,0.846,1604500,75.0
+Q1 fan-out spike (z>3 vs own baseline),181.0,20.0,161.0,11.0,21136.0,0.095,1604500,8.4
+Q4 failure-ratio spike (z>3),181.0,11.0,170.0,6.1,5752.0,0.191,1604500,17.0
+Q2 off-hours vs own baseline,181.0,0.0,181.0,0.0,6379.0,0.0,1604500,0.0
