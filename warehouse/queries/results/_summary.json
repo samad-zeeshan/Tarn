@@ -1,0 +1,51 @@
+{
+  "warehouse": "/data/work/tarn.duckdb",
+  "run_at": "2026-07-14T05:31:42+00:00",
+  "queries": [
+    {
+      "id": "q1_fanout_week_over_week",
+      "title": "Q1 \u2014 Lateral-movement precursor: destination fan-out, week over week.",
+      "sql": "warehouse/queries/q1_fanout_week_over_week.sql",
+      "result": "warehouse/queries/results/q1_fanout_week_over_week.csv",
+      "rows_returned": 25,
+      "rows_committed": 25,
+      "seconds": 1.091
+    },
+    {
+      "id": "q2_off_hours_vs_baseline",
+      "title": "Q2 \u2014 Off-hours authentication share, each identity against its OWN baseline.",
+      "sql": "warehouse/queries/q2_off_hours_vs_baseline.sql",
+      "result": "warehouse/queries/results/q2_off_hours_vs_baseline.csv",
+      "rows_returned": 25,
+      "rows_committed": 25,
+      "seconds": 0.097
+    },
+    {
+      "id": "q3_new_access_path_rate",
+      "title": "Q3 \u2014 New-access-path rate: first-time (identity -> computer) edges per day.",
+      "sql": "warehouse/queries/q3_new_access_path_rate.sql",
+      "result": "warehouse/queries/results/q3_new_access_path_rate.csv",
+      "rows_returned": 78,
+      "rows_committed": 78,
+      "seconds": 0.194
+    },
+    {
+      "id": "q4_failure_spike_zscore",
+      "title": "Q4 \u2014 Failure-ratio spike detection: windowed z-score, in SQL.",
+      "sql": "warehouse/queries/q4_failure_spike_zscore.sql",
+      "result": "warehouse/queries/results/q4_failure_spike_zscore.csv",
+      "rows_returned": 25,
+      "rows_committed": 25,
+      "seconds": 0.051
+    },
+    {
+      "id": "q5_redteam_enrichment",
+      "title": "Q5 \u2014 Red-team enrichment: would Q1-Q4 actually have surfaced the attacker?",
+      "sql": "warehouse/queries/q5_redteam_enrichment.sql",
+      "result": "warehouse/queries/results/q5_redteam_enrichment.csv",
+      "rows_returned": 6,
+      "rows_committed": 6,
+      "seconds": 0.103
+    }
+  ]
+}
