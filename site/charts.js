@@ -80,6 +80,38 @@ function svgRoot(w, h, title) {
   return svg;
 }
 
+let gradSeq = 0;
+
+/** A left-to-right gradient of one colour, so a flat bar gets some depth. */
+function gradientFor(svg, color) {
+  let defs = svg.querySelector('defs');
+  if (!defs) {
+    defs = el('defs');
+    svg.append(defs);
+  }
+  const id = `g${gradSeq++}`;
+  const lg = el('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '0' });
+  lg.append(el('stop', { offset: '0%', 'stop-color': color, 'stop-opacity': 0.72 }));
+  lg.append(el('stop', { offset: '100%', 'stop-color': color, 'stop-opacity': 1 }));
+  defs.append(lg);
+  return `url(#${id})`;
+}
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Grow a bar out from the baseline the first time it is drawn. */
+function growIn(rect, width) {
+  if (REDUCED) {
+    rect.setAttribute('width', width);
+    return;
+  }
+  rect.setAttribute('width', 0);
+  requestAnimationFrame(() => {
+    rect.style.transition = 'width 720ms cubic-bezier(0.16, 1, 0.3, 1)';
+    rect.setAttribute('width', width);
+  });
+}
+
 /** Round the axis top up so it reads in human numbers. */
 function niceMax(v) {
   if (v <= 0) return 1;
@@ -142,8 +174,8 @@ export function barChart(mount, { rows, valueKey, labelKey, colorKey, format, no
     );
 
     const bar = el('rect', {
-      x: padL, y: y + 10, width: w, height: barH,
-      rx: 5, fill: color,
+      x: padL, y: y + 10, height: barH,
+      rx: 5, fill: gradientFor(svg, color),
     });
     interactive(
       bar,
@@ -152,6 +184,7 @@ export function barChart(mount, { rows, valueKey, labelKey, colorKey, format, no
       `${r[labelKey]}: ${format(v)}`,
     );
     svg.append(bar);
+    growIn(bar, w);
 
     // The direct label is required by the contrast rule above, and it saves the eye a trip to
     // the axis anyway.
@@ -242,6 +275,19 @@ export function lineChart(mount, { series, xKey, yKey, xLabel, yLabel, xTicks })
 
   series.forEach((s) => {
     const d = s.points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p[xKey])},${sy(p[yKey])}`).join(' ');
+
+    // A soft wash under the line. It gives the two series some weight without adding a second
+    // encoding, since the line still carries the value.
+    const defs = svg.querySelector('defs') || svg.insertBefore(el('defs'), svg.firstChild);
+    const areaId = `a${gradSeq++}`;
+    const ag = el('linearGradient', { id: areaId, x1: '0', y1: '0', x2: '0', y2: '1' });
+    ag.append(el('stop', { offset: '0%', 'stop-color': s.color, 'stop-opacity': 0.22 }));
+    ag.append(el('stop', { offset: '100%', 'stop-color': s.color, 'stop-opacity': 0 }));
+    defs.append(ag);
+
+    const area = `${d} L${sx(s.points[s.points.length - 1][xKey])},${H - padB} L${sx(s.points[0][xKey])},${H - padB} Z`;
+    svg.append(el('path', { d: area, fill: `url(#${areaId})`, stroke: 'none' }));
+
     svg.append(el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
 
     s.points.forEach((p) => {

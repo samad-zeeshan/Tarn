@@ -178,6 +178,7 @@ section:first-of-type { border-top: 0; }
 }
 .section-head { margin-bottom: var(--s6); max-width: 68ch; }
 .section-head p { color: var(--fg-muted); margin-bottom: 0; }
+.section-head p + p { margin-top: var(--s4); }
 
 /* ---------------------------------------------------------------- hero */
 .hero { padding-top: var(--s7); }
@@ -465,4 +466,67 @@ footer {
 .sm-title {
   font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--fg-dim); margin-bottom: var(--s2);
+}
+
+/* ---------------------------------------------------------------- cursor light */
+/* A soft light that follows the pointer. Purely atmospheric, so it sits behind everything,
+   ignores clicks, and turns itself off for anyone who asked for less motion. */
+#glow {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(
+      680px circle at var(--mx, 50%) var(--my, 12%),
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 12%),
+      color-mix(in srgb, var(--series-1) 8%, transparent),
+      transparent 55%
+    );
+  opacity: 0;
+  transition: opacity 700ms var(--ease);
+}
+#glow.on { opacity: 1; }
+:root[data-theme='light'] #glow { opacity: 0; }
+:root[data-theme='light'] #glow.on { opacity: 0.75; }
+@media (prefers-reduced-motion: reduce) { #glow { display: none; } }
+
+header.top, main, footer { position: relative; z-index: 1; }
+
+/* Cards catch the light too, but only the one under the cursor. */
+.card { position: relative; overflow: hidden; }
+.card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    360px circle at var(--cx, 50%) var(--cy, 50%),
+    color-mix(in srgb, var(--fg) 5%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 320ms var(--ease);
+}
+.card:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .card::after { display: none; } }
+
+/* The top edge of a card picks up the accent as the cursor crosses it. */
+.card::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px; pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 55%, transparent) calc(var(--cx, 50%) * 0.9),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 320ms var(--ease);
+}
+.card:hover::before { opacity: 1; }
+
+/* Marks lift slightly under the pointer, so hovering a bar feels like touching it. */
+.mark { transform-box: fill-box; transform-origin: left center; }
+.mark:hover, .mark:focus-visible {
+  opacity: 1;
+  filter: brightness(1.12) saturate(1.05);
 }
