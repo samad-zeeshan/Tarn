@@ -8,6 +8,7 @@ note on ANCHOR_EPOCH before trusting any date or hour column.
 from __future__ import annotations
 
 import os
+import tempfile
 from datetime import date
 
 from pyspark.sql import DataFrame, SparkSession
@@ -48,6 +49,15 @@ REDTEAM_SCHEMA = StructType(
 
 def spark_session(app: str, shuffle_partitions: int | None = None, **conf: str) -> SparkSession:
     """Build a local Spark session. Every bench artifact records the config it ran under."""
+    # Scratch space defaults to the system temp dir, which exists everywhere. It used to default
+    # to /data/work/spark-tmp, which only exists because docker-compose mounts it there, and that
+    # was a container-shaped assumption baked into a library. Anywhere without that mount, Spark
+    # could not create the directory and the JVM died on startup, taking every test with it.
+    #
+    # docker-compose still points SPARK_LOCAL_DIR at the data volume, because a billion-row
+    # shuffle spills far more than a container's own writable layer wants to hold.
+    local_dir = os.environ.get("SPARK_LOCAL_DIR") or tempfile.gettempdir()
+
     builder = (
         SparkSession.builder.appName(f"tarn-{app}")
         .master(os.environ.get("SPARK_MASTER", "local[*]"))
@@ -55,7 +65,7 @@ def spark_session(app: str, shuffle_partitions: int | None = None, **conf: str) 
         .config("spark.sql.session.timeZone", "UTC")
         .config("spark.sql.parquet.compression.codec", "snappy")
         .config("spark.sql.files.maxPartitionBytes", "128m")
-        .config("spark.local.dir", os.environ.get("SPARK_LOCAL_DIR", "/data/work/spark-tmp"))
+        .config("spark.local.dir", local_dir)
     )
     if shuffle_partitions is not None:
         builder = builder.config("spark.sql.shuffle.partitions", str(shuffle_partitions))
