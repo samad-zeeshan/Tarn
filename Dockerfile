@@ -1,6 +1,6 @@
-# Tarn runtime — one image runs every stage (Spark, dbt, streaming, graph, tests).
+# Tarn runtime, one image runs every stage (Spark, dbt, streaming, graph, tests).
 #
-# DIRECTIVE rule 8: Spark runs in Docker/WSL2, never native Windows. The host here is
+# Spark runs in Docker, never on the host. This machine is
 # Windows 11 with Python 3.14 + Java 25, neither of which PySpark 3.5 supports; this
 # image pins the combination Spark is actually tested against.
 FROM python:3.11-slim-bookworm

@@ -1,13 +1,7 @@
--- dim_computer — one row per host, whether it ever appeared as a source, a destination,
--- or both.
+-- One row per host, whether it appeared as a source, a destination, or both.
 --
--- GRAIN: one row per computer name (e.g. 'C1065').
--- SCD:   Type 1, same reasoning as dim_identity — the corpus contains no host-rename or
---        host-decommission events, so there is no history to track.
---
--- The union is the whole point: a host that only ever appears as a *destination* still
--- needs a dimension row, or the fact's dst_computer_key would fail its relationships
--- test. Servers show up almost exclusively as destinations; workstations as both.
+-- The union matters. Server-like hosts appear almost only as destinations, and without them the
+-- fact's dst_computer key would fail its relationships test.
 
 {{ config(materialized='table') }}
 

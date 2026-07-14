@@ -1,23 +1,7 @@
-"""Stage 1c — per-identity daily rollups (the feature table every later stage reads).
+"""
+Per-identity daily rollups. One row per identity per day, joined to the red-team labels.
 
-One row per (src_user, event_date) with the behavioural features that identity-security
-analytics actually key on:
-
-  auth_count, success_count, failure_count, failure_ratio
-  distinct_dst_computers      fan-out — the lateral-movement precursor
-  distinct_src_computers      how many hosts this identity authenticated *from*
-  new_dst_computers           destinations this identity had never touched on any prior
-                              day — the "new access path" signal. This is the expensive
-                              one: it needs the identity's entire history, not just today.
-  off_hours_events / share    scored against the band bench/diurnal.py MEASURED
-  is_redteam_day              did a labelled compromise event land on this identity today
-
-`new_dst_computers` is computed with a first-seen join rather than a per-day expanding
-window over a set: for each (user, dst_computer) we take the MIN event_date the pair ever
-appears, then a destination is "new" on day D exactly when its first-seen date == D. One
-shuffle instead of an O(days^2) self-join.
-
-    python pipeline/rollup.py --lake /data/lake/auth --output /data/lake/rollup
+This is the feature table every later stage reads.
 """
 
 from __future__ import annotations
@@ -33,24 +17,24 @@ from pyspark.sql import functions as F
 
 from pipeline.common import read_redteam_any, spark_session
 
-DEFAULT_OFF_HOURS_BAND = list(range(0, 6))  # only a fallback; real band comes from bench/
+DEFAULT_OFF_HOURS_BAND = list(range(0, 6))
 
 
 def load_off_hours_band(path: str | None) -> list[int]:
-    """Read the measured off-hours band. Never guess it — see pipeline/diurnal.py."""
+    """Read the measured band. Never guess it, see pipeline/diurnal.py."""
     if not path or not Path(path).exists():
-        print(f"  [warn] {path} missing — falling back to hours {DEFAULT_OFF_HOURS_BAND}; "
-              "run pipeline/diurnal.py to derive the real band")
+        print(f"  [warn] {path} missing, falling back to hours {DEFAULT_OFF_HOURS_BAND}. "
+              "Run pipeline/diurnal.py to derive the real band")
         return DEFAULT_OFF_HOURS_BAND
     band = json.loads(Path(path).read_text())["off_hours"]["band"]
     if not band:
-        print("  [warn] diurnal.json reports no trough — off-hours share will be 0 and "
+        print("  [warn] diurnal.json reports no trough, off-hours share will be 0 and "
               "must not be claimed")
     return band
 
 
 def first_seen_destinations(events: DataFrame) -> DataFrame:
-    """MIN(event_date) per (identity, destination) — the first time that edge ever existed."""
+    """The first date each (identity, destination) edge ever appeared."""
     return (
         events.filter(F.col("dst_computer").isNotNull())
         .groupBy("src_user", "dst_computer")
@@ -67,18 +51,15 @@ def build_rollup(
     dedup_distincts: bool = True,
     max_day: int | None = None,
 ) -> DataFrame:
-    """Per-identity daily rollup.
+    """Build the identity-day rollup.
 
-    `broadcast_redteam` and `dedup_distincts` are the two knobs pipeline/optimize_bench.py
-    flips. They change execution strategy ONLY — the output is asserted identical across
-    all four combinations (tests/test_pipeline.py::test_optimization_variants_produce_identical_results).
-
-    `max_day` bounds the benchmark to an identical slice across every variant. The bound is
-    applied here, inside the function all four variants call, rather than by pre-filtering the
-    lake — so there is no way for one variant to accidentally see different bytes than another.
+    broadcast_redteam and dedup_distincts are the knobs optimize_bench.py flips. They change
+    execution strategy only, and a test asserts all four combinations produce identical output.
     """
     events = spark.read.parquet(lake_path).filter(F.col("src_user").isNotNull())
     if max_day is not None:
+        # The bound is applied inside the function all four variants call, so there is no way
+        # for one variant to accidentally see different bytes than another.
         events = events.filter(F.col("day_index") < max_day)
 
     is_off_hours = (
@@ -97,26 +78,12 @@ def build_rollup(
     )
 
     if dedup_distincts:
-        # OPTIMIZED — ONE SHARED GRAIN, TWO CONSUMERS.
-        #
-        # The naive rollup touches the 113M-row event set TWICE: once for the daily
-        # aggregation, and once more inside first_seen_destinations(). That is two full
-        # scans of the lake and two wide shuffles of the same rows.
-        #
-        # But both consumers only ever need the DISTINCT (identity, date, dst, src) tuples:
-        #   - daily      groups that grain by (identity, date)
-        #   - first_seen groups the SAME grain by (identity, dst) taking min(date)
-        #
-        # So materialize the grain once, persist it, and let both read it. That replaces
-        # {scan + Expand-shuffle} + {scan + shuffle} with {scan + one shuffle} + two cheap
-        # aggregations over a set an order of magnitude smaller than the input.
-        #
-        # The Expand elimination comes along for free: with the grain already deduplicated,
-        # COUNT(DISTINCT) over it is a plain count, so Spark no longer replays every input
-        # row once per distinct expression.
-        #
-        # MEMORY_AND_DISK, not MEMORY_ONLY: the grain is large and a silent re-computation
-        # on eviction would put the second scan straight back in.
+        # The naive version below touches the event set twice, once for the daily aggregation
+        # and once inside first_seen_destinations. Both only ever need the distinct
+        # (identity, date, dst, src) tuples, so build that grain once and let both read it.
+        # Removing the Expand behind COUNT(DISTINCT) comes free, since counting an already
+        # deduplicated grain is a plain count. Spark cannot do this rewrite itself: it has no
+        # way to know two separately written aggregations share a grain.
         grain = (
             base.groupBy("src_user", "event_date", "dst_computer", "src_computer")
             .agg(
@@ -125,6 +92,8 @@ def build_rollup(
                 F.sum("fail").alias("fail"),
                 F.sum("off_hours").alias("off_hours"),
             )
+            # MEMORY_AND_DISK, not MEMORY_ONLY. The grain is large, and a silent recompute on
+            # eviction would put the second scan straight back in.
             .persist(StorageLevel.MEMORY_AND_DISK)
         )
 
@@ -137,16 +106,12 @@ def build_rollup(
             F.countDistinct("src_computer").alias("distinct_src_computers"),
         )
 
-        # first_seen, derived from the grain rather than from a second scan of the lake.
         first_seen = (
             grain.filter(F.col("dst_computer").isNotNull())
             .groupBy("src_user", "dst_computer")
             .agg(F.min("event_date").alias("first_seen_date"))
         )
     else:
-        # BASELINE: the obvious version. Two COUNT(DISTINCT) in a single groupBy (which
-        # Spark plans with an Expand), and first_seen computed from an independent second
-        # pass over the events.
         daily = base.groupBy("src_user", "event_date").agg(
             F.count("*").alias("auth_count"),
             F.sum("succ").alias("success_count"),
@@ -157,8 +122,6 @@ def build_rollup(
         )
         first_seen = first_seen_destinations(events)
 
-    # New-access-path rate: destinations whose first-ever appearance for this identity is
-    # this very day.
     new_dst = (
         first_seen.groupBy("src_user", F.col("first_seen_date").alias("event_date"))
         .agg(F.count("*").alias("new_dst_computers"))
@@ -168,8 +131,6 @@ def build_rollup(
         {"new_dst_computers": 0}
     )
 
-    # Red-team enrichment. The label table is 749 rows; broadcasting it turns a sort-merge
-    # join (both sides shuffled) into a map-side hash lookup.
     redteam = read_redteam_any(spark, redteam_path)
     rt_days = (
         redteam.select(
@@ -204,10 +165,10 @@ def build_rollup(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--lake", required=True)
     ap.add_argument("--output", required=True)
-    ap.add_argument("--redteam", default="/data/raw/redteam.txt.gz")
+    ap.add_argument("--redteam", default="/data/lake/redteam")
     ap.add_argument("--diurnal", default="bench/diurnal.json")
     ap.add_argument("--stats-out", default=None)
     args = ap.parse_args()

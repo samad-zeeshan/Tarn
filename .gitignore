@@ -1,4 +1,4 @@
-# Raw + derived data never enters git (DIRECTIVE rule 7).
+# Raw and derived data never enters git.
 # Raw lives outside the OneDrive tree entirely: C:\data\tarn\ -> /data in Docker.
 data/raw/
 data/lake/
@@ -30,9 +30,8 @@ metastore_db/
 derby.log
 
 # NOTE: site/data/*.parquet and site/vendor/ ARE committed on purpose. They are the demo's
-# payload — GitHub Pages has no pipeline to rebuild them from, and the directive requires
-# DuckDB-WASM be vendored rather than pulled from a CDN. They are generated artifacts that
-# happen to be deliverables.
+# payload. GitHub Pages has no pipeline to rebuild them from, and DuckDB-WASM is vendored
+# rather than pulled from a CDN. They are generated artifacts that happen to be deliverables.
 site/dist/
 
 # OS / editor

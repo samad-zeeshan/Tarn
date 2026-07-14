@@ -19,7 +19,7 @@ sources:
       - name: redteam
         description: >
           LANL's 749 labelled red-team compromise events, landed in the lake as Parquet by
-          pipeline/sessionize.py. Ground truth — the reason every layer can answer "would
+          pipeline/sessionize.py. Ground truth, the reason every layer can answer "would
           this have caught the attacker?" instead of "how many rows are there?".
       - name: streaming_windows
         description: >

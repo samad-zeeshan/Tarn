@@ -1,16 +1,7 @@
--- dim_identity — one row per authenticating identity (human user OR machine account).
+-- One row per authenticating identity, human or machine account.
 --
--- GRAIN: one row per src_user string as it appears in the corpus (e.g. 'U292@DOM1',
---        'C1065$@DOM1', 'ANONYMOUS LOGON@C586').
--- SCD:   Type 1. The corpus is a 58-day snapshot with no identity mutation events in it —
---        a user never gets renamed mid-stream — so there is no history to slowly change.
---        Attributes here are corpus-wide aggregates, and rebuilding overwrites them.
---        Stating this explicitly because "we chose Type 1" and "we didn't think about
---        SCDs" look identical in a schema.
---
--- Machine accounts (trailing '$') are ~the majority of traffic. They are kept, not
--- filtered: whether to exclude them is an analytical decision each query makes for
--- itself, and hiding them here would silently change every downstream number.
+-- SCD type 1, stated deliberately. The corpus is a 58-day snapshot with no identity-mutation
+-- events in it, so there is no history to slowly change.
 
 {{ config(materialized='table') }}
 

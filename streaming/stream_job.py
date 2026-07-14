@@ -1,27 +1,7 @@
-"""Stage 3b — Spark Structured Streaming: 1-minute tumbling windows, watermarked.
+"""
+Spark Structured Streaming: 1-minute tumbling windows per identity, watermarked.
 
-Consumes the replayed auth events from Redpanda and maintains, per identity, per 1-minute
-tumbling window of EVENT time:
-
-    auth_count, failure_count, distinct destinations, distinct sources
-
-with a watermark on event_ts so late records are still folded into their rightful window
-(up to the watermark delay) and state for closed windows is dropped rather than grown
-forever. Output is appended to Parquet, which dbt then picks up as a streaming mart —
-same warehouse, same star, no second system.
-
-WHY `append` AND NOT `update`: append mode emits a window exactly once, when the watermark
-passes its end. That gives the sink immutable, non-duplicated rows — which is what makes
-the checkpoint-recovery test meaningful (kill the job mid-run, restart, and assert no
-window is written twice). Update mode would re-emit windows on every trigger and the test
-would be vacuous.
-
-Lag instrumentation: each output row carries `max_produce_ts_ms` (the newest wall-clock
-produce timestamp of any record in that window). foreachBatch stamps the wall-clock commit
-time and writes one JSON line per batch to the lag log, which streaming/lag_probe.py turns
-into bench/streaming_lag.json.
-
-    python streaming/stream_job.py --duration 300
+Consumes replayed auth events from Redpanda and appends to Parquet that dbt reads as a mart.
 """
 
 from __future__ import annotations
@@ -64,27 +44,23 @@ MESSAGE_SCHEMA = StructType(
 
 
 def windowed_aggregate(events, window: str, watermark: str):
-    """The actual streaming transformation, factored out so the tests exercise THIS code
-    and not a re-implementation of it.
-
-    Works on a streaming OR a batch DataFrame — Structured Streaming's whole premise — which
-    is what lets tests/test_streaming.py drive it with a file source and assert on watermark
-    and late-data behaviour without standing up Kafka.
-    """
+    """The streaming transformation, factored out so the tests exercise this code and not a
+    re-implementation of it."""
     return (
         events
-        # Watermark on EVENT time (the replayed LANL clock). Records arriving more than
-        # `watermark` behind the max event-time seen are dropped; everything else lands in
-        # its true window even if it arrives out of order.
+        # The watermark is on event time, the replayed LANL clock. Records arriving further
+        # behind than this are dropped. Everything else lands in its true window even if it
+        # arrives out of order.
         .withWatermark("event_ts", watermark)
         .groupBy(F.window(F.col("event_ts"), window), F.col("src_user"))
         .agg(
             F.count("*").alias("auth_count"),
             F.sum(F.when(F.col("outcome") == "Fail", 1).otherwise(0)).alias("failure_count"),
             F.sum(F.when(F.col("outcome") == "Success", 1).otherwise(0)).alias("success_count"),
+            # Approximate on purpose. Exact distinct counts mean holding every seen value in
+            # state per window, and the batch layer already gives exact numbers.
             F.approx_count_distinct("dst_computer").alias("distinct_dst_computers"),
             F.approx_count_distinct("src_computer").alias("distinct_src_computers"),
-            # Newest produce timestamp in this window — the lag anchor.
             F.max("produce_ts_ms").alias("max_produce_ts_ms"),
         )
         .select(
@@ -103,7 +79,7 @@ def windowed_aggregate(events, window: str, watermark: str):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--topic", default="tarn.auth")
     ap.add_argument("--bootstrap", default=os.environ.get("KAFKA_BOOTSTRAP", "redpanda:9092"))
     ap.add_argument("--output", default="/data/lake/streaming_windows")
@@ -112,7 +88,7 @@ def main() -> int:
     ap.add_argument("--window", default="1 minute")
     ap.add_argument("--watermark", default="2 minutes")
     ap.add_argument("--trigger", default="5 seconds")
-    ap.add_argument("--duration", type=int, default=300, help="seconds to run before stopping")
+    ap.add_argument("--duration", type=int, default=300)
     ap.add_argument("--starting-offsets", default="earliest", choices=["earliest", "latest"])
     args = ap.parse_args()
 
@@ -144,7 +120,6 @@ def main() -> int:
     lag_log.parent.mkdir(parents=True, exist_ok=True)
 
     def commit_batch(batch_df, batch_id: int) -> None:
-        """Write the batch, then record how stale its freshest record was at commit time."""
         batch_df.persist()
         try:
             rows = batch_df.count()
@@ -157,7 +132,7 @@ def main() -> int:
                 .parquet(args.output)
             )
 
-            # Commit-time lag. Stamped AFTER the write returns, so it includes the sink.
+            # Stamped after the write returns, so the lag figure includes the sink.
             commit_ms = int(time.time() * 1000)
             stats = batch_df.agg(
                 F.min("max_produce_ts_ms").alias("oldest"),
@@ -171,7 +146,6 @@ def main() -> int:
                 "commit_ts_ms": commit_ms,
                 "windows_committed": int(stats["windows"]),
                 "events_in_windows": int(stats["events"]),
-                # Lag per window = commit time - the newest produce ts inside that window.
                 "lag_ms_min": commit_ms - int(stats["newest"]),
                 "lag_ms_max": commit_ms - int(stats["oldest"]),
                 "lag_samples": [
@@ -187,6 +161,9 @@ def main() -> int:
         finally:
             batch_df.unpersist()
 
+    # Append mode, not update. Append emits a window exactly once, when the watermark passes
+    # its end, which is what makes the checkpoint recovery test meaningful. Under update mode
+    # windows re-emit every trigger and the test would be vacuous.
     query = (
         windowed.writeStream.outputMode("append")
         .foreachBatch(commit_batch)
@@ -200,7 +177,6 @@ def main() -> int:
 
     query.awaitTermination(timeout=args.duration)
 
-    # Capture Spark's own view of throughput before tearing the query down.
     progress = [
         {
             "batch_id": p["batchId"],
@@ -215,7 +191,7 @@ def main() -> int:
 
     query.stop()
     spark.stop()
-    print(f"[stream] stopped; {len(progress)} progress records captured")
+    print(f"[stream] stopped, {len(progress)} progress records captured")
     return 0
 
 

@@ -1,17 +1,7 @@
--- Q3 — New-access-path rate: first-time (identity -> computer) edges per day.
+-- Q3: new access paths. First-time (identity -> computer) edges per day.
 --
--- QUESTION: how fast is the network's access graph growing new edges, and who is creating
---           them? Every genuinely new user->host edge is a path that did not exist
---           yesterday. In a stable enterprise this rate decays as identities settle into
---           their normal set of machines; a spike is either onboarding or an intruder
---           exploring.
---
--- This is the query that most directly maps to "paths to privilege": the edge set IS the
--- privilege graph, and this measures its growth.
---
--- Two result shapes in one query, via the `scope` column:
---   scope='NETWORK'  — the daily network-wide new-edge rate (the decay curve)
---   scope='IDENTITY' — the identities creating the most new edges on their peak day
+-- The edge set is the privilege graph, so this measures it growing. Every new edge is a path
+-- that did not exist yesterday.
 
 with network_daily as (
     select

@@ -1,8 +1,8 @@
-"""Stage 1 — parsing, sessionization, and rollup correctness.
+"""
+Parsing, sessionization, and rollup correctness.
 
-The rollup tests do not check "does it run". They check the numbers against expectations
-computed by hand from a fixture small enough to verify by eye, because a rollup that runs
-and returns wrong counts is worse than one that crashes.
+The rollup tests check numbers against expectations worked out by hand from a fixture small
+enough to verify by eye. A rollup that runs and returns wrong counts is worse than one that crashes.
 """
 
 from __future__ import annotations
@@ -19,9 +19,6 @@ from pipeline.rollup import build_rollup
 from pipeline.sessionize import build_lake, build_sessions
 
 
-# ---------------------------------------------------------------------------------------
-# parsing / derived columns
-# ---------------------------------------------------------------------------------------
 def test_derive_columns_maps_lanl_conventions(spark):
     raw = spark.createDataFrame(
         [
@@ -62,16 +59,13 @@ def test_question_mark_becomes_null_not_literal(spark):
         assert got[col] is None, f"{col} kept the literal '?'"
 
 
-# ---------------------------------------------------------------------------------------
-# lake
-# ---------------------------------------------------------------------------------------
 def test_lake_is_partitioned_by_date_and_preserves_row_count(spark, sample_auth_path, tmp_path):
     out = str(tmp_path / "lake")
     stats = build_lake(spark, sample_auth_path, out, coalesce=0)
 
     # The committed slice is 8 days, so the lake must have 8 date partitions.
     assert stats["partitions"] == 8
-    assert stats["rows"] == 99_434, "CI slice row count changed — regenerate data/sample/"
+    assert stats["rows"] == 99_434, "CI slice row count changed, regenerate data/sample/"
 
     written = spark.read.parquet(out)
     for col in ("event_date", "day_index", "hour_of_day", "is_success", "src_is_machine"):
@@ -79,7 +73,7 @@ def test_lake_is_partitioned_by_date_and_preserves_row_count(spark, sample_auth_
 
 
 def test_lake_round_trips_without_losing_events(spark, sample_auth_path, tmp_path):
-    """Reading the lake back must yield exactly what went in — no silent DROPMALFORMED loss."""
+    """Reading the lake back must yield exactly what went in, with no silent DROPMALFORMED loss."""
     out = str(tmp_path / "lake")
     build_lake(spark, sample_auth_path, out, coalesce=0)
 
@@ -90,9 +84,6 @@ def test_lake_round_trips_without_losing_events(spark, sample_auth_path, tmp_pat
     assert lake_count == raw_count
 
 
-# ---------------------------------------------------------------------------------------
-# sessionization
-# ---------------------------------------------------------------------------------------
 def test_sessions_split_on_idle_gap(spark, tmp_path):
     """Three events: two within the gap, one after it. Expect exactly two sessions."""
     lake = str(tmp_path / "lake")
@@ -118,7 +109,7 @@ def test_sessions_split_on_idle_gap(spark, tmp_path):
 
 
 def test_session_boundary_is_exclusive_at_exactly_the_gap(spark, tmp_path):
-    """A gap of exactly idle_gap must NOT split — the rule is `> gap`, and off-by-one here
+    """A gap of exactly idle_gap must not split. The rule is `> gap`, and an off-by-one here
     would silently reshape every session in the corpus."""
     lake = str(tmp_path / "lake")
     rows = [
@@ -133,17 +124,13 @@ def test_session_boundary_is_exclusive_at_exactly_the_gap(spark, tmp_path):
     assert stats["sessions"] == 1, "gap of exactly idle_gap must not open a new session"
 
 
-# ---------------------------------------------------------------------------------------
-# rollup — hand-computed expectations
-# ---------------------------------------------------------------------------------------
 @pytest.fixture(scope="module")
 def toy_lake(spark, tmp_path_factory):
     """A fixture small enough to verify by eye.
 
-    U1 on day 0: 4 events, 3 success 1 fail, hits C9 and C8 (fan-out 2), from C1.
-                 One event at hour 2 (inside the off-hours band we pass in).
-    U1 on day 1: 2 events, both success, hits C9 (already seen) and C7 (NEW).
-    U2 on day 0: 1 event, success, hits C9.
+    U1 day 0: 4 events, 3 success 1 fail, hits C9 and C8, one of them at hour 2.
+    U1 day 1: 2 events, hits C9 (already seen) and C7 (new).
+    U2 day 0: 1 event, hits C9.
     """
     base = tmp_path_factory.mktemp("toy")
     lake = str(base / "auth")
@@ -151,12 +138,12 @@ def toy_lake(spark, tmp_path_factory):
 
     D0, D1 = 0, 86_400
     rows = [
-        # U1 day 0 — hour 10 (36000s), hour 2 (7200s = off-hours)
+        # U1 day 0, hour 10 (36000s), hour 2 (7200s = off-hours)
         (D0 + 36_000, "U1@DOM1", "x@DOM1", "C1", "C9", "Kerberos", "Network", "LogOn", "Success"),
         (D0 + 36_060, "U1@DOM1", "x@DOM1", "C1", "C8", "Kerberos", "Network", "LogOn", "Success"),
         (D0 + 36_120, "U1@DOM1", "x@DOM1", "C1", "C9", "Kerberos", "Network", "LogOn", "Fail"),
         (D0 + 7_200, "U1@DOM1", "x@DOM1", "C1", "C9", "Kerberos", "Network", "LogOn", "Success"),
-        # U1 day 1 — C9 is old, C7 is new
+        # U1 day 1, C9 is old, C7 is new
         (D1 + 36_000, "U1@DOM1", "x@DOM1", "C1", "C9", "Kerberos", "Network", "LogOn", "Success"),
         (D1 + 36_060, "U1@DOM1", "x@DOM1", "C1", "C7", "Kerberos", "Network", "LogOn", "Success"),
         # U2 day 0
@@ -211,10 +198,10 @@ def test_rollup_matches_hand_computed_values(spark, toy_lake):
     [(False, False), (True, False), (False, True), (True, True)],
 )
 def test_optimization_variants_produce_identical_results(spark, toy_lake, broadcast, dedup):
-    """The 2x2 in pipeline/optimize_bench.py must change execution strategy ONLY.
+    """The 2x2 must change execution strategy only.
 
-    If a variant computed a different answer, the whole benchmark would be measuring the
-    speed of being wrong. This is the test that makes the speedup claim honest.
+    If a variant computed a different answer the benchmark would be measuring the speed of
+    being wrong. This is the test that makes the speedup claim honest.
     """
     lake, rt = toy_lake
     cols = [
@@ -235,7 +222,7 @@ def test_optimization_variants_produce_identical_results(spark, toy_lake, broadc
 
 
 def test_rollup_is_deterministic(spark, toy_lake):
-    """Same input, same code, same answer. DIRECTIVE rule 4."""
+    """Same input, same code, same answer."""
     lake, rt = toy_lake
     runs = [
         build_rollup(spark, lake, rt, [0, 1, 2, 3])
@@ -248,10 +235,10 @@ def test_rollup_is_deterministic(spark, toy_lake):
 
 
 def test_redteam_label_does_not_smear_across_the_identity(spark, toy_lake):
-    """U1 is compromised on day 1 only. Day 0 must NOT be flagged.
+    """U1 is compromised on day 1 only, so day 0 must not be flagged.
 
-    Joining the label on user alone (rather than the full time/user/src/dst tuple) would
-    mark every day of a compromised account and quietly inflate every recall number in Q5.
+    Joining the label on user alone would mark every day of a compromised account and quietly
+    inflate every recall number in Q5.
     """
     lake, rt = toy_lake
     rows = {
@@ -262,9 +249,6 @@ def test_redteam_label_does_not_smear_across_the_identity(spark, toy_lake):
     assert rows[("U1@DOM1", "2015-01-02")] is True
 
 
-# ---------------------------------------------------------------------------------------
-# diurnal / off-hours derivation (pure function — no Spark needed)
-# ---------------------------------------------------------------------------------------
 def test_off_hours_band_found_in_a_clear_trough():
     # Quiet 22-05, busy 06-21.
     counts = {h: (100 if h in (22, 23, 0, 1, 2, 3, 4, 5) else 500) for h in range(24)}
@@ -275,9 +259,9 @@ def test_off_hours_band_found_in_a_clear_trough():
 
 
 def test_off_hours_refuses_to_guess_on_a_flat_curve():
-    """A flat curve means hour-of-day carries no signal. The band must come back EMPTY
-    rather than picking an arbitrary 8 hours — this is the guard that stopped Tarn from
-    claiming an off-hours signal that the data does not support."""
+    """A flat curve means hour of day carries no signal, so the band must come back empty
+    rather than picking an arbitrary 8 hours. This is the guard that stopped the project from
+    claiming an off-hours signal the data does not support."""
     counts = {h: 1000 for h in range(24)}
     got = derive_off_hours(counts, near_min_pct=0.15)
     assert got["band"] == []

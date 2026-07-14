@@ -1,0 +1,42 @@
+{
+  "what": "The optimization that lost. Kept because deleting it would make spark_opt.json look like the answer was obvious.",
+  "hypothesis": "The rollup's bottleneck is the Expand operator Spark plans behind two COUNT(DISTINCT) in one groupBy. Expand replays every input row once per distinct expression before the shuffle, so the shuffle carries a multiple of the input. The textbook fix is to collapse to the distinct grain first and count over that.",
+  "slice": {
+    "rows": 113699303,
+    "dates": 7,
+    "date_min": "2015-01-01",
+    "date_max": "2015-01-07"
+  },
+  "method": "Median of 5 timed runs after 1 warm-up, all four variants in one Spark session, spark.sql.shuffle.partitions=24.",
+  "variants": {
+    "baseline": {
+      "label": "two scans, Expand COUNT(DISTINCT), SortMergeJoin",
+      "median_seconds": 40.522,
+      "runs_seconds": [36.415, 36.272, 40.522, 41.612, 57.333],
+      "speedup_vs_baseline": 1.0
+    },
+    "broadcast_only": {
+      "label": "broadcast the red-team label table",
+      "median_seconds": 61.135,
+      "runs_seconds": [65.432, 57.233, 61.135, 63.504, 57.512],
+      "speedup_vs_baseline": 0.663
+    },
+    "dedup_only": {
+      "label": "two-stage distinct aggregation, first_seen still from a second scan",
+      "median_seconds": 52.636,
+      "runs_seconds": [58.156, 52.597, 52.636, 53.191, 50.741],
+      "speedup_vs_baseline": 0.77
+    },
+    "both": {
+      "label": "two-stage distinct aggregation plus broadcast join",
+      "median_seconds": 50.294,
+      "runs_seconds": [49.258, 50.709, 50.678, 50.294, 48.821],
+      "speedup_vs_baseline": 0.806
+    }
+  },
+  "result": "NO WIN. Every variant was slower than doing nothing. The harness printed 'NO WIN: baseline was fastest. Recorded honestly; do not claim a speedup.' and exited.",
+  "why_it_lost": "Collapsing to the distinct grain adds a shuffle. It buys a cheaper wide shuffle by removing the Expand row multiplication, then immediately spends the savings on the extra one. Meanwhile the real bottleneck had nothing to do with Expand: the rollup scanned the event set twice, once for the daily aggregation and once inside first_seen_destinations().",
+  "what_worked_instead": "Not 'dedupe first' but 'share the grain'. Both consumers only need the distinct (identity, date, dst, src) tuples, so materialize the grain once, persist it, and let both read it. One scan and one wide shuffle where there were two of each. Removing the Expand then comes free, because COUNT(DISTINCT) over an already deduplicated grain is a plain count. Result: 50.70s to 39.38s, 1.29x, output verified identical. See spark_opt.json.",
+  "why_spark_cannot_do_this_itself": "It has no way to know that two separately expressed aggregations are both reachable from a common grain.",
+  "variance_warning": "The same baseline code measured 40.52s in this run and 50.70s in the run that produced spark_opt.json. That is roughly 25% drift between Spark sessions from JIT warmth, OS page cache and GC state. It is why the final benchmark times all four variants back to back in one session and reports a within-session ratio. Cross-run absolute comparisons on a laptop are not meaningful."
+}

@@ -1,14 +1,5 @@
-"""Stage 2 driver — run `dbt build` with the MEASURED off-hours band injected.
-
-fact_auth_event.is_off_hours must never be a hard-coded 9-to-5 (see pipeline/diurnal.py for
-why that would be fiction on this corpus). The band is an output of a measurement, so it
-has to travel from bench/diurnal.json into dbt as a var rather than being retyped into a
-model where it would immediately drift.
-
-This wrapper is the seam. It reads the band, refuses to build if the measurement says there
-isn't one, and hands it to dbt.
-
-    python warehouse/build.py --lake /data/lake --diurnal bench/diurnal.json
+"""
+Run dbt with the measured off-hours band injected as a var.
 """
 
 from __future__ import annotations
@@ -24,26 +15,22 @@ WAREHOUSE = REPO / "warehouse"
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--lake", default="/data/lake")
     ap.add_argument("--diurnal", default=str(REPO / "bench" / "diurnal.json"))
     ap.add_argument("--target", default="dev")
-    ap.add_argument(
-        "--fact-materialization",
-        default="view",
-        choices=["table", "view"],
-        help="the fact stays in the lake as a view by default — see the header of "
-             "models/marts/fact_auth_event.sql for the 134 GB reason why",
-    )
-    ap.add_argument("--select", default=None, help="pass through to dbt --select")
-    ap.add_argument("dbt_command", nargs="?", default="build", help="build | run | test | docs")
+    ap.add_argument("--fact-materialization", default="view", choices=["table", "view"])
+    ap.add_argument("--select", default=None)
+    ap.add_argument("dbt_command", nargs="?", default="build")
     args = ap.parse_args()
 
+    # The band is an output of a measurement, so it travels from bench/diurnal.json into dbt as
+    # a var. Retyping it into a model is how it silently drifts from what was measured.
     diurnal_path = Path(args.diurnal)
     if not diurnal_path.exists():
         print(
-            f"ERROR: {diurnal_path} not found. Run pipeline/diurnal.py first — the off-hours "
-            "band is a MEASUREMENT, and the warehouse will not invent one.",
+            f"ERROR: {diurnal_path} not found. Run pipeline/diurnal.py first. The off-hours band "
+            "is a measurement and the warehouse will not invent one.",
             file=sys.stderr,
         )
         return 2
@@ -52,9 +39,8 @@ def main() -> int:
     band = diurnal["off_hours"]["band"]
 
     if not band:
-        # Not a failure: it is the measurement telling us hour-of-day carries no signal.
-        # Build anyway (is_off_hours becomes false everywhere) but make the consequence loud,
-        # because Q2 becomes unclaimable and someone needs to notice.
+        # Not a failure. It is the measurement saying hour of day carries no signal. Build
+        # anyway, but make the consequence loud, because Q2 becomes unclaimable.
         print(
             "WARNING: bench/diurnal.json reports NO off-hours band "
             f"({diurnal['off_hours'].get('verdict')}).\n"
@@ -62,14 +48,13 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    # mart_streaming_windows reads the Stage-3 sink. On a fresh clone (and in CI) Stage 3
-    # has not run, so the directory does not exist. Switch the model OFF rather than let it
-    # read an empty directory and materialize a silently-empty mart — an honestly disabled
-    # model is debuggable; a quietly empty one is not.
+    # On a fresh clone, and in CI, Stage 3 has not run and the streaming sink does not exist.
+    # Switch the model off rather than let it read an empty directory and quietly materialize an
+    # empty mart. An honestly disabled model is debuggable. A quietly empty one is not.
     streaming_sink = Path(f"{args.lake}/streaming_windows")
     streaming_enabled = streaming_sink.exists() and any(streaming_sink.rglob("*.parquet"))
     if not streaming_enabled:
-        print(f"[dbt] no streaming sink at {streaming_sink} — mart_streaming_windows disabled")
+        print(f"[dbt] no streaming sink at {streaming_sink}, mart_streaming_windows disabled")
 
     dbt_vars = {
         "lake_path": args.lake,

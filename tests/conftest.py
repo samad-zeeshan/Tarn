@@ -1,5 +1,6 @@
-"""Shared fixtures. One Spark session for the whole run — spinning up a JVM per test would
-dominate the suite's runtime and tell us nothing."""
+"""
+Shared fixtures. One Spark session for the whole run.
+"""
 
 from __future__ import annotations
 
@@ -26,8 +27,8 @@ def _reachable(host: str, port: int, timeout: float = 2.0) -> bool:
 
 @pytest.fixture(scope="session")
 def spark():
-    # local[2] rather than local[*]: the tests assert on aggregate values, not on speed, and
-    # pinning the parallelism keeps shuffle behaviour reproducible across machines.
+    # local[2] rather than local[*]. The tests assert on values, not speed, and pinning the
+    # parallelism keeps shuffle behaviour reproducible across machines.
     session = spark_session("tests", shuffle_partitions=2)
     session.sparkContext.setLogLevel("ERROR")
     yield session
@@ -37,14 +38,14 @@ def spark():
 @pytest.fixture(scope="session")
 def sample_auth_path() -> str:
     if not SAMPLE_AUTH.exists():
-        pytest.skip(f"{SAMPLE_AUTH} missing — run `python data/fetch.py sample`")
+        pytest.skip(f"{SAMPLE_AUTH} missing, run `python data/fetch.py sample`")
     return str(SAMPLE_AUTH)
 
 
 @pytest.fixture(scope="session")
 def sample_redteam_path() -> str:
     if not SAMPLE_REDTEAM.exists():
-        pytest.skip(f"{SAMPLE_REDTEAM} missing — run `python data/fetch.py sample`")
+        pytest.skip(f"{SAMPLE_REDTEAM} missing, run `python data/fetch.py sample`")
     return str(SAMPLE_REDTEAM)
 
 

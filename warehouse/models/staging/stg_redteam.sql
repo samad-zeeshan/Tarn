@@ -1,12 +1,7 @@
--- Staging: the labelled red-team compromise events (LANL's ground truth).
+-- The 749 labelled red-team compromise events. LANL's ground truth.
 --
--- 749 rows. This is the most valuable table in the project: it is what lets every layer
--- answer "would this have caught the attacker?" instead of "how many rows are there?".
---
--- The label identifies a compromise by the full (time, user, src_computer, dst_computer)
--- tuple, and that exact tuple also appears in auth.txt. Joining on all four is what keeps
--- the label trustworthy — joining on user alone would smear "compromised" across that
--- identity's entire benign history and quietly inflate every downstream hit rate.
+-- This is what lets every layer answer "would this have caught the attacker" instead of "how
+-- many rows are there".
 
 {{ config(materialized='view') }}
 

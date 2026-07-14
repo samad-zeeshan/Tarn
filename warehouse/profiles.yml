@@ -1,4 +1,4 @@
-# dbt-duckdb. The warehouse file is gitignored — it is rebuilt from the lake by
+# dbt-duckdb. The warehouse file is gitignored, it is rebuilt from the lake by
 # `dbt build`, and the only committed outputs are the query results in queries/results/
 # and the site's Parquet extracts.
 tarn:
@@ -11,7 +11,7 @@ tarn:
       # "IO Error: ... Cannot allocate memory" on a Parquet read: several tests scan the
       # 1.05e9-row fact view concurrently, and each wants buffer space inside a container that
       # WSL2 caps at 15.2 GB. dbt reported it as a test ERROR, which reads like a data problem
-      # and is not one — the data was clean. Fewer threads and a memory_limit well under the
+      # and is not one, the data was clean. Fewer threads and a memory_limit well under the
       # container's ceiling makes DuckDB spill to disk instead of asking the kernel for memory
       # that is not there.
       threads: 3

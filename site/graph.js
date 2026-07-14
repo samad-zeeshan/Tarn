@@ -1,12 +1,8 @@
-/* Force-directed privilege-path explorer. Hand-rolled — no d3, no CDN.
+/*
+ * Force directed privilege path explorer. Hand rolled, no d3.
  *
- * The physics is a plain Fruchterman-Reingold-ish loop: repulsion between every pair, spring
- * attraction along edges, mild gravity toward the centre, cooling over ~300 ticks. The graph is
- * bounded (the red-team subgraph plus benign context) precisely so an O(n^2) repulsion step is
- * affordable in a browser without a quadtree.
- *
- * The paths are REAL Neo4j shortestPath() results, precomputed by graph/export_paths.py, because
- * the browser cannot run Cypher. The page says so rather than implying it is querying live.
+ * The paths are real Neo4j shortestPath results, precomputed by graph/export_paths.py, because
+ * a browser cannot run Cypher. The page says so rather than implying it queries live.
  */
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -24,8 +20,9 @@ export class PathExplorer {
     this.showRedteam = true;
     this.showLabels = false;
     this.activePath = null;
-    this.W = 760;
-    this.H = 440;
+    // Match the container so the SVG renders 1:1 and the node radii mean what they say.
+    this.W = Math.max(480, Math.round(mount.clientWidth || 820));
+    this.H = 520;
 
     this.nodes = graph.nodes.map((n) => ({ ...n }));
     this.index = new Map(this.nodes.map((n, i) => [n.id, i]));
@@ -37,7 +34,7 @@ export class PathExplorer {
     this.render();
   }
 
-  /** Deterministic seeding — a graph that reshuffles on every reload looks broken, not organic. */
+  /** Deterministic seed. A graph that reshuffles on every reload looks broken, not organic. */
   layout() {
     const { W, H } = this;
     const n = this.nodes.length;
@@ -47,14 +44,17 @@ export class PathExplorer {
       return seed / 0x7fffffff;
     };
 
-    // Seed on a circle: users on an inner ring, hosts on an outer one. Starting from a shape
-    // that already encodes the bipartite structure converges far faster than random noise.
+    // Seed on two rings, users inside and hosts outside. Starting from a shape that already
+    // encodes the bipartite structure converges much faster than random noise.
     this.nodes.forEach((node, i) => {
       const isUser = node.kind === 'user';
-      const r = isUser ? Math.min(W, H) * 0.18 : Math.min(W, H) * 0.38;
+      // Seed on an ELLIPSE matching the canvas, not a circle. A circular seed settles into a
+      // layout taller than the box, and the aspect-preserving fit then leaves half the width empty.
+      const rx = (isUser ? 0.17 : 0.40) * W;
+      const ry = (isUser ? 0.17 : 0.40) * H;
       const a = (i / n) * Math.PI * 2 + (isUser ? 0 : 0.4);
-      node.x = W / 2 + Math.cos(a) * r + (rnd() - 0.5) * 20;
-      node.y = H / 2 + Math.sin(a) * r + (rnd() - 0.5) * 20;
+      node.x = W / 2 + Math.cos(a) * rx + (rnd() - 0.5) * 20;
+      node.y = H / 2 + Math.sin(a) * ry + (rnd() - 0.5) * 20;
       node.vx = 0;
       node.vy = 0;
       node.deg = 0;
@@ -64,11 +64,12 @@ export class PathExplorer {
       this.nodes[l.t].deg++;
     });
 
-    const K = Math.sqrt((W * H) / Math.max(n, 1)) * 0.62;
+    const K = Math.sqrt((W * H) / Math.max(n, 1)) * 0.78;
     let temp = W / 8;
 
     for (let step = 0; step < 320; step++) {
-      // Repulsion (all pairs).
+      // All pairs repulsion. The graph is bounded to a few hundred nodes precisely so this
+      // O(n^2) step is affordable without a quadtree.
       for (let i = 0; i < n; i++) {
         const a = this.nodes[i];
         for (let j = i + 1; j < n; j++) {
@@ -89,7 +90,7 @@ export class PathExplorer {
           b.vx -= fx; b.vy -= fy;
         }
       }
-      // Spring attraction along edges.
+
       for (const l of this.links) {
         const a = this.nodes[l.s];
         const b = this.nodes[l.t];
@@ -102,10 +103,10 @@ export class PathExplorer {
         a.vx -= fx; a.vy -= fy;
         b.vx += fx; b.vy += fy;
       }
-      // Gravity, then cool.
+
       for (const node of this.nodes) {
-        node.vx += (W / 2 - node.x) * 0.008;
-        node.vy += (H / 2 - node.y) * 0.008;
+        node.vx += (W / 2 - node.x) * 0.005;
+        node.vy += (H / 2 - node.y) * 0.005;
         const sp = Math.hypot(node.vx, node.vy);
         const lim = Math.min(sp, temp);
         if (sp > 0) {
@@ -119,6 +120,39 @@ export class PathExplorer {
       }
       temp = Math.max(0.6, temp * 0.985);
     }
+
+    this.fitToCanvas();
+  }
+
+  /** Stretch the settled layout out to fill the canvas. */
+  fitToCanvas() {
+    // Without this the graph settles into a dense blob using about a third of the width, with
+    // the rest of the canvas empty. Gravity plus a small K does that on a graph this connected.
+    // Rescaling afterwards keeps the force layout's shape and just uses the space it earned.
+    const { W, H } = this;
+    const pad = 34;
+    const xs = this.nodes.map((n) => n.x);
+    const ys = this.nodes.map((n) => n.y);
+    const x0 = Math.min(...xs);
+    const x1 = Math.max(...xs);
+    const y0 = Math.min(...ys);
+    const y1 = Math.max(...ys);
+
+    const kx = (W - pad * 2) / Math.max(1, x1 - x0);
+    const ky = (H - pad * 2) / Math.max(1, y1 - y0);
+
+    // Mostly uniform, but allow up to 50% stretch on the wider axis. A pure uniform fit leaves a
+    // big empty margin, and a free fit shears the graph until the clusters stop meaning anything.
+    const k = Math.min(kx, ky);
+    const kxc = Math.min(kx, k * 1.5);
+    const kyc = Math.min(ky, k * 1.5);
+    const cx = (x0 + x1) / 2;
+    const cy = (y0 + y1) / 2;
+
+    for (const n of this.nodes) {
+      n.x = W / 2 + (n.x - cx) * kxc;
+      n.y = H / 2 + (n.y - cy) * kyc;
+    }
   }
 
   nodeClass(n) {
@@ -129,7 +163,7 @@ export class PathExplorer {
   }
 
   radius(n) {
-    return n.kind === 'user' ? 5.5 : Math.min(9, 3.5 + Math.sqrt(n.deg || 1));
+    return n.kind === 'user' ? 5 : Math.min(13, 4 + Math.sqrt(n.deg || 1) * 1.15);
   }
 
   setPath(fromUser, toUser) {
@@ -165,15 +199,11 @@ export class PathExplorer {
       }
     }
 
-    // Edges first, so nodes sit on top.
     for (const l of this.links) {
       const a = this.nodes[l.s];
       const b = this.nodes[l.t];
       const isPath = pathEdges.has(`${a.id}|${b.id}`);
       const isRt = l.redteam && this.showRedteam;
-      if (l.redteam && !this.showRedteam && !isPath) {
-        // Overlay off: draw the edge, but plainly.
-      }
       const cls = isPath ? 'edge onpath' : isRt ? 'edge redteam' : 'edge';
       const line = el('line', {
         x1: a.x, y1: a.y, x2: b.x, y2: b.y,
