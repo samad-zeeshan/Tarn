@@ -530,3 +530,12 @@ header.top, main, footer { position: relative; z-index: 1; }
   opacity: 1;
   filter: brightness(1.12) saturate(1.05);
 }
+
+/* Vector lookalike panel. */
+.lookalike-controls {
+  display: flex; align-items: flex-end; gap: var(--s4); flex-wrap: wrap;
+  margin-bottom: var(--s4);
+}
+.lookalike-controls .field { flex: 1 1 320px; margin: 0; }
+tr.is-hit td { background: color-mix(in srgb, var(--critical) 14%, transparent); }
+tr.is-hit td:first-child { box-shadow: inset 2px 0 0 var(--critical); }

@@ -302,6 +302,279 @@
     "lake": "/data/lake/auth",
     "measured_at": "2026-07-14T00:52:56+00:00"
   },
+  "embedding": {
+    "what": "One vector per person per day, describing how that person behaved that day. Used by the nearest-neighbour search in vector/.",
+    "no_leakage": "The vector is built from behaviour only. Nothing derived from the published attack list is in it, and neither is anything derived from the four warning signs. If the labels were in here, the search would be finding the answer key rather than the attack, and every number that came out of it would be worthless.",
+    "dimensions": 52,
+    "feature_names": [
+      "log_auth_count",
+      "log_failure_count",
+      "log_distinct_dst",
+      "log_distinct_src",
+      "log_new_dst",
+      "failure_ratio",
+      "hour_00_share",
+      "hour_01_share",
+      "hour_02_share",
+      "hour_03_share",
+      "hour_04_share",
+      "hour_05_share",
+      "hour_06_share",
+      "hour_07_share",
+      "hour_08_share",
+      "hour_09_share",
+      "hour_10_share",
+      "hour_11_share",
+      "hour_12_share",
+      "hour_13_share",
+      "hour_14_share",
+      "hour_15_share",
+      "hour_16_share",
+      "hour_17_share",
+      "hour_18_share",
+      "hour_19_share",
+      "hour_20_share",
+      "hour_21_share",
+      "hour_22_share",
+      "hour_23_share",
+      "auth_type_kerberos_share",
+      "auth_type_negotiate_share",
+      "auth_type_ntlm_share",
+      "auth_type_microsoft_share",
+      "auth_type_other_share",
+      "logon_type_network_share",
+      "logon_type_service_share",
+      "logon_type_unlock_share",
+      "logon_type_interactive_share",
+      "logon_type_batch_share",
+      "logon_type_newcredentials_share",
+      "logon_type_networkcleartext_share",
+      "logon_type_other_share",
+      "orientation_logon_share",
+      "orientation_logoff_share",
+      "orientation_tgs_share",
+      "orientation_tgt_share",
+      "orientation_authmap_share",
+      "orientation_screenlock_share",
+      "orientation_screenunlock_share",
+      "orientation_other_share",
+      "is_machine"
+    ],
+    "rows": 1604500,
+    "scaling": "Each dimension is centred and divided by its standard deviation over the whole population, then each vector is scaled to unit length. The first step stops the log counts from drowning the shares. The second makes distance a measure of shape rather than of volume.",
+    "feature_stats": {
+      "log_auth_count": {
+        "mean": 4.793693894392935,
+        "stddev": 2.3199536524407693
+      },
+      "log_failure_count": {
+        "mean": 0.2562035447685513,
+        "stddev": 0.7515202514258666
+      },
+      "log_distinct_dst": {
+        "mean": 1.8187126502487592,
+        "stddev": 0.8645596718711509
+      },
+      "log_distinct_src": {
+        "mean": 1.6972273171978955,
+        "stddev": 0.7872535471627377
+      },
+      "log_new_dst": {
+        "mean": 0.19263473133815212,
+        "stddev": 0.4761189985014976
+      },
+      "failure_ratio": {
+        "mean": 0.08002007512886547,
+        "stddev": 0.26897324588596794
+      },
+      "hour_00_share": {
+        "mean": 0.029174318096000317,
+        "stddev": 0.07335438402494901
+      },
+      "hour_01_share": {
+        "mean": 0.027328636433260875,
+        "stddev": 0.06407196176111737
+      },
+      "hour_02_share": {
+        "mean": 0.026896645460150245,
+        "stddev": 0.06455635740265266
+      },
+      "hour_03_share": {
+        "mean": 0.02511491247759904,
+        "stddev": 0.05650371661293552
+      },
+      "hour_04_share": {
+        "mean": 0.024801163636895013,
+        "stddev": 0.05240198091932101
+      },
+      "hour_05_share": {
+        "mean": 0.02758161756673816,
+        "stddev": 0.06879369229433305
+      },
+      "hour_06_share": {
+        "mean": 0.042501730293016335,
+        "stddev": 0.11605832607782218
+      },
+      "hour_07_share": {
+        "mean": 0.06897844230146429,
+        "stddev": 0.16664744153086392
+      },
+      "hour_08_share": {
+        "mean": 0.07401801691540624,
+        "stddev": 0.16668734440447333
+      },
+      "hour_09_share": {
+        "mean": 0.06522041822313315,
+        "stddev": 0.1447598782160255
+      },
+      "hour_10_share": {
+        "mean": 0.06101723579134274,
+        "stddev": 0.13370380001041834
+      },
+      "hour_11_share": {
+        "mean": 0.05647536140601413,
+        "stddev": 0.12311039030188126
+      },
+      "hour_12_share": {
+        "mean": 0.054435503974240025,
+        "stddev": 0.11893818224094796
+      },
+      "hour_13_share": {
+        "mean": 0.05578674144014461,
+        "stddev": 0.12127271165592003
+      },
+      "hour_14_share": {
+        "mean": 0.05691459194810261,
+        "stddev": 0.12324729180887654
+      },
+      "hour_15_share": {
+        "mean": 0.05642498211942304,
+        "stddev": 0.12232039425382396
+      },
+      "hour_16_share": {
+        "mean": 0.04870062968343393,
+        "stddev": 0.11042909339510176
+      },
+      "hour_17_share": {
+        "mean": 0.035632726345393446,
+        "stddev": 0.08254571391889556
+      },
+      "hour_18_share": {
+        "mean": 0.028277943491360254,
+        "stddev": 0.0620776543353042
+      },
+      "hour_19_share": {
+        "mean": 0.02601187864492604,
+        "stddev": 0.052860352682764115
+      },
+      "hour_20_share": {
+        "mean": 0.025418217862263615,
+        "stddev": 0.05079810360001351
+      },
+      "hour_21_share": {
+        "mean": 0.025797739483197118,
+        "stddev": 0.05452307441555994
+      },
+      "hour_22_share": {
+        "mean": 0.02531394631099305,
+        "stddev": 0.04763880003742767
+      },
+      "hour_23_share": {
+        "mean": 0.03217660009550094,
+        "stddev": 0.09125267601934961
+      },
+      "auth_type_kerberos_share": {
+        "mean": 0.21412086875838396,
+        "stddev": 0.18953729950976692
+      },
+      "auth_type_negotiate_share": {
+        "mean": 0.1454134464974053,
+        "stddev": 0.33722700477933804
+      },
+      "auth_type_ntlm_share": {
+        "mean": 0.06808457077184996,
+        "stddev": 0.20741218155160676
+      },
+      "auth_type_microsoft_share": {
+        "mean": 0.0003308608693141076,
+        "stddev": 0.013642272295206238
+      },
+      "auth_type_other_share": {
+        "mean": 0.5720502531030456,
+        "stddev": 0.3116418593398831
+      },
+      "logon_type_network_share": {
+        "mean": 0.5773733541063686,
+        "stddev": 0.4063970525953245
+      },
+      "logon_type_service_share": {
+        "mean": 0.13276693636959688,
+        "stddev": 0.33243109635992646
+      },
+      "logon_type_unlock_share": {
+        "mean": 0.005829590431075871,
+        "stddev": 0.03370002798183421
+      },
+      "logon_type_interactive_share": {
+        "mean": 0.0028276907688321827,
+        "stddev": 0.04498642137218872
+      },
+      "logon_type_batch_share": {
+        "mean": 0.0019677768421726143,
+        "stddev": 0.03644749442640464
+      },
+      "logon_type_newcredentials_share": {
+        "mean": 0.023862066979053694,
+        "stddev": 0.14616239872099357
+      },
+      "logon_type_networkcleartext_share": {
+        "mean": 0.0031273840543307903,
+        "stddev": 0.04930076776604288
+      },
+      "logon_type_other_share": {
+        "mean": 0.2553725845029005,
+        "stddev": 0.3384327767975898
+      },
+      "orientation_logon_share": {
+        "mean": 0.46643316628482456,
+        "stddev": 0.31549067926617064
+      },
+      "orientation_logoff_share": {
+        "mean": 0.31751971518868555,
+        "stddev": 0.2493727018292242
+      },
+      "orientation_tgs_share": {
+        "mean": 0.1036387883725331,
+        "stddev": 0.1624842003039504
+      },
+      "orientation_tgt_share": {
+        "mean": 0.09608515543572527,
+        "stddev": 0.2641143856700195
+      },
+      "orientation_authmap_share": {
+        "mean": 0.015943183995497816,
+        "stddev": 0.09071196922114234
+      },
+      "orientation_screenlock_share": {
+        "mean": 0.00020028372585539342,
+        "stddev": 0.00525442264570656
+      },
+      "orientation_screenunlock_share": {
+        "mean": 0.0001797069968808309,
+        "stddev": 0.004449904961839423
+      },
+      "orientation_other_share": {
+        "mean": 0.0,
+        "stddev": 1.0
+      },
+      "is_machine": {
+        "mean": 0.3604138360860081,
+        "stddev": 0.48012050866816364
+      }
+    },
+    "output": "/data/lake/vectors",
+    "seconds": 688.2
+  },
   "env": {
     "what": "The machine every number in bench/ was measured on. A benchmark without provenance is an anecdote.",
     "host": {
@@ -956,6 +1229,108 @@
       "spark": "3.5.3"
     },
     "measured_at": "2026-07-14T05:53:05+00:00"
+  },
+  "vector_eval": {
+    "what": "Nearest-neighbour search over one vector per person per day, and an honest account of what it is worth.",
+    "two_experiments": {
+      "detector": "Unsupervised. Rank every person-day by how far it sits from its neighbours, with no labels involved at all, and read the top of that ranking as alerts. This is directly comparable to the four warning signs, so it is scored at exactly the alert budgets those signs actually spent.",
+      "retrieval": "Given one confirmed attack day, find the others that look like it. This is NOT a detector. It cannot start until somebody has already found the first bad day, so it can never find that one. It is a hunting tool, and it is scored as one."
+    },
+    "population": {
+      "person_days": 1604500,
+      "attack_days": 181,
+      "base_rate_pct": 0.0113
+    },
+    "index": {
+      "library": "faiss 1.9.0",
+      "type": "HNSW, 32 links per node",
+      "deterministic": "The graph is built on a single thread. Parallel insertion makes the result depend on thread timing, and the same input gave 4.48% and then 4.64% on two runs. Serialising the build costs about three minutes and makes the number repeatable.",
+      "dimensions": 52,
+      "build_seconds": 244.0,
+      "search_seconds_all": 8.8,
+      "search_ms_each": 0.005,
+      "note": "Approximate, not exact. Exact search over this many vectors would be about 2.5e12 distance computations. The index trades a little accuracy for that, which is the entire reason vector databases exist."
+    },
+    "detector_at_matched_alert_budgets": [
+      {
+        "matched_against": "ANY of Q1-Q4",
+        "alerts": 63891,
+        "the_rule_caught": 62,
+        "vector_search_caught": 10,
+        "winner": "the simple rule",
+        "missed": 171,
+        "recall_pct": 5.5,
+        "precision_pct": 0.016,
+        "lift_over_random": 1.4
+      },
+      {
+        "matched_against": "Q3 new access paths (>=5 new hosts/day)",
+        "alerts": 33319,
+        "the_rule_caught": 56,
+        "vector_search_caught": 5,
+        "winner": "the simple rule",
+        "missed": 176,
+        "recall_pct": 2.8,
+        "precision_pct": 0.015,
+        "lift_over_random": 1.3
+      },
+      {
+        "matched_against": "TWO OR MORE of Q1-Q4",
+        "alerts": 2599,
+        "the_rule_caught": 22,
+        "vector_search_caught": 1,
+        "winner": "the simple rule",
+        "missed": 180,
+        "recall_pct": 0.6,
+        "precision_pct": 0.038,
+        "lift_over_random": 3.4
+      },
+      {
+        "matched_against": "Q1 fan-out spike (z>3 vs own baseline)",
+        "alerts": 21136,
+        "the_rule_caught": 20,
+        "vector_search_caught": 3,
+        "winner": "the simple rule",
+        "missed": 178,
+        "recall_pct": 1.7,
+        "precision_pct": 0.014,
+        "lift_over_random": 1.3
+      },
+      {
+        "matched_against": "Q4 failure-ratio spike (z>3)",
+        "alerts": 5752,
+        "the_rule_caught": 11,
+        "vector_search_caught": 3,
+        "winner": "the simple rule",
+        "missed": 178,
+        "recall_pct": 1.7,
+        "precision_pct": 0.052,
+        "lift_over_random": 4.6
+      },
+      {
+        "matched_against": "Q2 off-hours vs own baseline",
+        "alerts": 6379,
+        "the_rule_caught": 0,
+        "vector_search_caught": 3,
+        "winner": "vector search",
+        "missed": 178,
+        "recall_pct": 1.7,
+        "precision_pct": 0.047,
+        "lift_over_random": 4.2
+      }
+    ],
+    "retrieval_from_one_known_attack_day": {
+      "k": 10,
+      "queries": 181,
+      "mean_attack_days_in_top_k": 0.46,
+      "precision_at_k_pct": 4.59,
+      "queries_that_surfaced_at_least_one": 45,
+      "queries_that_surfaced_nothing": 136,
+      "base_rate_pct": 0.0113,
+      "lift_over_random": 406.5,
+      "self_excluded": true
+    },
+    "measured_at": "2026-07-14T08:49:08+00:00"
   },
   "queries": {
     "_summary": {
@@ -2761,32 +3136,43 @@
     "q4_failure_spike_zscore": "-- Q4: failure-ratio spikes, z-scored against each identity's own history.\n--\n-- A global threshold is useless here, since some service accounts fail 30% of the time forever\n-- and are fine. The baseline window excludes the current day, or the spike inflates the baseline\n-- it is being measured against.\n\nselect\n    r.src_user                                      as identity,\n    r.event_date,\n    r.auth_count,\n    r.failure_count,\n    round(r.failure_ratio, 4)                       as failure_ratio_today,\n    round(r.failure_ratio_baseline_mean, 4)         as failure_ratio_baseline,\n    round(r.failure_ratio_baseline_stddev, 4)       as baseline_stddev,\n    round(r.failure_ratio_zscore, 2)                as failure_zscore,\n    r.baseline_days_available,\n    r.distinct_dst_computers,\n    r.is_redteam_day,\n    i.is_machine_account\nfrom {{ROLLUP}} r\njoin {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\nwhere r.failure_ratio_zscore is not null\n  and r.failure_ratio_zscore > 3          -- 3 sigma against the identity's own history\n  and r.failure_count >= 5                -- and not merely 1 failure out of 2 attempts\norder by r.failure_ratio_zscore desc, r.failure_count desc\nlimit 25\n",
     "q5_redteam_enrichment": "-- Q5: would Q1 to Q4 actually have surfaced the attacker?\n--\n-- Scored as a detection evaluation, not a highlight reel: recall, precision, the alert volume a\n-- human would have to triage, and lift over random. Expect unflattering numbers. A detector with\n-- good recall and sixty thousand alerts is not a detector, it is a denial of service on a SOC.\n\nwith scored as (\n    select\n        r.identity_key,\n        r.event_date,\n        r.is_redteam_day,\n\n        -- The four detectors, expressed as the same booleans Q1-Q4 rank on.\n        (r.fanout_zscore is not null and r.fanout_zscore > 3)                as d1_fanout_spike,\n        (r.baseline_days_available >= 3\n            and r.off_hours_share_baseline_mean < 0.05\n            and r.off_hours_share > 0.25\n            and r.auth_count >= 10)                                          as d2_off_hours,\n        (r.new_dst_computers >= 5)                                           as d3_new_paths,\n        (r.failure_ratio_zscore is not null\n            and r.failure_ratio_zscore > 3\n            and r.failure_count >= 5)                                        as d4_failure_spike\n    from {{ROLLUP}} r\n),\n\nflagged as (\n    select\n        *,\n        (d1_fanout_spike or d2_off_hours or d3_new_paths or d4_failure_spike) as d_any,\n        (d1_fanout_spike::int + d2_off_hours::int\n            + d3_new_paths::int + d4_failure_spike::int) >= 2                 as d_two_or_more\n    from scored\n),\n\ntotals as (\n    select\n        count(*)                                    as all_identity_days,\n        sum(is_redteam_day::int)                    as redteam_identity_days\n    from flagged\n),\n\n-- One row per detector. UNPIVOT by hand: five UNION ALL branches, each computing the same\n-- four numbers for a different flag column.\nper_detector as (\n    select 'Q1 fan-out spike (z>3 vs own baseline)' as detector,\n           sum(d1_fanout_spike::int)                                     as alerts,\n           sum((d1_fanout_spike and is_redteam_day)::int)                as true_positives\n    from flagged\n    union all\n    select 'Q2 off-hours vs own baseline',\n           sum(d2_off_hours::int),\n           sum((d2_off_hours and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q3 new access paths (>=5 new hosts/day)',\n           sum(d3_new_paths::int),\n           sum((d3_new_paths and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q4 failure-ratio spike (z>3)',\n           sum(d4_failure_spike::int),\n           sum((d4_failure_spike and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'ANY of Q1-Q4',\n           sum(d_any::int),\n           sum((d_any and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'TWO OR MORE of Q1-Q4',\n           sum(d_two_or_more::int),\n           sum((d_two_or_more and is_redteam_day)::int)\n    from flagged\n)\n\nselect\n    p.detector,\n    t.redteam_identity_days                                          as redteam_days_total,\n    p.true_positives                                                 as redteam_days_caught,\n    t.redteam_identity_days - p.true_positives                       as redteam_days_MISSED,\n    round(100.0 * p.true_positives / nullif(t.redteam_identity_days, 0), 1)\n                                                                     as recall_pct,\n    p.alerts                                                         as alerts_raised,\n    round(100.0 * p.true_positives / nullif(p.alerts, 0), 3)         as precision_pct,\n    t.all_identity_days                                              as identity_days_scanned,\n    round(\n        (p.true_positives * 1.0 / nullif(p.alerts, 0))\n        / nullif(t.redteam_identity_days * 1.0 / t.all_identity_days, 0), 1\n    )                                                                as lift_over_random\nfrom per_detector p\ncross join totals t\norder by recall_pct desc nulls last, precision_pct desc nulls last\n"
   },
-  "built_at": "2026-07-14T08:15:29+00:00",
+  "built_at": "2026-07-14T08:55:11+00:00",
   "extracts": {
-    "dim_computer": {
-      "file": "data/dim_computer.parquet",
-      "bytes": 217967,
-      "mb": 0.22
+    "rollup": {
+      "file": "data/rollup.parquet",
+      "rows": 1604500,
+      "bytes": 21221127,
+      "mb": 21.22
     },
     "dim_identity": {
       "file": "data/dim_identity.parquet",
+      "rows": 80553,
       "bytes": 805355,
       "mb": 0.81
     },
+    "dim_computer": {
+      "file": "data/dim_computer.parquet",
+      "rows": 17666,
+      "bytes": 217967,
+      "mb": 0.22
+    },
     "dim_time": {
       "file": "data/dim_time.parquet",
+      "rows": 58,
       "bytes": 3291,
       "mb": 0.0
     },
+    "vectors": {
+      "file": "data/vectors.parquet",
+      "rows": 25322,
+      "bytes": 4780337,
+      "mb": 4.78
+    },
     "redteam": {
       "file": "data/redteam.parquet",
+      "rows": 749,
       "bytes": 6410,
       "mb": 0.01
-    },
-    "rollup": {
-      "file": "data/rollup.parquet",
-      "bytes": 21221127,
-      "mb": 21.22
     }
   }
 }

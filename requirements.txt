@@ -21,6 +21,11 @@ lz4==4.3.3
 # Stage 4, graph
 neo4j==5.27.0
 
+# Stage 4b, vector search. Exact nearest neighbours over 1.6M vectors would be 2.5e12 distance
+# computations, so the index is not a nicety.
+faiss-cpu==1.9.0
+numpy==1.26.4
+
 # Tooling
 pytest==8.3.4
 ruff==0.8.4

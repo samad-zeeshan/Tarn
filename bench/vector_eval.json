@@ -1,0 +1,102 @@
+{
+  "what": "Nearest-neighbour search over one vector per person per day, and an honest account of what it is worth.",
+  "two_experiments": {
+    "detector": "Unsupervised. Rank every person-day by how far it sits from its neighbours, with no labels involved at all, and read the top of that ranking as alerts. This is directly comparable to the four warning signs, so it is scored at exactly the alert budgets those signs actually spent.",
+    "retrieval": "Given one confirmed attack day, find the others that look like it. This is NOT a detector. It cannot start until somebody has already found the first bad day, so it can never find that one. It is a hunting tool, and it is scored as one."
+  },
+  "population": {
+    "person_days": 1604500,
+    "attack_days": 181,
+    "base_rate_pct": 0.0113
+  },
+  "index": {
+    "library": "faiss 1.9.0",
+    "type": "HNSW, 32 links per node",
+    "deterministic": "The graph is built on a single thread. Parallel insertion makes the result depend on thread timing, and the same input gave 4.48% and then 4.64% on two runs. Serialising the build costs about three minutes and makes the number repeatable.",
+    "dimensions": 52,
+    "build_seconds": 244.0,
+    "search_seconds_all": 8.8,
+    "search_ms_each": 0.005,
+    "note": "Approximate, not exact. Exact search over this many vectors would be about 2.5e12 distance computations. The index trades a little accuracy for that, which is the entire reason vector databases exist."
+  },
+  "detector_at_matched_alert_budgets": [
+    {
+      "matched_against": "ANY of Q1-Q4",
+      "alerts": 63891,
+      "the_rule_caught": 62,
+      "vector_search_caught": 10,
+      "winner": "the simple rule",
+      "missed": 171,
+      "recall_pct": 5.5,
+      "precision_pct": 0.016,
+      "lift_over_random": 1.4
+    },
+    {
+      "matched_against": "Q3 new access paths (>=5 new hosts/day)",
+      "alerts": 33319,
+      "the_rule_caught": 56,
+      "vector_search_caught": 5,
+      "winner": "the simple rule",
+      "missed": 176,
+      "recall_pct": 2.8,
+      "precision_pct": 0.015,
+      "lift_over_random": 1.3
+    },
+    {
+      "matched_against": "TWO OR MORE of Q1-Q4",
+      "alerts": 2599,
+      "the_rule_caught": 22,
+      "vector_search_caught": 1,
+      "winner": "the simple rule",
+      "missed": 180,
+      "recall_pct": 0.6,
+      "precision_pct": 0.038,
+      "lift_over_random": 3.4
+    },
+    {
+      "matched_against": "Q1 fan-out spike (z>3 vs own baseline)",
+      "alerts": 21136,
+      "the_rule_caught": 20,
+      "vector_search_caught": 3,
+      "winner": "the simple rule",
+      "missed": 178,
+      "recall_pct": 1.7,
+      "precision_pct": 0.014,
+      "lift_over_random": 1.3
+    },
+    {
+      "matched_against": "Q4 failure-ratio spike (z>3)",
+      "alerts": 5752,
+      "the_rule_caught": 11,
+      "vector_search_caught": 3,
+      "winner": "the simple rule",
+      "missed": 178,
+      "recall_pct": 1.7,
+      "precision_pct": 0.052,
+      "lift_over_random": 4.6
+    },
+    {
+      "matched_against": "Q2 off-hours vs own baseline",
+      "alerts": 6379,
+      "the_rule_caught": 0,
+      "vector_search_caught": 3,
+      "winner": "vector search",
+      "missed": 178,
+      "recall_pct": 1.7,
+      "precision_pct": 0.047,
+      "lift_over_random": 4.2
+    }
+  ],
+  "retrieval_from_one_known_attack_day": {
+    "k": 10,
+    "queries": 181,
+    "mean_attack_days_in_top_k": 0.46,
+    "precision_at_k_pct": 4.59,
+    "queries_that_surfaced_at_least_one": 45,
+    "queries_that_surfaced_nothing": 136,
+    "base_rate_pct": 0.0113,
+    "lift_over_random": 406.5,
+    "self_excluded": true
+  },
+  "measured_at": "2026-07-14T08:49:08+00:00"
+}
