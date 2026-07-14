@@ -302,6 +302,38 @@
     "lake": "/data/lake/auth",
     "measured_at": "2026-07-14T00:52:56+00:00"
   },
+  "env": {
+    "what": "The machine every number in bench/ was measured on. A benchmark without provenance is an anecdote.",
+    "host": {
+      "cpu": "AMD Ryzen 5 7600X3D, 6 cores / 12 threads, 4.10 GHz base",
+      "memory_gb": 31.2,
+      "os": "Windows 11 Pro 26200",
+      "storage": "NVMe SSD",
+      "raw_data_path": "C:\\data\\tarn (outside the OneDrive tree, so sync never touches multi-GB files)",
+      "container_runtime": "Docker Desktop 29.5.3, WSL2 backend (kernel 6.18.33.2-microsoft-standard-WSL2)"
+    },
+    "container": {
+      "image": "tarn:local, built from Dockerfile",
+      "base": "python:3.11-slim-bookworm",
+      "python": "3.11.15",
+      "java": "OpenJDK 17.0.19 (Temurin)",
+      "spark": "PySpark 3.5.3",
+      "duckdb": "1.1.3",
+      "dbt": "dbt-core 1.8.9 / dbt-duckdb 1.8.4",
+      "neo4j": "5.26-community, separate container, 2 GB heap",
+      "redpanda": "v24.2.7, separate container, 1 core / 1 GB",
+      "cpus_visible": 12,
+      "memory_visible_gb": 15.2,
+      "memory_note": "The host has 31.2 GB but WSL2 hands the container 15.2 GB by default. Spark's driver is set to 10 GB, which fits with headroom. No result here should be read as what this CPU can do, only as what this configuration did."
+    },
+    "why_docker": "The host runs Python 3.14 and Java 25. PySpark 3.5 supports neither. Native Windows Spark also needs winutils hacks and gives unrepresentative timings, so the container pins the combination Spark is actually tested against.",
+    "how_to_read_the_benchmarks": {
+      "spark_opt.json": "Median of 5 timed runs per variant after 1 untimed warm-up, all four variants in one Spark session on an identical slice, shuffle partitions held constant. Raw per-run timings are in the artifact. Comparisons are only valid within a session: the same baseline code has measured 40.5s and 50.7s across sessions on the same slice, roughly 25% drift from JIT warmth, page cache and GC state.",
+      "streaming_lag.json": "An accelerated replay from a local file into a single-broker Redpanda on this same laptop. No network hop, no broker cluster, no competing load. It measures this pipeline's processing latency, not a production system's.",
+      "graph_stats.json": "Single-run Cypher timings against a warm page cache. Indicative, not a benchmark. Read them as 'this is not slow', not as 'this is fast'.",
+      "dataset.json": "The row counts are counted, by walking all 7.2 GB. They are not the figures quoted in the LANL paper."
+    }
+  },
   "graph_stats": {
     "what": "Shape and query performance of the Neo4j privilege-path graph (Stage 4).",
     "graph": {
@@ -808,6 +840,72 @@
       "pct_faster": 22.3
     },
     "measured_at": "2026-07-14T01:52:49+00:00"
+  },
+  "spark_opt_rejected": {
+    "what": "The optimization that lost. Kept because deleting it would make spark_opt.json look like the answer was obvious.",
+    "hypothesis": "The rollup's bottleneck is the Expand operator Spark plans behind two COUNT(DISTINCT) in one groupBy. Expand replays every input row once per distinct expression before the shuffle, so the shuffle carries a multiple of the input. The textbook fix is to collapse to the distinct grain first and count over that.",
+    "slice": {
+      "rows": 113699303,
+      "dates": 7,
+      "date_min": "2015-01-01",
+      "date_max": "2015-01-07"
+    },
+    "method": "Median of 5 timed runs after 1 warm-up, all four variants in one Spark session, spark.sql.shuffle.partitions=24.",
+    "variants": {
+      "baseline": {
+        "label": "two scans, Expand COUNT(DISTINCT), SortMergeJoin",
+        "median_seconds": 40.522,
+        "runs_seconds": [
+          36.415,
+          36.272,
+          40.522,
+          41.612,
+          57.333
+        ],
+        "speedup_vs_baseline": 1.0
+      },
+      "broadcast_only": {
+        "label": "broadcast the red-team label table",
+        "median_seconds": 61.135,
+        "runs_seconds": [
+          65.432,
+          57.233,
+          61.135,
+          63.504,
+          57.512
+        ],
+        "speedup_vs_baseline": 0.663
+      },
+      "dedup_only": {
+        "label": "two-stage distinct aggregation, first_seen still from a second scan",
+        "median_seconds": 52.636,
+        "runs_seconds": [
+          58.156,
+          52.597,
+          52.636,
+          53.191,
+          50.741
+        ],
+        "speedup_vs_baseline": 0.77
+      },
+      "both": {
+        "label": "two-stage distinct aggregation plus broadcast join",
+        "median_seconds": 50.294,
+        "runs_seconds": [
+          49.258,
+          50.709,
+          50.678,
+          50.294,
+          48.821
+        ],
+        "speedup_vs_baseline": 0.806
+      }
+    },
+    "result": "NO WIN. Every variant was slower than doing nothing. The harness printed 'NO WIN: baseline was fastest. Recorded honestly; do not claim a speedup.' and exited.",
+    "why_it_lost": "Collapsing to the distinct grain adds a shuffle. It buys a cheaper wide shuffle by removing the Expand row multiplication, then immediately spends the savings on the extra one. Meanwhile the real bottleneck had nothing to do with Expand: the rollup scanned the event set twice, once for the daily aggregation and once inside first_seen_destinations().",
+    "what_worked_instead": "Not 'dedupe first' but 'share the grain'. Both consumers only need the distinct (identity, date, dst, src) tuples, so materialize the grain once, persist it, and let both read it. One scan and one wide shuffle where there were two of each. Removing the Expand then comes free, because COUNT(DISTINCT) over an already deduplicated grain is a plain count. Result: 50.70s to 39.38s, 1.29x, output verified identical. See spark_opt.json.",
+    "why_spark_cannot_do_this_itself": "It has no way to know that two separately expressed aggregations are both reachable from a common grain.",
+    "variance_warning": "The same baseline code measured 40.52s in this run and 50.70s in the run that produced spark_opt.json. That is roughly 25% drift between Spark sessions from JIT warmth, OS page cache and GC state. It is why the final benchmark times all four variants back to back in one session and reports a within-session ratio. Cross-run absolute comparisons on a laptop are not meaningful."
   },
   "streaming_lag": {
     "what": "End-to-end lag and throughput of the Stage-3 Spark Structured Streaming job consuming replayed LANL auth events from Redpanda (Kafka API).",
@@ -2657,43 +2755,38 @@
     }
   },
   "sql": {
-    "q1_fanout_week_over_week": "-- Q1 \u2014 Lateral-movement precursor: destination fan-out, week over week.\n--\n-- QUESTION: which identities are reaching many more distinct hosts this week than they did\n--           last week? An account that touched 3 machines a week for a month and suddenly\n--           touches 40 is the classic precursor to lateral movement.\n--\n-- WHY WEEK-OVER-WEEK AND NOT RAW FAN-OUT: raw fan-out just ranks service accounts. A\n-- backup agent legitimately hits 500 hosts every single day and is the least interesting\n-- row in the corpus. The signal is the CHANGE against the identity's own prior week, so\n-- every identity is scored against itself.\n--\n-- Machine accounts are excluded here (not in the model \u2014 see dim_identity) because this\n-- specific question is about human-shaped lateral movement.\n\nwith weekly as (\n    select\n        r.identity_key,\n        r.src_user,\n        t.week_index,\n        sum(r.auth_count)                       as auth_events,\n        max(r.distinct_dst_computers)           as peak_daily_fanout,\n        sum(r.new_dst_computers)                as new_destinations,\n        max(r.is_redteam_day::int)::boolean     as had_redteam_activity\n    from {{ROLLUP}} r\n    join {{DIM_TIME}} t on r.time_key = t.time_key\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n    group by 1, 2, 3\n),\n\nweek_over_week as (\n    select\n        *,\n        lag(peak_daily_fanout) over (\n            partition by identity_key order by week_index\n        )                                       as prev_week_peak_fanout\n    from weekly\n)\n\nselect\n    src_user                                    as identity,\n    week_index,\n    prev_week_peak_fanout,\n    peak_daily_fanout,\n    peak_daily_fanout - prev_week_peak_fanout   as fanout_delta,\n    round(\n        peak_daily_fanout * 1.0 / nullif(prev_week_peak_fanout, 0), 2\n    )                                           as fanout_multiple,\n    new_destinations,\n    auth_events,\n    had_redteam_activity\nfrom week_over_week\nwhere prev_week_peak_fanout is not null\n  and prev_week_peak_fanout > 0\n  and peak_daily_fanout > prev_week_peak_fanout\norder by fanout_delta desc, fanout_multiple desc\nlimit 25\n",
-    "q2_off_hours_vs_baseline": "-- Q2 \u2014 Off-hours authentication share, each identity against its OWN baseline.\n--\n-- QUESTION: who is suddenly working at hours they never worked before?\n--\n-- READ THE CAVEAT. LANL has no wall-clock time \u2014 only seconds since collection started.\n-- \"3am\" is not a fact in this corpus. What IS a fact is the diurnal cycle: pipeline/\n-- diurnal.py measures the volume-by-hour curve, finds the trough, and that measured band\n-- is what `is_off_hours` means here. So this query does not ask \"who worked at 3am\"; it\n-- asks \"who worked during the hours when this network is measurably asleep\", which is the\n-- question that actually survives a screening interview.\n--\n-- Scoring each identity against its own baseline (rather than a global threshold) is what\n-- separates \"the night-shift admin, as always\" from \"the day-shift user who has never once\n-- logged in during the trough and just did it forty times\".\n\nwith daily as (\n    select\n        r.identity_key,\n        r.src_user,\n        r.event_date,\n        r.auth_count,\n        r.off_hours_events,\n        r.off_hours_share,\n        r.off_hours_share_baseline_mean,\n        r.baseline_days_available,\n        r.is_redteam_day\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      -- An identity with a handful of events a day produces a meaningless share (1 of 2\n      -- events off-hours = 50%). Require enough volume for the ratio to mean something.\n      and r.auth_count >= 10\n)\n\nselect\n    src_user                                        as identity,\n    event_date,\n    auth_count,\n    off_hours_events,\n    round(off_hours_share, 4)                       as off_hours_share_today,\n    round(off_hours_share_baseline_mean, 4)         as off_hours_share_baseline,\n    round(\n        off_hours_share - off_hours_share_baseline_mean, 4\n    )                                               as excess_over_own_baseline,\n    baseline_days_available,\n    is_redteam_day\nfrom daily\nwhere baseline_days_available >= 3\n  and off_hours_share > 0\n  -- The identity's own history says it essentially never works the trough...\n  and off_hours_share_baseline_mean < 0.05\n  -- ...and today it did, materially.\n  and off_hours_share > 0.25\norder by excess_over_own_baseline desc, off_hours_events desc\nlimit 25\n",
-    "q3_new_access_path_rate": "-- Q3 \u2014 New-access-path rate: first-time (identity -> computer) edges per day.\n--\n-- QUESTION: how fast is the network's access graph growing new edges, and who is creating\n--           them? Every genuinely new user->host edge is a path that did not exist\n--           yesterday. In a stable enterprise this rate decays as identities settle into\n--           their normal set of machines; a spike is either onboarding or an intruder\n--           exploring.\n--\n-- This is the query that most directly maps to \"paths to privilege\": the edge set IS the\n-- privilege graph, and this measures its growth.\n--\n-- Two result shapes in one query, via the `scope` column:\n--   scope='NETWORK'  \u2014 the daily network-wide new-edge rate (the decay curve)\n--   scope='IDENTITY' \u2014 the identities creating the most new edges on their peak day\n\nwith network_daily as (\n    select\n        'NETWORK'                               as scope,\n        cast(r.event_date as varchar)           as event_date,\n        null                                    as identity,\n        sum(r.new_dst_computers)                as new_edges,\n        sum(r.distinct_dst_computers)           as total_edges_touched,\n        count(distinct r.identity_key)          as active_identities,\n        sum(r.is_redteam_day::int)              as redteam_identities_active\n    from {{ROLLUP}} r\n    group by 1, 2, 3\n),\n\nidentity_peaks as (\n    select\n        'IDENTITY'                              as scope,\n        cast(r.event_date as varchar)           as event_date,\n        r.src_user                              as identity,\n        r.new_dst_computers                     as new_edges,\n        r.distinct_dst_computers                as total_edges_touched,\n        1                                       as active_identities,\n        r.is_redteam_day::int                   as redteam_identities_active\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      and r.new_dst_computers > 0\n    order by r.new_dst_computers desc\n    limit 20\n)\n\nselect * from network_daily\nunion all\nselect * from identity_peaks\norder by scope, new_edges desc, event_date\n",
-    "q4_failure_spike_zscore": "-- Q4 \u2014 Failure-ratio spike detection: windowed z-score, in SQL.\n--\n-- QUESTION: whose authentication failure rate today is anomalous *for them*?\n--\n-- Credential stuffing, password spraying, and a Kerberoasting attempt that guesses wrong\n-- all look the same in the telemetry: a sudden burst of failures from an identity that\n-- normally succeeds. A global threshold (\"alert above 20% failures\") is useless \u2014 some\n-- service accounts fail 30% of the time forever and are fine.\n--\n-- So: z-score against the identity's own trailing 30-day mean and stddev, computed in the\n-- mart with a window frame that EXCLUDES the current day (rows between 30 preceding and 1\n-- preceding). Excluding today matters more than it sounds: if the spike is allowed into\n-- its own baseline it inflates the mean and stddev and damps the very signal we want.\n--\n-- The z-score is NULL, not zero, when there are fewer than 3 baseline days or the baseline\n-- has no variance. That is why this query can say \"top 25 spikes\" and mean it, rather than\n-- ranking 500 identities whose entire history is one quiet day.\n\nselect\n    r.src_user                                      as identity,\n    r.event_date,\n    r.auth_count,\n    r.failure_count,\n    round(r.failure_ratio, 4)                       as failure_ratio_today,\n    round(r.failure_ratio_baseline_mean, 4)         as failure_ratio_baseline,\n    round(r.failure_ratio_baseline_stddev, 4)       as baseline_stddev,\n    round(r.failure_ratio_zscore, 2)                as failure_zscore,\n    r.baseline_days_available,\n    r.distinct_dst_computers,\n    r.is_redteam_day,\n    i.is_machine_account\nfrom {{ROLLUP}} r\njoin {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\nwhere r.failure_ratio_zscore is not null\n  and r.failure_ratio_zscore > 3          -- 3 sigma against the identity's own history\n  and r.failure_count >= 5                -- and not merely 1 failure out of 2 attempts\norder by r.failure_ratio_zscore desc, r.failure_count desc\nlimit 25\n",
-    "q5_redteam_enrichment": "-- Q5 \u2014 Red-team enrichment: would Q1-Q4 actually have surfaced the attacker?\n--\n-- This is the query the whole warehouse exists to answer, and the only honest way to\n-- answer it is as a DETECTION EVALUATION, not a highlight reel. So each of the four\n-- signals is treated as a detector, run over every identity-day in the corpus, and scored\n-- against LANL's ground truth:\n--\n--   recall     of the identity-days that really were compromised, what fraction did this\n--              detector flag?  (the misses are the part everyone leaves out)\n--   precision  of the identity-days this detector flagged, what fraction really were\n--              compromised?\n--   alerts     how many identity-days a human would have to triage. A detector with\n--              perfect recall and 40,000 alerts a day is not a detector, it is a denial of\n--              service against your SOC.\n--   lift       precision / base_rate. How much better than picking an identity-day at\n--              random. This is the number that says whether the signal is real at all.\n--\n-- Expect unflattering numbers. Precision on a corpus where compromised identity-days are\n-- ~0.001% of all identity-days is going to be brutal for every single-signal detector, and\n-- saying so is the point. A portfolio project that reports 100% recall and hides the alert\n-- volume is lying by omission.\n\nwith scored as (\n    select\n        r.identity_key,\n        r.event_date,\n        r.is_redteam_day,\n\n        -- The four detectors, expressed as the same booleans Q1-Q4 rank on.\n        (r.fanout_zscore is not null and r.fanout_zscore > 3)                as d1_fanout_spike,\n        (r.baseline_days_available >= 3\n            and r.off_hours_share_baseline_mean < 0.05\n            and r.off_hours_share > 0.25\n            and r.auth_count >= 10)                                          as d2_off_hours,\n        (r.new_dst_computers >= 5)                                           as d3_new_paths,\n        (r.failure_ratio_zscore is not null\n            and r.failure_ratio_zscore > 3\n            and r.failure_count >= 5)                                        as d4_failure_spike\n    from {{ROLLUP}} r\n),\n\nflagged as (\n    select\n        *,\n        (d1_fanout_spike or d2_off_hours or d3_new_paths or d4_failure_spike) as d_any,\n        (d1_fanout_spike::int + d2_off_hours::int\n            + d3_new_paths::int + d4_failure_spike::int) >= 2                 as d_two_or_more\n    from scored\n),\n\ntotals as (\n    select\n        count(*)                                    as all_identity_days,\n        sum(is_redteam_day::int)                    as redteam_identity_days\n    from flagged\n),\n\n-- One row per detector. UNPIVOT by hand: five UNION ALL branches, each computing the same\n-- four numbers for a different flag column.\nper_detector as (\n    select 'Q1 fan-out spike (z>3 vs own baseline)' as detector,\n           sum(d1_fanout_spike::int)                                     as alerts,\n           sum((d1_fanout_spike and is_redteam_day)::int)                as true_positives\n    from flagged\n    union all\n    select 'Q2 off-hours vs own baseline',\n           sum(d2_off_hours::int),\n           sum((d2_off_hours and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q3 new access paths (>=5 new hosts/day)',\n           sum(d3_new_paths::int),\n           sum((d3_new_paths and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q4 failure-ratio spike (z>3)',\n           sum(d4_failure_spike::int),\n           sum((d4_failure_spike and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'ANY of Q1-Q4',\n           sum(d_any::int),\n           sum((d_any and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'TWO OR MORE of Q1-Q4',\n           sum(d_two_or_more::int),\n           sum((d_two_or_more and is_redteam_day)::int)\n    from flagged\n)\n\nselect\n    p.detector,\n    t.redteam_identity_days                                          as redteam_days_total,\n    p.true_positives                                                 as redteam_days_caught,\n    t.redteam_identity_days - p.true_positives                       as redteam_days_MISSED,\n    round(100.0 * p.true_positives / nullif(t.redteam_identity_days, 0), 1)\n                                                                     as recall_pct,\n    p.alerts                                                         as alerts_raised,\n    round(100.0 * p.true_positives / nullif(p.alerts, 0), 3)         as precision_pct,\n    t.all_identity_days                                              as identity_days_scanned,\n    round(\n        (p.true_positives * 1.0 / nullif(p.alerts, 0))\n        / nullif(t.redteam_identity_days * 1.0 / t.all_identity_days, 0), 1\n    )                                                                as lift_over_random\nfrom per_detector p\ncross join totals t\norder by recall_pct desc nulls last, precision_pct desc nulls last\n"
+    "q1_fanout_week_over_week": "-- Q1: lateral-movement precursor. Destination fan-out, week over week.\n--\n-- Week over week, not raw fan-out, because raw fan-out just ranks service accounts. A backup\n-- agent legitimately hits 500 hosts a day. The signal is the change against the identity's own\n-- prior week.\n\nwith weekly as (\n    select\n        r.identity_key,\n        r.src_user,\n        t.week_index,\n        sum(r.auth_count)                       as auth_events,\n        max(r.distinct_dst_computers)           as peak_daily_fanout,\n        sum(r.new_dst_computers)                as new_destinations,\n        max(r.is_redteam_day::int)::boolean     as had_redteam_activity\n    from {{ROLLUP}} r\n    join {{DIM_TIME}} t on r.time_key = t.time_key\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n    group by 1, 2, 3\n),\n\nweek_over_week as (\n    select\n        *,\n        lag(peak_daily_fanout) over (\n            partition by identity_key order by week_index\n        )                                       as prev_week_peak_fanout\n    from weekly\n)\n\nselect\n    src_user                                    as identity,\n    week_index,\n    prev_week_peak_fanout,\n    peak_daily_fanout,\n    peak_daily_fanout - prev_week_peak_fanout   as fanout_delta,\n    round(\n        peak_daily_fanout * 1.0 / nullif(prev_week_peak_fanout, 0), 2\n    )                                           as fanout_multiple,\n    new_destinations,\n    auth_events,\n    had_redteam_activity\nfrom week_over_week\nwhere prev_week_peak_fanout is not null\n  and prev_week_peak_fanout > 0\n  and peak_daily_fanout > prev_week_peak_fanout\norder by fanout_delta desc, fanout_multiple desc\nlimit 25\n",
+    "q2_off_hours_vs_baseline": "-- Q2: off-hours authentication, each identity against its own baseline.\n--\n-- \"3am\" is not a fact in this corpus. The band comes from the measured diurnal trough in\n-- bench/diurnal.json, so this asks who worked while the network is measurably asleep, not who\n-- worked at a clock hour we guessed.\n\nwith daily as (\n    select\n        r.identity_key,\n        r.src_user,\n        r.event_date,\n        r.auth_count,\n        r.off_hours_events,\n        r.off_hours_share,\n        r.off_hours_share_baseline_mean,\n        r.baseline_days_available,\n        r.is_redteam_day\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      -- An identity with a handful of events a day produces a meaningless share (1 of 2\n      -- events off-hours = 50%). Require enough volume for the ratio to mean something.\n      and r.auth_count >= 10\n)\n\nselect\n    src_user                                        as identity,\n    event_date,\n    auth_count,\n    off_hours_events,\n    round(off_hours_share, 4)                       as off_hours_share_today,\n    round(off_hours_share_baseline_mean, 4)         as off_hours_share_baseline,\n    round(\n        off_hours_share - off_hours_share_baseline_mean, 4\n    )                                               as excess_over_own_baseline,\n    baseline_days_available,\n    is_redteam_day\nfrom daily\nwhere baseline_days_available >= 3\n  and off_hours_share > 0\n  -- The identity's own history says it essentially never works the trough...\n  and off_hours_share_baseline_mean < 0.05\n  -- ...and today it did, materially.\n  and off_hours_share > 0.25\norder by excess_over_own_baseline desc, off_hours_events desc\nlimit 25\n",
+    "q3_new_access_path_rate": "-- Q3: new access paths. First-time (identity -> computer) edges per day.\n--\n-- The edge set is the privilege graph, so this measures it growing. Every new edge is a path\n-- that did not exist yesterday.\n\nwith network_daily as (\n    select\n        'NETWORK'                               as scope,\n        cast(r.event_date as varchar)           as event_date,\n        null                                    as identity,\n        sum(r.new_dst_computers)                as new_edges,\n        sum(r.distinct_dst_computers)           as total_edges_touched,\n        count(distinct r.identity_key)          as active_identities,\n        sum(r.is_redteam_day::int)              as redteam_identities_active\n    from {{ROLLUP}} r\n    group by 1, 2, 3\n),\n\nidentity_peaks as (\n    select\n        'IDENTITY'                              as scope,\n        cast(r.event_date as varchar)           as event_date,\n        r.src_user                              as identity,\n        r.new_dst_computers                     as new_edges,\n        r.distinct_dst_computers                as total_edges_touched,\n        1                                       as active_identities,\n        r.is_redteam_day::int                   as redteam_identities_active\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      and r.new_dst_computers > 0\n    order by r.new_dst_computers desc\n    limit 20\n)\n\nselect * from network_daily\nunion all\nselect * from identity_peaks\norder by scope, new_edges desc, event_date\n",
+    "q4_failure_spike_zscore": "-- Q4: failure-ratio spikes, z-scored against each identity's own history.\n--\n-- A global threshold is useless here, since some service accounts fail 30% of the time forever\n-- and are fine. The baseline window excludes the current day, or the spike inflates the baseline\n-- it is being measured against.\n\nselect\n    r.src_user                                      as identity,\n    r.event_date,\n    r.auth_count,\n    r.failure_count,\n    round(r.failure_ratio, 4)                       as failure_ratio_today,\n    round(r.failure_ratio_baseline_mean, 4)         as failure_ratio_baseline,\n    round(r.failure_ratio_baseline_stddev, 4)       as baseline_stddev,\n    round(r.failure_ratio_zscore, 2)                as failure_zscore,\n    r.baseline_days_available,\n    r.distinct_dst_computers,\n    r.is_redteam_day,\n    i.is_machine_account\nfrom {{ROLLUP}} r\njoin {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\nwhere r.failure_ratio_zscore is not null\n  and r.failure_ratio_zscore > 3          -- 3 sigma against the identity's own history\n  and r.failure_count >= 5                -- and not merely 1 failure out of 2 attempts\norder by r.failure_ratio_zscore desc, r.failure_count desc\nlimit 25\n",
+    "q5_redteam_enrichment": "-- Q5: would Q1 to Q4 actually have surfaced the attacker?\n--\n-- Scored as a detection evaluation, not a highlight reel: recall, precision, the alert volume a\n-- human would have to triage, and lift over random. Expect unflattering numbers. A detector with\n-- good recall and sixty thousand alerts is not a detector, it is a denial of service on a SOC.\n\nwith scored as (\n    select\n        r.identity_key,\n        r.event_date,\n        r.is_redteam_day,\n\n        -- The four detectors, expressed as the same booleans Q1-Q4 rank on.\n        (r.fanout_zscore is not null and r.fanout_zscore > 3)                as d1_fanout_spike,\n        (r.baseline_days_available >= 3\n            and r.off_hours_share_baseline_mean < 0.05\n            and r.off_hours_share > 0.25\n            and r.auth_count >= 10)                                          as d2_off_hours,\n        (r.new_dst_computers >= 5)                                           as d3_new_paths,\n        (r.failure_ratio_zscore is not null\n            and r.failure_ratio_zscore > 3\n            and r.failure_count >= 5)                                        as d4_failure_spike\n    from {{ROLLUP}} r\n),\n\nflagged as (\n    select\n        *,\n        (d1_fanout_spike or d2_off_hours or d3_new_paths or d4_failure_spike) as d_any,\n        (d1_fanout_spike::int + d2_off_hours::int\n            + d3_new_paths::int + d4_failure_spike::int) >= 2                 as d_two_or_more\n    from scored\n),\n\ntotals as (\n    select\n        count(*)                                    as all_identity_days,\n        sum(is_redteam_day::int)                    as redteam_identity_days\n    from flagged\n),\n\n-- One row per detector. UNPIVOT by hand: five UNION ALL branches, each computing the same\n-- four numbers for a different flag column.\nper_detector as (\n    select 'Q1 fan-out spike (z>3 vs own baseline)' as detector,\n           sum(d1_fanout_spike::int)                                     as alerts,\n           sum((d1_fanout_spike and is_redteam_day)::int)                as true_positives\n    from flagged\n    union all\n    select 'Q2 off-hours vs own baseline',\n           sum(d2_off_hours::int),\n           sum((d2_off_hours and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q3 new access paths (>=5 new hosts/day)',\n           sum(d3_new_paths::int),\n           sum((d3_new_paths and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q4 failure-ratio spike (z>3)',\n           sum(d4_failure_spike::int),\n           sum((d4_failure_spike and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'ANY of Q1-Q4',\n           sum(d_any::int),\n           sum((d_any and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'TWO OR MORE of Q1-Q4',\n           sum(d_two_or_more::int),\n           sum((d_two_or_more and is_redteam_day)::int)\n    from flagged\n)\n\nselect\n    p.detector,\n    t.redteam_identity_days                                          as redteam_days_total,\n    p.true_positives                                                 as redteam_days_caught,\n    t.redteam_identity_days - p.true_positives                       as redteam_days_MISSED,\n    round(100.0 * p.true_positives / nullif(t.redteam_identity_days, 0), 1)\n                                                                     as recall_pct,\n    p.alerts                                                         as alerts_raised,\n    round(100.0 * p.true_positives / nullif(p.alerts, 0), 3)         as precision_pct,\n    t.all_identity_days                                              as identity_days_scanned,\n    round(\n        (p.true_positives * 1.0 / nullif(p.alerts, 0))\n        / nullif(t.redteam_identity_days * 1.0 / t.all_identity_days, 0), 1\n    )                                                                as lift_over_random\nfrom per_detector p\ncross join totals t\norder by recall_pct desc nulls last, precision_pct desc nulls last\n"
   },
-  "built_at": "2026-07-14T06:09:55+00:00",
+  "built_at": "2026-07-14T08:15:29+00:00",
   "extracts": {
-    "rollup": {
-      "file": "data/rollup.parquet",
-      "rows": 1604500,
-      "bytes": 21221127,
-      "mb": 21.22
-    },
-    "dim_identity": {
-      "file": "data/dim_identity.parquet",
-      "rows": 80553,
-      "bytes": 805355,
-      "mb": 0.81
-    },
     "dim_computer": {
       "file": "data/dim_computer.parquet",
-      "rows": 17666,
       "bytes": 217967,
       "mb": 0.22
     },
+    "dim_identity": {
+      "file": "data/dim_identity.parquet",
+      "bytes": 805355,
+      "mb": 0.81
+    },
     "dim_time": {
       "file": "data/dim_time.parquet",
-      "rows": 58,
       "bytes": 3291,
       "mb": 0.0
     },
     "redteam": {
       "file": "data/redteam.parquet",
-      "rows": 749,
       "bytes": 6410,
       "mb": 0.01
+    },
+    "rollup": {
+      "file": "data/rollup.parquet",
+      "bytes": 21221127,
+      "mb": 21.22
     }
   }
 }

@@ -5,7 +5,7 @@ A small data platform for identity security, built on a billion real authenticat
 Raw events go through Spark, into a DuckDB warehouse, through a streaming job, and into a Neo4j
 graph. The demo site runs real SQL in your browser.
 
-### [Open the demo](https://samad-zeeshan.github.io/tarn/)
+### [Open the demo](https://samad-zeeshan.github.io/Tarn/)
 
 ---
 
