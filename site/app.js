@@ -28,6 +28,47 @@ $('#theme-toggle').addEventListener('click', () => {
   if (window.__tarnRedraw) window.__tarnRedraw();
 });
 
+// cursor light
+// One rAF-throttled listener for the whole page. Writing the pointer position into CSS custom
+// properties lets the gradients do the work on the compositor instead of in JS.
+(() => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const glow = $('#glow');
+  const root = document.documentElement;
+  let x = 0;
+  let y = 0;
+  let queued = false;
+
+  const paint = () => {
+    queued = false;
+    root.style.setProperty('--mx', `${x}px`);
+    root.style.setProperty('--my', `${y}px`);
+  };
+
+  window.addEventListener('pointermove', (e) => {
+    x = e.clientX;
+    y = e.clientY;
+    if (glow) glow.classList.add('on');
+
+    // The card under the pointer gets the position in its OWN coordinates, so its highlight
+    // tracks the cursor rather than the page.
+    const card = e.target.closest?.('.card');
+    if (card) {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--cx', `${e.clientX - r.left}px`);
+      card.style.setProperty('--cy', `${e.clientY - r.top}px`);
+    }
+
+    if (!queued) {
+      queued = true;
+      requestAnimationFrame(paint);
+    }
+  }, { passive: true });
+
+  window.addEventListener('pointerleave', () => glow?.classList.remove('on'));
+})();
+
 // bench binding
 function dig(obj, path) {
   return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
@@ -56,12 +97,12 @@ function bindBench(bench) {
 // pipeline diagram
 function pipelineDiagram(mount) {
   const stages = [
-    ['LANL auth', 'raw .gz'],
-    ['PySpark', 'lake + rollups'],
-    ['dbt / DuckDB', 'star schema'],
-    ['Structured Streaming', '1-min windows'],
-    ['Neo4j', 'privilege paths'],
-    ['This page', 'DuckDB-WASM'],
+    ['The raw logs', 'a billion lines'],
+    ['Spark', 'clean and summarise'],
+    ['The warehouse', 'ready to query'],
+    ['Streaming', 'count as they arrive'],
+    ['The graph', 'who reaches what'],
+    ['This page', 'live in your browser'],
   ];
   const W = 1100;
   const H = 84;
@@ -74,8 +115,8 @@ function pipelineDiagram(mount) {
   svg.setAttribute('role', 'img');
   svg.setAttribute(
     'aria-label',
-    'Pipeline: LANL auth events to PySpark, to a dbt DuckDB star schema, to Spark Structured ' +
-      'Streaming, to a Neo4j privilege-path graph, to this page running DuckDB-WASM.',
+    'The pipeline: raw logs, then Spark, then a warehouse, then a streaming job, then a graph ' +
+      'database, and finally this page.',
   );
 
   stages.forEach(([name, sub], i) => {
@@ -135,7 +176,7 @@ let db = null;
 let conn = null;
 
 async function initDuckDB(bench, status) {
-  status.textContent = 'Loading DuckDB (WebAssembly)…';
+  status.textContent = 'Starting the database…';
 
   // The worker is loaded from a blob so its URL resolves under a GitHub Pages sub-path rather
   // than assuming the domain root.
@@ -153,7 +194,7 @@ async function initDuckDB(bench, status) {
 
   conn = await db.connect();
 
-  status.textContent = 'Loading warehouse extracts…';
+  status.textContent = 'Downloading the results…';
 
   // Registered over HTTP, so DuckDB range-requests only the column chunks a query touches.
   const extracts = bench.extracts || {};
@@ -168,13 +209,13 @@ async function initDuckDB(bench, status) {
   }
 
   $('#wb-schema').textContent =
-    'Views registered in your browser\'s DuckDB:\n\n' +
+    'Tables your browser now holds, and can query:\n\n' +
     names.map((n) => `  ${n}`).join('\n') +
-    '\n\nThese are the real dbt marts, exported to Parquet. `rollup` is the full ' +
-    'mart_daily_identity_rollup: every identity-day, machine accounts included, because ' +
-    'Q5\'s precision and lift are ratios against that whole population, and quietly dropping ' +
-    'the machine accounts would make the browser compute a flatteringly better Q5 than the ' +
-    'one committed in warehouse/queries/results/.';
+    '\n\nThese are the real results the pipeline produced. Nothing was simplified for the demo.' +
+    '\n\nThe rollup table is complete: every person, every day, machine accounts included. It' +
+    '\nwould be smaller and quicker to leave the machine accounts out, but the scores in the' +
+    '\nlast question are fractions of that whole group. Dropping them would quietly flatter the' +
+    '\nresults, and this page would be lying in the one place it claims to be live.';
 
   return conn;
 }
@@ -183,10 +224,11 @@ async function initDuckDB(bench, status) {
 const PRESETS = [
   {
     id: 'q1_fanout_week_over_week',
-    label: 'Q1 · lateral-movement fan-out',
+    label: 'Who suddenly touched far more machines?',
     finding:
-      'Ranks identities whose peak daily fan-out jumped hardest against <strong>their own prior ' +
-      'week</strong>. Raw fan-out would just rank backup agents; the change is the signal.',
+      'An account that normally uses three machines and suddenly uses forty is worth a look. ' +
+      'Each person is compared against <strong>their own last week</strong>, not against everyone ' +
+      'else, because a backup service legitimately touches hundreds of machines every single day.',
     sql: `-- Q1: destination fan-out, week over week (lateral-movement precursor)
 with weekly as (
   select r.src_user, t.week_index,
@@ -211,10 +253,11 @@ limit 25;`,
   },
   {
     id: 'q2_off_hours_vs_baseline',
-    label: 'Q2 · off-hours vs own baseline',
+    label: 'Who worked at hours they never work?',
     finding:
-      'Identities active during the <strong>measured</strong> overnight trough who essentially ' +
-      'never are. The band comes from bench/diurnal.json, not an assumed 9-to-5.',
+      'People active during the quiet hours who are basically never active then. The quiet hours ' +
+      'were <strong>measured from the data</strong>, not assumed. This is the one that caught ' +
+      'nothing at all.',
     sql: `-- Q2: off-hours share vs the identity's own baseline
 select r.src_user as identity, r.event_date, r.auth_count, r.off_hours_events,
        round(r.off_hours_share, 4)                as off_hours_today,
@@ -233,10 +276,11 @@ limit 25;`,
   },
   {
     id: 'q3_new_access_path_rate',
-    label: 'Q3 · new access paths',
+    label: 'Who reached machines they never had before?',
     finding:
-      'Every first-time identity→host edge is a path that did not exist yesterday. This is the ' +
-      'access graph <em>growing</em>, the most direct read on "paths to privilege".',
+      'Every time somebody logs into a machine for the first time, a new route through the network ' +
+      'exists that did not exist yesterday. This was the <strong>best of the four</strong> warning ' +
+      'signs, and it still missed most of the attack.',
     sql: `-- Q3: first-time (identity -> computer) edges per day
 select event_date,
        sum(new_dst_computers)     as new_edges,
@@ -248,10 +292,11 @@ order by event_date;`,
   },
   {
     id: 'q4_failure_spike_zscore',
-    label: 'Q4 · failure-ratio spikes',
+    label: 'Whose password suddenly started failing?',
     finding:
-      'Z-score against each identity\'s own trailing 30-day baseline, <strong>excluding the ' +
-      'current day</strong>, otherwise the spike inflates the baseline it is measured against.',
+      'A burst of failed logins can mean somebody is guessing passwords. Each person is measured ' +
+      'against their own history, and <strong>today is left out of that history</strong>, or the ' +
+      'spike would quietly raise the very average it is being compared against.',
     sql: `-- Q4: failure-ratio spike, z-score vs the identity's own history
 select src_user as identity, event_date, auth_count, failure_count,
        round(failure_ratio, 4)          as failure_ratio_today,
@@ -266,10 +311,11 @@ limit 25;`,
   },
   {
     id: 'q5_redteam_enrichment',
-    label: 'Q5 · would it have caught the attacker?',
+    label: 'So would any of it have worked?',
     finding:
-      'The honest one. Each query scored as a <strong>detector</strong> against ground truth: ' +
-      'recall, precision, alert volume, and lift. Expect unflattering numbers, that is the point.',
+      'The honest one. Each warning sign is scored against the answer key. How many attack days it ' +
+      'caught, how many it <strong>missed</strong>, and how many innocent people it would have ' +
+      'accused along the way. The numbers are not flattering, and that is the point.',
     sql: `-- Q5: the four analytics scored as detectors against LANL's ground truth.
 -- recall = of the identity-days that really were compromised, how many did we flag?
 -- alerts = how many identity-days a human would have to triage.
@@ -313,8 +359,11 @@ order by recall_pct desc nulls last;`,
   },
   {
     id: 'free',
-    label: '✎ free-form',
-    finding: 'Your query. The views are <code>rollup</code>, <code>dim_identity</code>, <code>dim_computer</code>, <code>dim_time</code>, <code>redteam</code>.',
+    label: '✎ ask your own',
+    finding:
+      'Over to you. The tables are <code>rollup</code> (a row per person per day), ' +
+      '<code>dim_identity</code> (people), <code>dim_computer</code> (machines), ' +
+      '<code>dim_time</code> (days) and <code>redteam</code> (the answer key).',
     sql: `-- Anything you like. This is a real DuckDB running in your browser.
 -- Views: rollup, dim_identity, dim_computer, dim_time, redteam
 
@@ -363,7 +412,7 @@ function renderResult(mount, result) {
 async function runQuery(sql, statusEl, resultEl) {
   if (!conn) return;
   statusEl.className = 'wb-status';
-  statusEl.textContent = 'Running…';
+  statusEl.textContent = 'Working…';
   const t0 = performance.now();
   try {
     const res = await conn.query(sql);
@@ -371,7 +420,8 @@ async function runQuery(sql, statusEl, resultEl) {
     const n = renderResult(resultEl, res);
     resultEl.hidden = false;
     statusEl.className = 'wb-status ok';
-    statusEl.textContent = `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'} in ${ms.toFixed(0)} ms, executed in your browser`;
+    statusEl.textContent =
+      `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'} in ${ms.toFixed(0)} ms, on your machine`;
   } catch (err) {
     statusEl.className = 'wb-status error';
     statusEl.textContent = String(err.message || err);
@@ -424,17 +474,17 @@ function drawCharts(bench) {
     });
 
     $('#chart-opt-cap').innerHTML =
-      `Median of ${opt.method.runs_per_variant} timed runs (after ${opt.method.warmup_runs} warm-up) ` +
-      `on ${Number(opt.slice.rows).toLocaleString('en-US')} rows. Output verified identical across ` +
-      `all four variants.`;
+      `Run on ${Number(opt.slice.rows).toLocaleString('en-US')} logins. Each version ran ` +
+      `${opt.method.runs_per_variant} times and the middle result is shown. All four produced ` +
+      `identical output.`;
 
     table($('#opt-table'), {
       columns: [
-        { key: 'variant', label: 'variant' },
-        { key: 'median', label: 'median' },
-        { key: 'speedup', label: 'speedup' },
-        { key: 'rows', label: 'output rows' },
-        { key: 'checksum', label: 'checksum' },
+        { key: 'variant', label: 'version' },
+        { key: 'median', label: 'time taken' },
+        { key: 'speedup', label: 'speed-up' },
+        { key: 'rows', label: 'rows out' },
+        { key: 'checksum', label: 'fingerprint' },
       ],
       numeric: ['median', 'speedup', 'rows', 'checksum'],
       rows: order
@@ -453,14 +503,13 @@ function drawCharts(bench) {
 
     const e = opt.environment;
     $('#prov-opt').innerHTML =
-      `<b>How this was measured.</b> ${e.cpu} · ${e.cpu_count} vCPU · ${e.memory_total_gb} GB · ` +
-      `Spark ${e.spark} on ${e.java.split('"')[1] ?? 'Java 17'} · ${e.spark_master} · ` +
-      `driver ${e.spark_driver_memory} · shuffle partitions ${e.spark_sql_shuffle_partitions} · ` +
-      `${e.host}.<br>` +
-      `<b>Slice.</b> ${Number(opt.slice.rows).toLocaleString('en-US')} rows, ` +
-      `${opt.slice.dates} dates (${opt.slice.date_min} → ${opt.slice.date_max}), identical for every variant.<br>` +
-      `<b>Statistic.</b> median of ${opt.method.runs_per_variant} runs; all raw timings are in ` +
-      `<code>bench/spark_opt.json</code>. Measured ${opt.measured_at}.`;
+      `<b>Where these numbers come from.</b> One laptop: ${e.cpu}, ${e.cpu_count} cores, ` +
+      `${e.memory_total_gb} GB of memory, running Spark ${e.spark} inside Docker.<br>` +
+      `<b>What was measured.</b> ${Number(opt.slice.rows).toLocaleString('en-US')} logins across ` +
+      `${opt.slice.dates} days. Every version saw exactly the same data.<br>` +
+      `<b>How.</b> Each version ran ${opt.method.runs_per_variant} times and the middle result is ` +
+      `reported. Every individual run is written down in the project. ` +
+      `Measured ${opt.measured_at.slice(0, 10)}.`;
   }
 
   // streaming lag
@@ -481,31 +530,32 @@ function drawCharts(bench) {
       note: 'End-to-end streaming lag percentiles',
     });
     $('#chart-lag-cap').textContent =
-      `${Number(lag.lag_ms.samples).toLocaleString('en-US')} window commits over ` +
-      `${lag.throughput.run_seconds}s. Lag = commit wall-clock minus the newest produce ` +
-      `timestamp in the window; the ${lag.config.watermark} watermark hold dominates by design.`;
+      `Measured across ${Number(lag.lag_ms.samples).toLocaleString('en-US')} minutes of activity. ` +
+      `The clock starts when a login is sent and stops once its minute has been counted and saved, ` +
+      `so the job's deliberate wait for late arrivals is included in every bar.`;
 
     table($('#stream-table'), {
       columns: [{ key: 'k', label: 'metric' }, { key: 'v', label: 'value' }],
       rows: [
-        { k: 'events aggregated', v: Number(lag.throughput.events_aggregated).toLocaleString('en-US') },
-        { k: 'windows committed', v: Number(lag.throughput.windows_committed).toLocaleString('en-US') },
-        { k: 'sustained', v: `${Number(lag.throughput.events_per_second_sustained).toLocaleString('en-US')} events/s` },
-        { k: 'Spark processed rows/s (median)', v: Number(lag.throughput.spark_processed_rows_per_second_median ?? 0).toLocaleString('en-US') },
-        { k: 'run duration', v: `${lag.throughput.run_seconds}s` },
-        { k: 'window', v: lag.config.window },
-        { k: 'watermark', v: lag.config.watermark },
-        { k: 'trigger', v: lag.config.trigger },
-        { k: 'output mode', v: lag.config.output_mode },
-        { k: 'broker', v: lag.config.broker },
+        { k: 'logins processed', v: Number(lag.throughput.events_aggregated).toLocaleString('en-US') },
+        { k: 'minutes of activity counted', v: Number(lag.throughput.windows_committed).toLocaleString('en-US') },
+        { k: 'kept up at', v: `${Number(lag.throughput.events_per_second_sustained).toLocaleString('en-US')} logins a second` },
+        { k: 'how long it ran', v: `${lag.throughput.run_seconds} seconds` },
+        { k: 'counted in blocks of', v: lag.config.window },
+        { k: 'waits this long for stragglers', v: lag.config.watermark },
+        { k: 'checks for new data every', v: lag.config.trigger },
+        { k: 'message queue', v: lag.config.broker },
       ],
     });
 
+    const acc = lag.event_time_acceleration || {};
     $('#prov-stream').innerHTML =
-      `<b>What the lag number means.</b> ${lag.lag_definition}<br>` +
-      `<b>What is NOT reported.</b> ${lag.not_measured}<br>` +
-      `<b>Environment.</b> ${lag.environment.cpu} · ${lag.environment.host} · Spark ${lag.environment.spark}. ` +
-      `Measured ${lag.measured_at}.`;
+      `<b>Something that would be easy to misread.</b> The 58 days of history were replayed at about ` +
+      `${acc.acceleration_factor}x normal speed, so the job's wait for late arrivals costs far less ` +
+      `real time here than it would live. The delay above cannot be understood without that, so it ` +
+      `is stated.<br>` +
+      `<b>Where it ran.</b> ${lag.environment.cpu}, on a laptop, with everything on the same machine. ` +
+      `Measured ${lag.measured_at.slice(0, 10)}.`;
   }
 
   // diurnal
@@ -535,17 +585,18 @@ function drawCharts(bench) {
     const r = diurnal.peak_to_trough_ratio;
     $('#diurnal-sub').innerHTML =
       `<span class="legend" style="margin:0">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>human accounts, peak:trough ${r.human_accounts}×</span>
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machine accounts, peak:trough ${r.machine_accounts}×</span>
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--fg);opacity:.18"></span>derived off-hours band</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>people, busiest hour is ${r.human_accounts}× the quietest</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machines, almost flat at ${r.machine_accounts}×</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--fg);opacity:.18"></span>the quiet hours, worked out from this</span>
       </span>`;
 
     const band = diurnal.off_hours.band ?? [];
     $('#chart-diurnal-cap').innerHTML = band.length
-      ? `Off-hours band = hours ${band.join(', ')}, derived by the rule: <em>${diurnal.off_hours.rule}</em>. ` +
-        `Aggregated over all accounts the curve is only ${r.all_accounts}× peak-to-trough and the cycle ` +
-        `is invisible; that is why the band comes from the human curve alone.`
-      : 'No off-hours band could be derived. The curve is too flat, so Q2 must not be claimed.';
+      ? `The quiet hours come out as ${band[0]}:00 to ${(band[band.length - 1] + 1) % 24}:00, and that ` +
+        `range was calculated from this data rather than assumed. Notice what happens if you do not ` +
+        `separate people from machines: the combined line only varies by ${r.all_accounts}× from its ` +
+        `busiest hour to its quietest, and the daily rhythm vanishes.`
+      : 'No quiet hours could be found here. The line is too flat, so this signal cannot be used.';
   }
 
   // blast radius + Q5
@@ -589,23 +640,23 @@ function drawCharts(bench) {
     });
 
     $('#chart-blast-cap').innerHTML =
-      `<strong>Look at the two charts.</strong> At 1 hop a compromised account reaches ` +
-      `${b.at_1_hop?.ratio}× what an ordinary one does, and it is still only ` +
-      `${b.at_1_hop?.pct_of_all_hosts_covered}% of the network. At 3 hops both of them reach ` +
-      `<em>essentially every host there is</em>, so the measure carries no information at that ` +
-      `depth. Quoting the compromised figure on its own would be true and meaningless. And even ` +
-      `the 1-hop gap is confounded: the red team picked higher-privilege accounts to begin with. ` +
-      `The useful output of this stage is the choke points below, not the blast radius.`;
+      `<strong>Compare the two charts.</strong> The stolen accounts log into about ` +
+      `${b.at_1_hop?.ratio}× as many machines as an ordinary person, and that is still only ` +
+      `${b.at_1_hop?.pct_of_all_hosts_covered}% of the network. But give them three steps and they ` +
+      `reach <em>nearly every machine there is</em>. So does everybody else. The second chart looks ` +
+      `alarming and means nothing, because an ordinary employee scores the same. Even the first ` +
+      `chart is not clean, because the attacker deliberately picked powerful accounts to steal. The ` +
+      `finding that survives is the table below, not this one.`;
   }
 
   if (graph?.choke_points_top) {
     table($('#choke-table'), {
       columns: [
-        { key: 'host', label: 'host' },
-        { key: 'identities', label: 'distinct identities authenticating here',
+        { key: 'host', label: 'machine' },
+        { key: 'identities', label: 'people who log into it',
           format: (v) => Number(v).toLocaleString('en-US') },
-        { key: 'was_pivot', label: 'red-team pivot', format: (v) => (v ? 'yes' : ',') },
-        { key: 'was_target', label: 'red-team target', format: (v) => (v ? 'yes' : ',') },
+        { key: 'was_pivot', label: 'attack came from here', format: (v) => (v ? 'yes' : '-') },
+        { key: 'was_target', label: 'attack reached it', format: (v) => (v ? 'yes' : '-') },
       ],
       numeric: ['identities'],
       rows: graph.choke_points_top,
@@ -633,9 +684,10 @@ function drawCharts(bench) {
       max: 100,
     });
     $('#chart-q5-cap').textContent =
-      'Recall alone flatters. The table below carries the alert volume and precision, a detector ' +
-      'with good recall and tens of thousands of alerts is not a detector, it is a denial of ' +
-      'service against a SOC.';
+      'These bars only show how much of the attack each sign caught, which flatters them. The ' +
+      'table below shows the other half: how many innocent people each one would have accused. A ' +
+      'warning sign that catches a third of the attack and flags sixty thousand people is not a ' +
+      'warning sign, it is a full-time job for whoever has to read it.';
 
     // The CSV hands everything back as strings, so "62.0" needs rendering as a count.
     const asInt = (v) => (v === '' || v == null ? '-' : Number(v).toLocaleString('en-US'));
@@ -643,13 +695,13 @@ function drawCharts(bench) {
 
     table($('#q5-table'), {
       columns: [
-        { key: 'detector', label: 'detector' },
+        { key: 'detector', label: 'warning sign' },
         { key: 'redteam_days_caught', label: 'caught', format: asInt },
         { key: 'redteam_days_MISSED', label: 'missed', format: asInt },
-        { key: 'recall_pct', label: 'recall %', format: (v) => asNum(v, 1) },
-        { key: 'alerts_raised', label: 'alerts to triage', format: asInt },
-        { key: 'precision_pct', label: 'precision %', format: (v) => asNum(v, 3) },
-        { key: 'lift_over_random', label: 'lift vs random',
+        { key: 'recall_pct', label: 'caught %', format: (v) => asNum(v, 1) },
+        { key: 'alerts_raised', label: 'people it would flag', format: asInt },
+        { key: 'precision_pct', label: 'of those, actually guilty %', format: (v) => asNum(v, 3) },
+        { key: 'lift_over_random', label: 'better than guessing',
           format: (v) => (v === '' || v == null ? '-' : `${Number(v).toFixed(1)}×`) },
       ],
       numeric: [
@@ -682,18 +734,16 @@ async function main() {
   const e = bench.spark_opt?.environment;
   const when = bench.spark_opt?.measured_at?.slice(0, 10);
   $('#prov-recorded').innerHTML =
-    `The Spark benchmark, the streaming lag, and the graph timings were measured on ` +
-    `<b>${e?.cpu ?? 'a laptop'}</b> (${e?.cpu_count ?? '?'} vCPU, ${e?.memory_total_gb ?? '?'} GB) ` +
-    `under ${e?.host ?? 'Docker'} on <b>${when ?? '-'}</b>, and are replayed here from the ` +
-    `committed artifacts in <code>/bench</code>. The graph paths are real Neo4j ` +
-    `<code>shortestPath()</code> results, precomputed because a browser cannot run Cypher.`;
+    `Everything else on this page. The speed test, the streaming delays and the graph were measured ` +
+    `on <b>${e?.cpu ?? 'a laptop'}</b> on <b>${when ?? '-'}</b>, and what you see is played back from ` +
+    `those recordings. The routes through the graph are genuine answers from a graph database, worked ` +
+    `out ahead of time, because a browser cannot run that kind of query.`;
 
   $('#foot-note').innerHTML =
     `Tarn · built by <a href="https://github.com/samad-zeeshan">samad-zeeshan</a> · ` +
-    `<a href="https://github.com/samad-zeeshan/tarn">source</a> · ` +
-    `data: A. D. Kent, <em>Comprehensive, Multi-Source Cyber-Security Events</em>, ` +
-    `Los Alamos National Laboratory (2015), CC0. ` +
-    `Site payload built ${bench.built_at?.slice(0, 10) ?? ''}.`;
+    `<a href="https://github.com/samad-zeeshan/tarn">the code</a> · ` +
+    `data from A. D. Kent, <em>Comprehensive, Multi-Source Cyber-Security Events</em>, ` +
+    `Los Alamos National Laboratory, 2015, free for anyone to use.`;
 
   /* graph explorer */
   try {
@@ -717,20 +767,26 @@ async function main() {
       const p = explorer.setPath(from.value, to.value);
       if (!p) {
         readout.innerHTML =
-          `<span style="color:var(--fg-dim)">No path of ≤6 hops between these two identities in ` +
-          `the exported subgraph.</span>`;
+          '<span style="color:var(--fg-dim)">These two are not connected within six steps of ' +
+          'each other.</span>';
         return;
       }
+      // hop_count counts every node change, and the chain alternates person, machine, person.
+      // A reader thinks in people, so report the number of people-to-people steps.
+      const steps = Math.max(1, Math.round(p.hop_count / 2));
       const hops = p.hops
         .map((h, i) => {
           const kind = p.kinds?.[i] === 'Computer' ? 'comp' : 'user';
-          return `<span class="hop ${kind}">${h}</span>`;
+          const what = kind === 'comp' ? 'machine' : 'person';
+          return `<span class="hop ${kind}" title="${what} ${h}">${h}</span>`;
         })
         .join('<span class="hop-arrow">→</span>');
       readout.innerHTML =
-        `<div style="color:var(--fg-muted)">${p.hop_count} hops · ` +
-        `${p.traverses_redteam ? '<span style="color:var(--critical)">traverses a labelled red-team edge</span>' : 'no red-team edge on this path'} · ` +
-        `Neo4j returned it in ${p.query_ms} ms</div>` +
+        `<div style="color:var(--fg-muted)">${steps} step${steps === 1 ? '' : 's'} apart. ` +
+        `${p.traverses_redteam
+            ? '<span style="color:var(--critical)">This route uses a link the attacker actually used.</span>'
+            : 'The attacker did not use this particular route.'}` +
+        `</div>` +
         `<div class="path-hops">${hops}</div>`;
     };
 

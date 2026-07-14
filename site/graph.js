@@ -189,6 +189,18 @@ export class PathExplorer {
         'authentication edges between them.',
     });
 
+    // A soft glow, used only on the traced route. It is the one thing in the picture the reader
+    // is meant to follow, so it is allowed to be the brightest thing in it.
+    const defs = el('defs');
+    const f = el('filter', { id: 'trace-glow', x: '-60%', y: '-60%', width: '220%', height: '220%' });
+    f.append(el('feGaussianBlur', { stdDeviation: '3.2', result: 'b' }));
+    const merge = el('feMerge');
+    merge.append(el('feMergeNode', { in: 'b' }));
+    merge.append(el('feMergeNode', { in: 'SourceGraphic' }));
+    f.append(merge);
+    defs.append(f);
+    svg.append(defs);
+
     const onPath = new Set(this.activePath ? this.activePath.hops : []);
     const pathEdges = new Set();
     if (this.activePath) {
@@ -208,7 +220,8 @@ export class PathExplorer {
       const line = el('line', {
         x1: a.x, y1: a.y, x2: b.x, y2: b.y,
         class: cls,
-        opacity: this.activePath && !isPath ? 0.25 : isRt ? 0.85 : 0.4,
+        opacity: this.activePath && !isPath ? 0.18 : isRt ? 0.85 : 0.35,
+        filter: isPath ? 'url(#trace-glow)' : null,
       });
       svg.append(line);
     }
@@ -216,9 +229,10 @@ export class PathExplorer {
     for (const n of this.nodes) {
       const isOn = onPath.has(n.id);
       const c = el('circle', {
-        cx: n.x, cy: n.y, r: this.radius(n) * (isOn ? 1.5 : 1),
+        cx: n.x, cy: n.y, r: this.radius(n) * (isOn ? 1.6 : 1),
         class: `node ${this.nodeClass(n)}${isOn ? ' onpath' : ''}`,
-        opacity: this.activePath && !isOn ? 0.35 : 1,
+        opacity: this.activePath && !isOn ? 0.28 : 1,
+        filter: isOn ? 'url(#trace-glow)' : null,
         tabindex: 0,
         role: 'img',
         'aria-label': `${n.kind === 'user' ? 'Identity' : 'Host'} ${n.id}${
