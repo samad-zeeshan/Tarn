@@ -1,0 +1,122 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: lint · test · pipeline · warehouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      # Stage 4's graph tests are marked `integration` and skip cleanly if Neo4j is absent,
+      # but there is no reason to skip them here — a service container is nearly free and it
+      # means the privilege-path Cypher is actually verified on every push.
+      neo4j:
+        image: neo4j:5.26-community
+        env:
+          NEO4J_AUTH: neo4j/tarnlocal1
+        ports:
+          - 7687:7687
+        options: >-
+          --health-cmd "wget -qO- http://localhost:7474 || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      # Everything runs against the committed CI slice — the 7.2 GB corpus is never in CI.
+      TARN_LAKE: /tmp/tarn/lake
+      NEO4J_URI: bolt://localhost:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: tarnlocal1
+      PYTHONPATH: ${{ github.workspace }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install pinned deps
+        run: pip install -r requirements.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      # ---- the committed slice must be exactly what the manifest says it is --------------
+      - name: Verify the CI slice matches its manifest
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, sys
+          m = json.loads(pathlib.Path("data/sample/manifest.json").read_text())
+          bad = []
+          for name, meta in m["files"].items():
+              p = pathlib.Path("data/sample") / name
+              digest = hashlib.sha256(p.read_bytes()).hexdigest()
+              if digest != meta["sha256"]:
+                  bad.append(f"{name}: manifest {meta['sha256'][:12]} != actual {digest[:12]}")
+              if p.stat().st_size != meta["bytes"]:
+                  bad.append(f"{name}: size drift")
+          if bad:
+              sys.exit("CI slice does not match its manifest:\n  " + "\n  ".join(bad))
+          print(f"CI slice verified: {m['counts']['auth_rows_kept']:,} events, "
+                f"{m['counts']['redteam_rows_in_window']} red-team rows, seed {m['selection']['seed']}")
+          PY
+
+      - name: Tests (pytest — pipeline, streaming, graph)
+        run: python -m pytest tests/ -q
+
+      # ---- the real pipeline, end to end, on the small slice -----------------------------
+      - name: Stage 1 — build the lake from data/sample/
+        run: |
+          python pipeline/sessionize.py \
+            --input data/sample/auth_sample.csv.gz \
+            --output /tmp/tarn/lake/auth \
+            --redteam data/sample/redteam_sample.csv.gz
+          python pipeline/diurnal.py --lake /tmp/tarn/lake/auth --out /tmp/tarn/diurnal.json
+          python pipeline/rollup.py \
+            --lake /tmp/tarn/lake/auth \
+            --output /tmp/tarn/lake/rollup \
+            --redteam /tmp/tarn/lake/redteam \
+            --diurnal /tmp/tarn/diurnal.json
+
+      # Stage 3 does not run in CI (no broker), so the streaming sink will not exist and
+      # warehouse/build.py disables mart_streaming_windows on its own rather than
+      # materializing a silently-empty mart.
+      - name: Stage 2 — dbt build (models + every FK/grain test)
+        run: |
+          python warehouse/build.py \
+            --lake /tmp/tarn/lake \
+            --diurnal /tmp/tarn/diurnal.json \
+            --target ci \
+            --fact-materialization table
+
+      - name: Stage 2 — run the five showcase queries
+        run: python warehouse/run_queries.py --db /tmp/tarn_ci.duckdb --out /tmp/tarn/results
+
+      - name: Show Q5 (would the analytics have caught the attacker?)
+        run: cat /tmp/tarn/results/q5_redteam_enrichment.csv
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-query-results
+          path: /tmp/tarn/results/
