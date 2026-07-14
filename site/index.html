@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarn — an identity-security data lakehouse</title>
+<meta name="description" content="1.05 billion real authentication events through Spark, a DuckDB star schema, Structured Streaming, and a Neo4j privilege-path graph. Query the warehouse in your browser.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="vendor/fonts/FiraSans-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/FiraCode-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
+
+<!-- DuckDB-WASM's ESM build imports Arrow as a BARE specifier (`from "apache-arrow"`), which a
+     browser cannot resolve on its own — without this map the module throws
+     "Failed to resolve module specifier" and the whole workbench silently never boots.
+     Arrow is vendored alongside it, so there is still no CDN in the critical path. -->
+<script type="importmap">
+{
+  "imports": {
+    "apache-arrow": "./vendor/duckdb/apache-arrow.mjs"
+  }
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <!-- Concentric rings: a tarn (a small mountain lake). Also, a lake. -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <ellipse cx="12" cy="12" rx="9.5" ry="6"/>
+        <ellipse cx="12" cy="12" rx="5.5" ry="3.2"/>
+        <circle cx="12" cy="12" r="1.2" fill="currentColor"/>
+      </svg>
+      <span>Tarn</span>
+      <span class="brand-sub">identity-security lakehouse</span>
+    </div>
+    <nav class="top-nav" aria-label="Sections">
+      <a href="#workbench">SQL</a>
+      <a href="#optimization">Optimization</a>
+      <a href="#streaming">Streaming</a>
+      <a href="#graph">Paths</a>
+      <a href="#provenance">Provenance</a>
+    </nav>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light and dark theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================================================ HERO -->
+<section class="hero wrap">
+  <p class="eyebrow">Batch · Warehouse · Streaming · Graph</p>
+  <h1>A billion authentication events,<br>and the attacker hiding in them.</h1>
+  <p class="hero-lede">
+    Tarn takes <strong data-bench="dataset.auth.rows|int">—</strong> real (anonymized) enterprise
+    authentication events from Los Alamos National Laboratory and builds the layers a security
+    data platform actually needs: a <strong>PySpark</strong> batch lake, a <strong>dbt/DuckDB</strong>
+    star schema, a <strong>Spark Structured Streaming</strong> job, and a <strong>Neo4j</strong>
+    privilege-path graph. The corpus ships with ground truth — <strong data-bench="dataset.redteam.rows|int">—</strong>
+    labelled red-team compromise events — so every layer answers <em>“would this have caught the
+    attacker?”</em> instead of “how many rows are there?”
+  </p>
+  <p class="hero-lede">
+    The SQL section below is <strong>genuinely live</strong>: your browser is running DuckDB and
+    querying the real warehouse. Everything else on this page is measured evidence, replayed —
+    and it says so, every time.
+  </p>
+
+  <div class="scale-line">
+    <div class="stat">
+      <span class="stat-value" data-bench="dataset.auth.rows|int">—</span>
+      <div class="stat-label">auth events</div>
+      <div class="stat-note">measured, not cited</div>
+    </div>
+    <div class="stat">
+      <span class="stat-value" data-bench="dataset.auth.span_days|round">—</span>
+      <div class="stat-label">days of telemetry</div>
+      <div class="stat-note">LANL, 2015</div>
+    </div>
+    <div class="stat">
+      <span class="stat-value" data-bench="dataset.redteam.rows|int">—</span>
+      <div class="stat-label">labelled compromises</div>
+      <div class="stat-note">the ground truth</div>
+    </div>
+    <div class="stat">
+      <span class="stat-value" data-bench="graph_stats.graph.auth_edges|int">—</span>
+      <div class="stat-label">graph edges</div>
+      <div class="stat-note">identity → host</div>
+    </div>
+    <div class="stat">
+      <span class="stat-value" data-bench="spark_opt.headline.speedup|x">—</span>
+      <div class="stat-label">Spark speedup</div>
+      <div class="stat-note">median of 5, verified identical output</div>
+    </div>
+  </div>
+
+  <div class="pipeline" id="pipeline"></div>
+</section>
+
+<!-- ============================================================ SQL WORKBENCH -->
+<section id="workbench" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">01 — the live part <span class="badge live"><span class="dot"></span>runs in your browser</span></p>
+    <h2>Query the warehouse</h2>
+    <p>
+      DuckDB is compiled to WebAssembly and running on this page. The Parquet files it reads are
+      the real marts built by dbt from the Spark lake. These are not canned results — edit the SQL
+      and run anything you like.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="wb-presets" id="wb-presets" role="group" aria-label="Preset queries"></div>
+
+    <label class="visually-hidden" for="wb-editor">SQL query</label>
+    <textarea class="wb-editor" id="wb-editor" spellcheck="false" aria-describedby="wb-status"></textarea>
+
+    <div class="wb-bar">
+      <button class="btn" id="wb-run" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        Run query
+      </button>
+      <button class="btn secondary" id="wb-reset">Reset</button>
+      <span class="wb-status" id="wb-status" role="status" aria-live="polite">Loading DuckDB…</span>
+    </div>
+
+    <div class="wb-finding" id="wb-finding" hidden></div>
+    <div class="table-scroll" id="wb-result" hidden></div>
+  </div>
+
+  <details class="panel">
+    <summary>What the browser is actually loading</summary>
+    <pre id="wb-schema">—</pre>
+  </details>
+</section>
+
+<!-- ============================================================ OPTIMIZATION -->
+<section id="optimization" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">02 — the measured optimization <span class="badge recorded"><span class="dot"></span>recorded run</span></p>
+    <h2>Making the rollup faster, honestly</h2>
+    <p>
+      Two independent changes to the Spark rollup, isolated in a 2×2 and timed on an identical
+      slice. The headline is the aggregation rewrite: Spark plans multiple
+      <code>COUNT(DISTINCT&nbsp;…)</code> in one <code>groupBy</code> with an <code>Expand</code>,
+      replaying every input row once per distinct expression before the shuffle. Collapsing to the
+      distinct grain first removes it. Spark will not do that rewrite for you.
+    </p>
+  </div>
+
+  <div class="grid-2">
+    <figure class="card chart">
+      <div class="chart-title">Median runtime by variant</div>
+      <div class="chart-sub">Lower is better · median of 5 timed runs after a warm-up · identical slice</div>
+      <div id="chart-opt"></div>
+      <figcaption id="chart-opt-cap"></figcaption>
+    </figure>
+
+    <div class="card">
+      <div class="chart-title">Why it is a real speedup and not a faster wrong answer</div>
+      <div class="chart-sub">The check that makes the number claimable</div>
+      <p style="font-size:0.88rem;color:var(--fg-muted)">
+        All four variants were fingerprinted with an order-independent checksum (sum of per-row
+        CRC32 over every output column). They agree exactly — so the speedup is a change in
+        <em>execution strategy</em>, not in what was computed. A benchmark without this check is
+        measuring the speed of being wrong.
+      </p>
+      <div class="table-scroll"><table id="opt-table"></table></div>
+      <p style="font-size:0.8rem;color:var(--fg-dim);margin:var(--s4) 0 0">
+        The join result is reported with a caveat: its baseline is <em>forced</em> to a SortMergeJoin
+        via <code>autoBroadcastJoinThreshold=-1</code>. Spark's AQE would broadcast the 749-row label
+        table on its own, so that row measures the <em>cost of a shuffle join</em> — not a bug that
+        was found and fixed. Saying so is the difference between a benchmark and a brag.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:var(--s4)">
+    <details class="panel" style="margin-top:0">
+      <summary>Physical plan — baseline (Expand + SortMergeJoin)</summary>
+      <pre id="plan-baseline">—</pre>
+    </details>
+    <details class="panel" style="margin-top:0">
+      <summary>Physical plan — optimized (two-stage aggregation + BroadcastHashJoin)</summary>
+      <pre id="plan-optimized">—</pre>
+    </details>
+  </div>
+
+  <div class="provenance" id="prov-opt">—</div>
+</section>
+
+<!-- ============================================================ STREAMING -->
+<section id="streaming" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">03 — realtime <span class="badge recorded"><span class="dot"></span>recorded from a local replay</span></p>
+    <h2>Streaming windows, watermarked</h2>
+    <p>
+      Auth events replayed into Redpanda (Kafka API) and consumed by Spark Structured Streaming:
+      1-minute tumbling windows per identity, a watermark for late data, checkpointed, appended to
+      Parquet that dbt reads as a streaming mart. The lag below is dominated by the watermark hold
+      <em>by design</em> — a window cannot legally emit before it closes and the watermark passes it.
+      A sub-second figure here would mean the watermark was not doing its job.
+    </p>
+  </div>
+
+  <div class="grid-2">
+    <figure class="card chart">
+      <div class="chart-title">End-to-end lag distribution</div>
+      <div class="chart-sub">Kafka publish → aggregation → watermark hold → Parquet commit</div>
+      <div id="chart-lag"></div>
+      <figcaption id="chart-lag-cap"></figcaption>
+    </figure>
+    <div class="card">
+      <div class="chart-title">Sustained throughput and config</div>
+      <div class="chart-sub">What the run actually did</div>
+      <div class="table-scroll"><table id="stream-table"></table></div>
+      <p style="font-size:0.8rem;color:var(--fg-dim);margin:var(--s4) 0 0">
+        This is an accelerated replay from a file into a single-broker Redpanda on the same laptop
+        as the Spark driver. No network hop, no broker cluster, no competing load. It measures this
+        pipeline's processing latency — not a production system's.
+      </p>
+    </div>
+  </div>
+
+  <div class="provenance" id="prov-stream">—</div>
+</section>
+
+<!-- ============================================================ GRAPH -->
+<section id="graph" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">04 — paths to privilege <span class="badge recorded"><span class="dot"></span>Cypher results, replayed</span></p>
+    <h2>Where an attacker can go next</h2>
+    <p>
+      Two identities are linked when they share a host. Chain those hops and you have a path to
+      privilege. Pick a pair — the path shown is a real <code>shortestPath()</code> result from
+      Neo4j, precomputed because your browser cannot run Cypher. Toggle the overlay to see the
+      red team's actual, labelled route through the network.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="graph-layout">
+      <div class="graph-controls">
+        <div class="field">
+          <label for="g-from">From identity</label>
+          <select id="g-from"></select>
+        </div>
+        <div class="field">
+          <label for="g-to">To identity</label>
+          <select id="g-to"></select>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="g-redteam" checked>
+          <span>Red-team overlay</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="g-labels">
+          <span>Show all labels</span>
+        </label>
+        <div class="legend" style="flex-direction:column;gap:var(--s2)">
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>identity</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--fg-dim)"></span>host</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>red-team pivot host</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-4)"></span>red-team target host</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>shortest path</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="graph-canvas" id="graph-canvas"></div>
+        <div class="path-readout" id="path-readout">Select two identities to trace a path.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:var(--s4)">
+    <figure class="card chart">
+      <div class="chart-title">Blast radius: compromised vs. an ordinary account</div>
+      <div class="chart-sub">Hosts reachable at 1 hop and via a peer at 3 hops</div>
+      <div id="chart-blast"></div>
+      <figcaption id="chart-blast-cap"></figcaption>
+    </figure>
+    <figure class="card chart">
+      <div class="chart-title">Would the analytics have caught the attacker?</div>
+      <div class="chart-sub">Q5 — each query scored as a detector against the 749 labelled events</div>
+      <div id="chart-q5"></div>
+      <figcaption id="chart-q5-cap"></figcaption>
+    </figure>
+  </div>
+  <div class="table-scroll" style="margin-top:var(--s4)"><table id="q5-table"></table></div>
+
+  <div class="card" style="margin-top:var(--s4)">
+    <div class="chart-title">Choke points — the hosts that make the graph a small world</div>
+    <div class="chart-sub">
+      This is the finding that survived. Blast radius saturated because a handful of hubs are
+      authenticated to by tens of thousands of distinct identities each — which collapses the
+      network into a graph where almost everyone is two hops from almost everyone. Harden these
+      and you break paths. That is an action item; "the attacker can reach almost every host in
+      the estate" is not.
+    </div>
+    <div class="table-scroll"><table id="choke-table"></table></div>
+  </div>
+</section>
+
+<!-- ============================================================ DIURNAL -->
+<section id="diurnal" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">05 — a finding worth keeping</p>
+    <h2>“Off-hours” had to be measured, not assumed</h2>
+    <p>
+      LANL ships relative seconds, not wall-clock time — nothing in the corpus says an event
+      happened at 3am. The first attempt to derive an off-hours band found a nearly flat curve
+      and refused to emit one. That was correct: <em>machine accounts run around the clock and
+      are most of the traffic</em>. Split them out and the human cycle is unmistakable. The band
+      the warehouse uses comes from this measurement — never from an assumed nine-to-five.
+    </p>
+    <p style="color:var(--fg-muted)">
+      <strong style="color:var(--fg)">And then it caught nothing.</strong> This was the most
+      carefully derived signal in the project, and as a detector it scored
+      <strong style="color:var(--critical)">0 of 181</strong> compromised identity-days — see Q2
+      in the table above. Careful methodology does not entitle you to a result. Reporting the
+      zero is the whole point; a portfolio that only shows the signals that worked is a
+      brochure.
+    </p>
+  </div>
+  <figure class="card chart">
+    <div class="chart-title">Authentication volume by hour of day</div>
+    <div class="chart-sub" id="diurnal-sub">—</div>
+    <div id="chart-diurnal"></div>
+    <figcaption id="chart-diurnal-cap"></figcaption>
+  </figure>
+</section>
+
+</main>
+
+<!-- ============================================================ PROVENANCE -->
+<footer id="provenance">
+  <div class="wrap">
+    <p class="eyebrow">What is live, and what is recorded</p>
+    <div class="prov-grid">
+      <div class="prov-block">
+        <h3><span class="badge live"><span class="dot"></span>Live</span></h3>
+        <p>
+          The SQL in section 01 executes in your browser via DuckDB-WASM, against committed Parquet
+          extracts of the real marts. Edit it, break it, run your own — it is a real database.
+        </p>
+      </div>
+      <div class="prov-block">
+        <h3><span class="badge recorded"><span class="dot"></span>Recorded</span></h3>
+        <p id="prov-recorded">—</p>
+      </div>
+      <div class="prov-block">
+        <h3>Dataset</h3>
+        <p>
+          LANL <em>Comprehensive, Multi-Source Cyber-Security Events</em> (A. D. Kent, 2015).
+          Real enterprise authentication telemetry, anonymized. CC0. Red-team labels are the
+          published ground truth.
+        </p>
+      </div>
+      <div class="prov-block">
+        <h3>What this is not</h3>
+        <p>
+          Not a production system. It runs on one laptop and once on a free Databricks workspace.
+          The streaming figures come from an accelerated local replay, not a live feed. Every
+          number on this page is rendered from an artifact in <code>/bench</code> — if it is not
+          measured, it is not here.
+        </p>
+      </div>
+    </div>
+    <p class="foot-note" id="foot-note">—</p>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="tooltip" aria-hidden="true"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
