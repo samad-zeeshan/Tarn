@@ -1,0 +1,18 @@
+{
+  "input": "/data/raw/auth.txt",
+  "output": "/data/lake/auth",
+  "lake": {
+    "rows": 1051430459,
+    "partitions": 58,
+    "seconds": 1343.07
+  },
+  "redteam": {
+    "rows": 749,
+    "compromised_identities": 104,
+    "pivot_source_computers": 4,
+    "target_computers": 301,
+    "time_min_seconds": 150885,
+    "time_max_seconds": 2557047,
+    "path": "/data/lake/redteam"
+  }
+}

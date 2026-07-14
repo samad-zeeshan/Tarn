@@ -1,0 +1,303 @@
+{
+  "what": "Shape and query performance of the Neo4j privilege-path graph (Stage 4).",
+  "graph": {
+    "users": 72751,
+    "computers": 14540,
+    "auth_edges": 600145,
+    "redteam_edges": 437,
+    "compromised_identities": 104,
+    "redteam_pivot_hosts": [
+      "C22409",
+      "C19932"
+    ]
+  },
+  "shortest_paths": {
+    "pairs_queried": 40,
+    "paths_found": 40,
+    "hop_length_histogram": {
+      "2": 31,
+      "4": 9
+    },
+    "min_hops": 2,
+    "max_hops": 4,
+    "median_query_ms": 2.6,
+    "note": "Hops alternate User -> Computer -> User. A 2-hop path means the two identities share a single host; 4 hops means one intermediate identity."
+  },
+  "blast_radius": {
+    "compromised_mean_hosts_1_hop": 113.0,
+    "compromised_mean_hosts_3_hops": 14256.2,
+    "benign_control_mean_hosts_1_hop": 59.6,
+    "benign_control_mean_hosts_3_hops": 14253.0,
+    "total_hosts_in_graph": 14540,
+    "note": "The benign control group is what makes these numbers mean anything. Compare compromised vs. control rather than reading either alone \u2014 see the verdicts.",
+    "at_1_hop": {
+      "compromised_mean": 113.0,
+      "benign_control_mean": 59.6,
+      "ratio": 1.9,
+      "pct_of_all_hosts_covered": 0.8,
+      "discriminates": true,
+      "verdict": "USABLE at 1 hop: compromised identities reach 1.9x what the control reaches, and the reachable set is still only 0.8% of the network."
+    },
+    "at_3_hops": {
+      "compromised_mean": 14256.2,
+      "benign_control_mean": 14253.0,
+      "ratio": 1.0,
+      "pct_of_all_hosts_covered": 98.0,
+      "discriminates": false,
+      "verdict": "NOT A SIGNAL at 3 hops: both groups reach ~98.0% of every host in the graph (ratio 1.0x). The metric has saturated \u2014 quoting the compromised number alone would be true and completely meaningless."
+    },
+    "headline_finding": "BLAST RADIUS SATURATES. At 3 hops both compromised and ordinary identities reach essentially every host in the network (14,256 vs 14,253 of 14,540), so the measure carries no information at that depth. The cause is visible in choke_points_top: hub hosts here are authenticated to by tens of thousands of distinct identities, which collapses the graph into a small world where almost everyone is two hops from almost everyone. Only the 1-hop measure discriminates \u2014 and even that is confounded, because the accounts the red team chose to compromise were higher-privilege to begin with. The genuinely actionable output of this stage is therefore not blast radius but the choke points: harden those hubs and you break the paths.",
+    "detail": [
+      {
+        "identity": "U66@DOM1",
+        "hosts_1_hop": 249,
+        "identities_2_hops": 27522,
+        "hosts_3_hops": 14216,
+        "is_compromised": true
+      },
+      {
+        "identity": "U3005@DOM1",
+        "hosts_1_hop": 68,
+        "identities_2_hops": 36903,
+        "hosts_3_hops": 14261,
+        "is_compromised": true
+      },
+      {
+        "identity": "U293@DOM1",
+        "hosts_1_hop": 78,
+        "identities_2_hops": 36896,
+        "hosts_3_hops": 14263,
+        "is_compromised": true
+      },
+      {
+        "identity": "U737@DOM1",
+        "hosts_1_hop": 129,
+        "identities_2_hops": 37066,
+        "hosts_3_hops": 14262,
+        "is_compromised": true
+      },
+      {
+        "identity": "U3635@DOM1",
+        "hosts_1_hop": 143,
+        "identities_2_hops": 37026,
+        "hosts_3_hops": 14260,
+        "is_compromised": true
+      },
+      {
+        "identity": "U748@DOM1",
+        "hosts_1_hop": 113,
+        "identities_2_hops": 36831,
+        "hosts_3_hops": 14266,
+        "is_compromised": true
+      },
+      {
+        "identity": "U4448@DOM1",
+        "hosts_1_hop": 55,
+        "identities_2_hops": 36444,
+        "hosts_3_hops": 14262,
+        "is_compromised": true
+      },
+      {
+        "identity": "U9947@DOM1",
+        "hosts_1_hop": 69,
+        "identities_2_hops": 36524,
+        "hosts_3_hops": 14260,
+        "is_compromised": true
+      },
+      {
+        "identity": "U6801@DOM1",
+        "hosts_1_hop": 61,
+        "identities_2_hops": 36845,
+        "hosts_3_hops": 14262,
+        "is_compromised": false
+      },
+      {
+        "identity": "U139@DOM1",
+        "hosts_1_hop": 61,
+        "identities_2_hops": 36897,
+        "hosts_3_hops": 14265,
+        "is_compromised": false
+      },
+      {
+        "identity": "U1631@DOM1",
+        "hosts_1_hop": 60,
+        "identities_2_hops": 36525,
+        "hosts_3_hops": 14258,
+        "is_compromised": false
+      },
+      {
+        "identity": "U4250@DOM1",
+        "hosts_1_hop": 59,
+        "identities_2_hops": 36706,
+        "hosts_3_hops": 14261,
+        "is_compromised": false
+      },
+      {
+        "identity": "U7780@DOM1",
+        "hosts_1_hop": 59,
+        "identities_2_hops": 36520,
+        "hosts_3_hops": 14225,
+        "is_compromised": false
+      },
+      {
+        "identity": "U11440@DOM1",
+        "hosts_1_hop": 59,
+        "identities_2_hops": 36582,
+        "hosts_3_hops": 14231,
+        "is_compromised": false
+      },
+      {
+        "identity": "U149@DOM1",
+        "hosts_1_hop": 59,
+        "identities_2_hops": 36854,
+        "hosts_3_hops": 14260,
+        "is_compromised": false
+      },
+      {
+        "identity": "U5785@DOM1",
+        "hosts_1_hop": 59,
+        "identities_2_hops": 36831,
+        "hosts_3_hops": 14262,
+        "is_compromised": false
+      }
+    ]
+  },
+  "choke_points_top": [
+    {
+      "host": "C1065",
+      "identities": 28483,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C612",
+      "identities": 28437,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C529",
+      "identities": 28373,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C528",
+      "identities": 28262,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C457",
+      "identities": 28035,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C625",
+      "identities": 28011,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C467",
+      "identities": 27710,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C586",
+      "identities": 24771,
+      "was_pivot": false,
+      "was_target": true
+    },
+    {
+      "host": "C1640",
+      "identities": 22765,
+      "was_pivot": false,
+      "was_target": false
+    },
+    {
+      "host": "C2106",
+      "identities": 21928,
+      "was_pivot": false,
+      "was_target": false
+    }
+  ],
+  "attacker_vs_baseline_top": [
+    {
+      "identity": "U66@DOM1",
+      "hosts_via_redteam_edges": 71,
+      "hosts_total_footprint": 249,
+      "pct_of_footprint_that_was_attack": 28.5
+    },
+    {
+      "identity": "U3005@DOM1",
+      "hosts_via_redteam_edges": 25,
+      "hosts_total_footprint": 68,
+      "pct_of_footprint_that_was_attack": 36.8
+    },
+    {
+      "identity": "U293@DOM1",
+      "hosts_via_redteam_edges": 24,
+      "hosts_total_footprint": 78,
+      "pct_of_footprint_that_was_attack": 30.8
+    },
+    {
+      "identity": "U737@DOM1",
+      "hosts_via_redteam_edges": 18,
+      "hosts_total_footprint": 129,
+      "pct_of_footprint_that_was_attack": 14.0
+    },
+    {
+      "identity": "U3635@DOM1",
+      "hosts_via_redteam_edges": 14,
+      "hosts_total_footprint": 143,
+      "pct_of_footprint_that_was_attack": 9.8
+    },
+    {
+      "identity": "U748@DOM1",
+      "hosts_via_redteam_edges": 13,
+      "hosts_total_footprint": 113,
+      "pct_of_footprint_that_was_attack": 11.5
+    },
+    {
+      "identity": "U4448@DOM1",
+      "hosts_via_redteam_edges": 10,
+      "hosts_total_footprint": 55,
+      "pct_of_footprint_that_was_attack": 18.2
+    },
+    {
+      "identity": "U9947@DOM1",
+      "hosts_via_redteam_edges": 9,
+      "hosts_total_footprint": 69,
+      "pct_of_footprint_that_was_attack": 13.0
+    },
+    {
+      "identity": "U1480@DOM1",
+      "hosts_via_redteam_edges": 9,
+      "hosts_total_footprint": 76,
+      "pct_of_footprint_that_was_attack": 11.8
+    },
+    {
+      "identity": "U2575@DOM1",
+      "hosts_via_redteam_edges": 9,
+      "hosts_total_footprint": 71,
+      "pct_of_footprint_that_was_attack": 12.7
+    }
+  ],
+  "query_timings_ms": {
+    "counts": 407.9,
+    "choke_points": 302.3,
+    "attacker_vs_baseline": 18.7,
+    "blast_radius_all": 48954.3,
+    "shortest_paths_all": 110.4,
+    "subgraph_export": 81.6
+  },
+  "environment": {
+    "neo4j": "5.26-community (Docker), 2 GB heap",
+    "host": "Windows 11 Pro 26200, Docker Desktop (WSL2 backend)",
+    "note": "Timings are single-run against a warm page cache, on a laptop. Indicative, not a benchmark."
+  },
+  "measured_at": "2026-07-14T04:11:01+00:00"
+}
