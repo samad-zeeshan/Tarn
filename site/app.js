@@ -591,8 +591,16 @@ function drawCharts(bench) {
       </span>`;
 
     const band = diurnal.off_hours.band ?? [];
+    // The band wraps past midnight (18 to 23, then 0 to 5), so sorting it ascending and reading
+    // the ends gives "0:00 to 0:00". Find the hour whose predecessor is NOT in the band, and that
+    // is where the quiet period actually begins.
+    const set = new Set(band);
+    const startHour = band.find((h) => !set.has((h + 23) % 24));
+    const endHour = (band.find((h) => !set.has((h + 1) % 24)) + 1) % 24;
+    const pad = (h) => String(h).padStart(2, '0');
+
     $('#chart-diurnal-cap').innerHTML = band.length
-      ? `The quiet hours come out as ${band[0]}:00 to ${(band[band.length - 1] + 1) % 24}:00, and that ` +
+      ? `The quiet hours come out as ${pad(startHour)}:00 to ${pad(endHour)}:00, and that ` +
         `range was calculated from this data rather than assumed. Notice what happens if you do not ` +
         `separate people from machines: the combined line only varies by ${r.all_accounts}× from its ` +
         `busiest hour to its quietest, and the daily rhythm vanishes.`
@@ -647,6 +655,47 @@ function drawCharts(bench) {
       `alarming and means nothing, because an ordinary employee scores the same. Even the first ` +
       `chart is not clean, because the attacker deliberately picked powerful accounts to steal. The ` +
       `finding that survives is the table below, not this one.`;
+  }
+
+  // rules against vectors
+  const vec = bench.vector_eval;
+  if (vec?.detector_at_matched_alert_budgets) {
+    const rows = vec.detector_at_matched_alert_budgets.filter((d) => !d.skipped);
+
+    const bars = [];
+    rows.forEach((d) => {
+      const label = d.matched_against.replace(/\s*\(.*\)/, '').replace(/ of Q1-Q4/, '');
+      bars.push({
+        label: `${label} · rule`, v: d.the_rule_caught, color: 'var(--series-1)',
+        tip: `Spent ${Number(d.alerts).toLocaleString('en-US')} accusations`,
+      });
+      bars.push({
+        label: `${label} · vectors`, v: d.vector_search_caught, color: 'var(--series-3)',
+        tip: `Same budget of ${Number(d.alerts).toLocaleString('en-US')} accusations`,
+      });
+    });
+
+    barChart($('#chart-vec'), {
+      rows: bars, valueKey: 'v', labelKey: 'label', colorKey: 'color',
+      format: (v) => Number(v).toLocaleString('en-US'),
+      note: 'Attack days caught, simple rules against vector search, at matched budgets',
+    });
+    $('#chart-vec-cap').textContent =
+      'Each pair gets the exact same number of people to accuse. Blue is the simple rule, orange ' +
+      'is the vector search. The blue bar is longer almost every time.';
+
+    table($('#vec-table'), {
+      columns: [
+        { key: 'matched_against', label: 'same budget as', format: (v) => v.replace(/\s*\(.*\)/, '') },
+        { key: 'alerts', label: 'people accused', format: (v) => Number(v).toLocaleString('en-US') },
+        { key: 'the_rule_caught', label: 'rule caught' },
+        { key: 'vector_search_caught', label: 'vectors caught' },
+        { key: 'winner', label: 'winner' },
+      ],
+      numeric: ['alerts', 'the_rule_caught', 'vector_search_caught'],
+      rows,
+      rowClass: (r) => (r.winner === 'vector search' ? 'is-hit' : ''),
+    });
   }
 
   if (graph?.choke_points_top) {
@@ -713,6 +762,124 @@ function drawCharts(bench) {
       rowClass: (r) => (Number(r.recall_pct) === 0 ? 'is-redteam' : ''),
     });
   }
+}
+
+
+/** Live vector search, in the browser.
+ *
+ * DuckDB ships array_cosine_similarity in core, so this is a genuine nearest-neighbour search
+ * running on the reader's machine, not a replay. It compares the chosen day against every other
+ * day it holds and returns the closest.
+ */
+/** DuckDB hands a DATE back as epoch milliseconds, not as a Date. */
+function toISODate(v) {
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === 'number' || typeof v === 'bigint') {
+    return new Date(Number(v)).toISOString().slice(0, 10);
+  }
+  return String(v);
+}
+
+async function setupLookalike(bench) {
+  const sel = $('#lk-query');
+  const btn = $('#lk-run');
+  const status = $('#lk-status');
+  const result = $('#lk-result');
+  const note = $('#lk-note');
+
+  const shipped = bench.extracts?.vectors?.rows ?? 0;
+  const total = bench.vector_eval?.population?.person_days ?? 0;
+  const dims = bench.embedding?.dimensions ?? 52;
+
+  // Say plainly that the browser is searching a sample, and what that does to the odds. The
+  // sample keeps every attack day but only one ordinary day in sixty-four, which makes attack
+  // days far commoner here than in reality. That is exactly why this panel shows you the
+  // neighbours and refuses to quote a hit rate off them.
+  note.innerHTML =
+    `Your browser is searching ${Number(shipped).toLocaleString('en-US')} days, not the full ` +
+    `${Number(total).toLocaleString('en-US')}, because all of them would be a 333 MB download. ` +
+    `The sample keeps every attack day and one ordinary day in sixty-four, so attack days are ` +
+    `much commoner in here than they are in real life. That is why this panel shows you what came ` +
+    `back and does not score it. The measured hit rate, from the full set, is in the panel below.`;
+
+  const attackDays = await conn.query(`
+    select src_user, event_date
+    from vectors
+    where is_attack
+    order by anomaly_score desc
+    limit 60
+  `);
+
+  attackDays.toArray().forEach((r) => {
+    const o = r.toJSON();
+    const date = toISODate(o.event_date);
+    sel.append(new Option(`${o.src_user} on ${date}`, `${o.src_user}|${date}`));
+  });
+
+  const run = async () => {
+    const [user, date] = sel.value.split('|');
+    status.className = 'wb-status';
+    status.textContent = 'Searching…';
+
+    const t0 = performance.now();
+    const res = await conn.query(`
+      with q as (
+        select vector from vectors
+        where src_user = '${user.replace(/'/g, "''")}' and event_date = date '${date}'
+        limit 1
+      )
+      select
+        v.src_user                                              as person,
+        v.event_date                                            as day,
+        round(array_cosine_similarity(
+          v.vector::FLOAT[${dims}], q.vector::FLOAT[${dims}]), 4)  as similarity,
+        v.is_attack                                             as also_the_attack
+      from vectors v, q
+      where not (v.src_user = '${user.replace(/'/g, "''")}' and v.event_date = date '${date}')
+      order by similarity desc
+      limit 10
+    `);
+    const ms = performance.now() - t0;
+
+    const cols = res.schema.fields.map((f) => f.name);
+    const rows = res.toArray().map((r) => {
+      const o = r.toJSON();
+      const out = {};
+      for (const c of cols) {
+        let v = o[c];
+        if (c === 'day') v = toISODate(v);
+        else if (typeof v === 'bigint') v = Number(v);
+        out[c] = v;
+      }
+      return out;
+    });
+
+    table(result, {
+      columns: [
+        { key: 'person', label: 'person' },
+        { key: 'day', label: 'day' },
+        { key: 'similarity', label: 'how alike', format: (v) => Number(v).toFixed(4) },
+        { key: 'also_the_attack', label: 'also part of the attack?',
+          format: (v) => (v ? 'yes' : 'no') },
+      ],
+      numeric: ['similarity'],
+      rows,
+      rowClass: (r) => (r.also_the_attack ? 'is-hit' : ''),
+    });
+    result.hidden = false;
+
+    const hits = rows.filter((r) => r.also_the_attack).length;
+    status.className = 'wb-status ok';
+    status.textContent =
+      `${hits} of the 10 closest days were also part of the attack. Searched ` +
+      `${Number(shipped).toLocaleString('en-US')} days in ${ms.toFixed(0)} ms, on your machine.`;
+  };
+
+  sel.addEventListener('change', run);
+  btn.addEventListener('click', run);
+  btn.disabled = false;
+  status.textContent = 'Ready. Pick a day.';
+  if (sel.options.length) await run();
 }
 
 // boot
@@ -852,8 +1019,9 @@ async function main() {
     await initDuckDB(bench, status);
     $('#wb-run').disabled = false;
     status.className = 'wb-status ok';
-    status.textContent = 'DuckDB ready, press Run (or ⌘/Ctrl + Enter)';
+    status.textContent = 'Ready. Press Run, or Ctrl and Enter.';
     await runQuery(editor.value, status, result);
+    await setupLookalike(bench);
   } catch (err) {
     status.className = 'wb-status error';
     status.textContent = `DuckDB failed to load: ${err.message ?? err}`;

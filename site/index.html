@@ -42,6 +42,7 @@
       <a href="#optimization">Speed</a>
       <a href="#streaming">Streaming</a>
       <a href="#graph">The graph</a>
+      <a href="#lookalike">Lookalikes</a>
       <a href="#provenance">Honesty</a>
     </nav>
     <button class="theme-toggle" id="theme-toggle" aria-label="Switch between light and dark">
@@ -357,6 +358,74 @@
     <div id="chart-diurnal"></div>
     <figcaption id="chart-diurnal-cap"></figcaption>
   </figure>
+</section>
+
+
+<!-- ============================================================ VECTOR SEARCH -->
+<section id="lookalike" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">06 &middot; find more like this one <span class="badge live"><span class="dot"></span>running in your browser</span></p>
+    <h2>Describe a day as 52 numbers, then look for days that rhyme</h2>
+    <p>
+      Every person-day is turned into a list of 52 numbers describing how that person behaved:
+      how much they did, how often they failed, what hours they were active, and what kinds of
+      login they used. Similar behaviour ends up with similar numbers. Then you can ask the
+      computer for the nearest matches, the same way an image search finds similar photos.
+    </p>
+    <p>
+      Nothing from the answer key goes into those numbers. If it did, the search would just be
+      finding the answers, and every result below would be worthless.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="lookalike-controls">
+      <div class="field">
+        <label for="lk-query">Start from a day we know was the attack</label>
+        <select id="lk-query"></select>
+      </div>
+      <button class="btn" id="lk-run" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7 14 5 12 5 9.5S7 5 9.5 5 14 7 14 9.5 12 14 9.5 14"/></svg>
+        Find lookalikes
+      </button>
+      <span class="wb-status" id="lk-status">Waiting for the database…</span>
+    </div>
+
+    <div class="table-scroll" id="lk-result" hidden></div>
+
+    <p style="font-size:0.86rem;color:var(--fg-dim);margin:var(--s5) 0 0" id="lk-note"></p>
+  </div>
+
+  <div class="grid-2" style="margin-top:var(--s4)">
+    <figure class="card chart">
+      <div class="chart-title">Simple rules against vector search, same budget</div>
+      <div class="chart-sub">Give each of them the same number of people to accuse, and see who finds more of the attack</div>
+      <div id="chart-vec"></div>
+      <figcaption id="chart-vec-cap"></figcaption>
+    </figure>
+    <div class="card">
+      <div class="chart-title">The result, plainly</div>
+      <div class="chart-sub">One of these is a good idea and the other is not</div>
+      <p style="font-size:0.92rem;color:var(--fg-muted)">
+        <strong style="color:var(--fg)">As a way of spotting the attack on its own, this lost.</strong>
+        Told to go and find unusual behaviour with no other help, it does worse than the simple
+        rules at every budget but one, and the one it wins is the rule that caught nothing at all.
+        Being unusual and being an attacker are not the same thing. Most unusual days are just
+        somebody having an unusual day.
+      </p>
+      <p style="font-size:0.92rem;color:var(--fg-muted)">
+        <strong style="color:var(--fg)">As a way of finding more of an attack you already
+        found, it is very good.</strong>
+        Hand it a single confirmed bad day and ask for lookalikes, and
+        <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.precision_at_k_pct|pct">-</strong>
+        of what it hands back is also part of the attack. That is
+        <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.lift_over_random|x">-</strong>
+        better than picking days at random. It cannot find the first one for you. It can find the
+        rest.
+      </p>
+      <div class="table-scroll"><table id="vec-table"></table></div>
+    </div>
+  </div>
 </section>
 
 </main>

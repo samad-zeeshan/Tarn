@@ -112,6 +112,22 @@ jobs:
       - name: Stage 2, run the five showcase queries
         run: python warehouse/run_queries.py --db /tmp/tarn_ci.duckdb --out /tmp/tarn/results
 
+      # The vector stage runs end to end on the slice too. It is the one stage where a silent
+      # mistake (a label sneaking into a feature) would produce a spectacular result rather than
+      # an obviously broken one, so it gets exercised rather than trusted.
+      - name: Stage 4b, embed and search
+        run: |
+          python pipeline/embed.py \
+            --lake /tmp/tarn/lake/auth \
+            --rollup /tmp/tarn/lake/rollup \
+            --output /tmp/tarn/lake/vectors \
+            --stats-out /tmp/tarn/embedding.json
+          python vector/search.py \
+            --vectors /tmp/tarn/lake/vectors \
+            --rollup /tmp/tarn/lake/rollup \
+            --scores-out /tmp/tarn/vector_scores \
+            --out /tmp/tarn/results/vector_eval.json
+
       - name: Show Q5 (would the analytics have caught the attacker?)
         run: cat /tmp/tarn/results/q5_redteam_enrichment.csv
 

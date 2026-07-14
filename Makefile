@@ -13,6 +13,7 @@
 #   make warehouse   Stage 2, dbt star schema + tests + the 5 showcase queries
 #   make stream      Stage 3, Redpanda replay + Structured Streaming + lag probe
 #   make graph       Stage 4, load Neo4j, run Cypher, export paths
+#   make vectors     Stage 4b, embed each person-day, index it, score the search honestly
 #   make site        Stage 5, build the demo payloads, then audit them
 #
 #   make all         stages 1-5 end to end (assumes `make fetch` has run)
@@ -92,6 +93,11 @@ graph:
 	$(EXEC) python graph/load_neo4j.py --lake $(LAKE)/auth --redteam $(LAKE)/redteam --wipe
 	$(EXEC) python graph/export_paths.py
 
+# ---- Stage 4b ----------------------------------------------------------------
+vectors:
+	$(EXEC) python pipeline/embed.py --lake $(LAKE)/auth --rollup $(LAKE)/rollup --output $(LAKE)/vectors --stats-out bench/embedding.json
+	$(EXEC) python vector/search.py --vectors $(LAKE)/vectors --rollup $(LAKE)/rollup --scores-out $(LAKE)/vector_scores --out bench/vector_eval.json
+
 # ---- Stage 5 -----------------------------------------------------------------
 site:
 	$(EXEC) python site/build_payloads.py --db $(DUCKDB)
@@ -104,7 +110,7 @@ serve:
 	@echo "http://localhost:8080"
 	@cd site && python -m http.server 8080
 
-all: lake rollup bench warehouse stream graph site
+all: lake rollup bench warehouse stream graph vectors site
 
 # ---- quality -----------------------------------------------------------------
 test:

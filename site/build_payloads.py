@@ -71,6 +71,25 @@ EXTRACTS = {
         from main_marts.dim_computer
     """,
     "dim_time": "select * from main_marts.dim_time",
+    # The vectors the browser searches. Every attack day, plus a random sample of ordinary ones,
+    # because all 1.6 million would be 333 MB.
+    #
+    # This makes attack days about forty times commoner in the browser than they are in reality,
+    # so the panel deliberately does NOT report a hit rate. It shows you what the search returns
+    # and lets you look. The measured hit rate comes from the full index and is stated separately.
+    "vectors": """
+        select
+            v.src_user,
+            v.event_date,
+            v.vector,
+            s.is_attack,
+            s.anomaly_score
+        from read_parquet('/data/lake/vectors/**/*.parquet') v
+        join read_parquet('/data/lake/vector_scores.parquet') s
+          on v.src_user = s.src_user and v.event_date = s.event_date
+        where s.is_attack
+           or hash(v.src_user || v.event_date::varchar) % 64 = 0
+    """,
     "redteam": """
         select
             event_time_seconds,

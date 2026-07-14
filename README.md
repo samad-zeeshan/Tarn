@@ -46,7 +46,12 @@ Spark Streaming         replay events through Redpanda (Kafka)
 Neo4j                   who can reach whom, and how fast an attacker spreads
         |
         v
-Demo site               DuckDB compiled to WebAssembly. The SQL is really running.
+Vector search           each person-day as 52 numbers, indexed for nearest neighbours
+                        "find me more days that look like this one"
+        |
+        v
+Demo site               DuckDB compiled to WebAssembly. The SQL is really running,
+                        and so is the vector search.
 ```
 
 ---
@@ -68,6 +73,7 @@ Everything here was measured. Nothing is estimated or rounded up. The machine it
 | Streaming | 7,139 events/sec sustained, lag p50 12.5s, p95 15.6s |
 | Graph | 72,751 accounts, 14,540 hosts, 600,145 edges |
 | Warehouse tests | 54 dbt checks, all passing, every key checked across all 1.05 billion rows |
+| Vector index | 1,604,500 person-days as 52 numbers each, searchable in 0.005 ms |
 
 Each number has an artifact behind it in `bench/`.
 
@@ -105,6 +111,48 @@ detector. It is a denial of service attack on whoever has to read them.
 from 63,891 down to 2,599 and makes each alert 75 times more likely to be real. The cost is
 recall dropping to 12%. That trade-off is the actual job, and here it is measured instead of
 asserted.
+
+---
+
+## Vector search: bad at finding the attack, very good at growing it
+
+Every person-day is turned into 52 numbers describing how that person behaved. How much they
+did, how often they failed, what hours they were active, what kinds of login they used. Similar
+behaviour ends up with similar numbers, so you can ask for the nearest matches, the way an image
+search finds similar photos.
+
+Nothing from the answer key goes into those numbers. There is a test that fails if it ever does.
+
+**As a detector on its own, it lost.** Told to go and find unusual behaviour with no other help,
+and given the exact same number of people to accuse that each simple rule was given:
+
+| same budget as | people accused | the rule caught | vector search caught | winner |
+|---|---|---|---|---|
+| any of the four | 63,891 | 62 | 10 | the rule |
+| new access paths | 33,319 | 56 | 5 | the rule |
+| two or more | 2,599 | 22 | 1 | the rule |
+| sudden fan-out | 21,136 | 20 | 3 | the rule |
+| failed logins | 5,752 | 11 | 3 | the rule |
+| odd hours | 6,379 | 0 | 3 | vector search |
+
+It loses five out of six, and the one it wins is against the rule that caught nothing at all.
+Being unusual and being an attacker are not the same thing. Most unusual days are just somebody
+having an unusual day.
+
+**As a way of growing an attack you have already found, it is excellent.** Hand it one confirmed
+bad day and ask for lookalikes, and **4.59% of what comes back is also part of the attack. That
+is 406 times better than picking days at random.** 45 of the 181 attack days surface at least one
+other.
+
+It cannot find the first one for you. It can find the rest. That is a hunting tool, not a
+detector, and the difference matters enough to be measured rather than blurred.
+
+The index is built on a single thread on purpose. Building it in parallel made the same input
+give 4.48% on one run and 4.64% on the next, and a number that changes when nothing changed is
+not a measurement.
+
+You can run the search yourself on the demo. It executes in your browser in about 30
+milliseconds.
 
 ---
 
@@ -197,6 +245,7 @@ make bench                # the optimization benchmark
 make warehouse            # dbt build, tests, the five queries
 make stream               # Kafka replay and the streaming job
 make graph                # load Neo4j, run the Cypher
+make vectors              # embed every person-day, index it, score the search
 make site                 # build the demo, then audit it
 ```
 
@@ -229,9 +278,10 @@ pipeline/databricks/ the same rollup as a Databricks notebook
 warehouse/           dbt star schema, five queries, committed results
 streaming/           Kafka replay, the streaming job, the lag measurement
 graph/               Neo4j loader, the Cypher, the exports
+vector/              the nearest-neighbour index and its honest scoring
 bench/               every measured number, with the machine it ran on
 site/                the demo
-tests/               26 tests
+tests/               33 tests
 ```
 
 ---

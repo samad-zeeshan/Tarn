@@ -1,0 +1,273 @@
+{
+  "what": "One vector per person per day, describing how that person behaved that day. Used by the nearest-neighbour search in vector/.",
+  "no_leakage": "The vector is built from behaviour only. Nothing derived from the published attack list is in it, and neither is anything derived from the four warning signs. If the labels were in here, the search would be finding the answer key rather than the attack, and every number that came out of it would be worthless.",
+  "dimensions": 52,
+  "feature_names": [
+    "log_auth_count",
+    "log_failure_count",
+    "log_distinct_dst",
+    "log_distinct_src",
+    "log_new_dst",
+    "failure_ratio",
+    "hour_00_share",
+    "hour_01_share",
+    "hour_02_share",
+    "hour_03_share",
+    "hour_04_share",
+    "hour_05_share",
+    "hour_06_share",
+    "hour_07_share",
+    "hour_08_share",
+    "hour_09_share",
+    "hour_10_share",
+    "hour_11_share",
+    "hour_12_share",
+    "hour_13_share",
+    "hour_14_share",
+    "hour_15_share",
+    "hour_16_share",
+    "hour_17_share",
+    "hour_18_share",
+    "hour_19_share",
+    "hour_20_share",
+    "hour_21_share",
+    "hour_22_share",
+    "hour_23_share",
+    "auth_type_kerberos_share",
+    "auth_type_negotiate_share",
+    "auth_type_ntlm_share",
+    "auth_type_microsoft_share",
+    "auth_type_other_share",
+    "logon_type_network_share",
+    "logon_type_service_share",
+    "logon_type_unlock_share",
+    "logon_type_interactive_share",
+    "logon_type_batch_share",
+    "logon_type_newcredentials_share",
+    "logon_type_networkcleartext_share",
+    "logon_type_other_share",
+    "orientation_logon_share",
+    "orientation_logoff_share",
+    "orientation_tgs_share",
+    "orientation_tgt_share",
+    "orientation_authmap_share",
+    "orientation_screenlock_share",
+    "orientation_screenunlock_share",
+    "orientation_other_share",
+    "is_machine"
+  ],
+  "rows": 1604500,
+  "scaling": "Each dimension is centred and divided by its standard deviation over the whole population, then each vector is scaled to unit length. The first step stops the log counts from drowning the shares. The second makes distance a measure of shape rather than of volume.",
+  "feature_stats": {
+    "log_auth_count": {
+      "mean": 4.793693894392935,
+      "stddev": 2.3199536524407693
+    },
+    "log_failure_count": {
+      "mean": 0.2562035447685513,
+      "stddev": 0.7515202514258666
+    },
+    "log_distinct_dst": {
+      "mean": 1.8187126502487592,
+      "stddev": 0.8645596718711509
+    },
+    "log_distinct_src": {
+      "mean": 1.6972273171978955,
+      "stddev": 0.7872535471627377
+    },
+    "log_new_dst": {
+      "mean": 0.19263473133815212,
+      "stddev": 0.4761189985014976
+    },
+    "failure_ratio": {
+      "mean": 0.08002007512886547,
+      "stddev": 0.26897324588596794
+    },
+    "hour_00_share": {
+      "mean": 0.029174318096000317,
+      "stddev": 0.07335438402494901
+    },
+    "hour_01_share": {
+      "mean": 0.027328636433260875,
+      "stddev": 0.06407196176111737
+    },
+    "hour_02_share": {
+      "mean": 0.026896645460150245,
+      "stddev": 0.06455635740265266
+    },
+    "hour_03_share": {
+      "mean": 0.02511491247759904,
+      "stddev": 0.05650371661293552
+    },
+    "hour_04_share": {
+      "mean": 0.024801163636895013,
+      "stddev": 0.05240198091932101
+    },
+    "hour_05_share": {
+      "mean": 0.02758161756673816,
+      "stddev": 0.06879369229433305
+    },
+    "hour_06_share": {
+      "mean": 0.042501730293016335,
+      "stddev": 0.11605832607782218
+    },
+    "hour_07_share": {
+      "mean": 0.06897844230146429,
+      "stddev": 0.16664744153086392
+    },
+    "hour_08_share": {
+      "mean": 0.07401801691540624,
+      "stddev": 0.16668734440447333
+    },
+    "hour_09_share": {
+      "mean": 0.06522041822313315,
+      "stddev": 0.1447598782160255
+    },
+    "hour_10_share": {
+      "mean": 0.06101723579134274,
+      "stddev": 0.13370380001041834
+    },
+    "hour_11_share": {
+      "mean": 0.05647536140601413,
+      "stddev": 0.12311039030188126
+    },
+    "hour_12_share": {
+      "mean": 0.054435503974240025,
+      "stddev": 0.11893818224094796
+    },
+    "hour_13_share": {
+      "mean": 0.05578674144014461,
+      "stddev": 0.12127271165592003
+    },
+    "hour_14_share": {
+      "mean": 0.05691459194810261,
+      "stddev": 0.12324729180887654
+    },
+    "hour_15_share": {
+      "mean": 0.05642498211942304,
+      "stddev": 0.12232039425382396
+    },
+    "hour_16_share": {
+      "mean": 0.04870062968343393,
+      "stddev": 0.11042909339510176
+    },
+    "hour_17_share": {
+      "mean": 0.035632726345393446,
+      "stddev": 0.08254571391889556
+    },
+    "hour_18_share": {
+      "mean": 0.028277943491360254,
+      "stddev": 0.0620776543353042
+    },
+    "hour_19_share": {
+      "mean": 0.02601187864492604,
+      "stddev": 0.052860352682764115
+    },
+    "hour_20_share": {
+      "mean": 0.025418217862263615,
+      "stddev": 0.05079810360001351
+    },
+    "hour_21_share": {
+      "mean": 0.025797739483197118,
+      "stddev": 0.05452307441555994
+    },
+    "hour_22_share": {
+      "mean": 0.02531394631099305,
+      "stddev": 0.04763880003742767
+    },
+    "hour_23_share": {
+      "mean": 0.03217660009550094,
+      "stddev": 0.09125267601934961
+    },
+    "auth_type_kerberos_share": {
+      "mean": 0.21412086875838396,
+      "stddev": 0.18953729950976692
+    },
+    "auth_type_negotiate_share": {
+      "mean": 0.1454134464974053,
+      "stddev": 0.33722700477933804
+    },
+    "auth_type_ntlm_share": {
+      "mean": 0.06808457077184996,
+      "stddev": 0.20741218155160676
+    },
+    "auth_type_microsoft_share": {
+      "mean": 0.0003308608693141076,
+      "stddev": 0.013642272295206238
+    },
+    "auth_type_other_share": {
+      "mean": 0.5720502531030456,
+      "stddev": 0.3116418593398831
+    },
+    "logon_type_network_share": {
+      "mean": 0.5773733541063686,
+      "stddev": 0.4063970525953245
+    },
+    "logon_type_service_share": {
+      "mean": 0.13276693636959688,
+      "stddev": 0.33243109635992646
+    },
+    "logon_type_unlock_share": {
+      "mean": 0.005829590431075871,
+      "stddev": 0.03370002798183421
+    },
+    "logon_type_interactive_share": {
+      "mean": 0.0028276907688321827,
+      "stddev": 0.04498642137218872
+    },
+    "logon_type_batch_share": {
+      "mean": 0.0019677768421726143,
+      "stddev": 0.03644749442640464
+    },
+    "logon_type_newcredentials_share": {
+      "mean": 0.023862066979053694,
+      "stddev": 0.14616239872099357
+    },
+    "logon_type_networkcleartext_share": {
+      "mean": 0.0031273840543307903,
+      "stddev": 0.04930076776604288
+    },
+    "logon_type_other_share": {
+      "mean": 0.2553725845029005,
+      "stddev": 0.3384327767975898
+    },
+    "orientation_logon_share": {
+      "mean": 0.46643316628482456,
+      "stddev": 0.31549067926617064
+    },
+    "orientation_logoff_share": {
+      "mean": 0.31751971518868555,
+      "stddev": 0.2493727018292242
+    },
+    "orientation_tgs_share": {
+      "mean": 0.1036387883725331,
+      "stddev": 0.1624842003039504
+    },
+    "orientation_tgt_share": {
+      "mean": 0.09608515543572527,
+      "stddev": 0.2641143856700195
+    },
+    "orientation_authmap_share": {
+      "mean": 0.015943183995497816,
+      "stddev": 0.09071196922114234
+    },
+    "orientation_screenlock_share": {
+      "mean": 0.00020028372585539342,
+      "stddev": 0.00525442264570656
+    },
+    "orientation_screenunlock_share": {
+      "mean": 0.0001797069968808309,
+      "stddev": 0.004449904961839423
+    },
+    "orientation_other_share": {
+      "mean": 0.0,
+      "stddev": 1.0
+    },
+    "is_machine": {
+      "mean": 0.3604138360860081,
+      "stddev": 0.48012050866816364
+    }
+  },
+  "output": "/data/lake/vectors",
+  "seconds": 688.2
+}
