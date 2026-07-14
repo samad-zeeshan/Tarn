@@ -26,7 +26,14 @@ tarn:
     ci:
       type: duckdb
       path: /tmp/tarn_ci.duckdb
-      threads: 2
+      # ONE thread, and this is the second threading scar in this file. At 2 threads the CI
+      # build died mid-run with "Fatal Python error: PyEval_SaveThread: ... the current Python
+      # thread state is NULL" (exit 250): dbt was creating the fact table on one connection
+      # while running schema tests on another, and duckdb 1.1.3 + dbt-duckdb 1.8.4 crash in
+      # native code under that concurrency on the runner's timing. It never reproduced in the
+      # local container, which is exactly why it is pinned here rather than trusted to luck.
+      # The CI slice is ~100k rows; serializing the 45 resources costs seconds.
+      threads: 1
       extensions:
         - parquet
       settings:
