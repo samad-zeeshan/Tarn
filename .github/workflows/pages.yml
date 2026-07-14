@@ -1,0 +1,46 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "bench/**"
+      - "warehouse/queries/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy site to GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The site is static and its payloads are committed (there is no lake in CI to rebuild
+      # them from). What CI CAN do is prove the page is not lying: every number it renders must
+      # come from a bench artifact, and the payload budget must hold.
+      - name: Audit — no hard-coded metrics, budgets hold
+        run: python site/audit.py
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
