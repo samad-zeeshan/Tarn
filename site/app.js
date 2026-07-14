@@ -741,7 +741,7 @@ async function main() {
 
   $('#foot-note').innerHTML =
     `Tarn · built by <a href="https://github.com/samad-zeeshan">samad-zeeshan</a> · ` +
-    `<a href="https://github.com/samad-zeeshan/tarn">the code</a> · ` +
+    `<a href="https://github.com/samad-zeeshan/Tarn">the code</a> · ` +
     `data from A. D. Kent, <em>Comprehensive, Multi-Source Cyber-Security Events</em>, ` +
     `Los Alamos National Laboratory, 2015, free for anyone to use.`;
 
