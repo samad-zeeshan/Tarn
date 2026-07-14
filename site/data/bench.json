@@ -1,0 +1,2699 @@
+{
+  "dataset": {
+    "dataset": {
+      "name": "LANL Comprehensive, Multi-Source Cyber-Security Events",
+      "citation": "A. D. Kent, 'Cybersecurity Data Sources for Dynamic Network Research', in Dynamic Networks in Cybersecurity, Imperial College Press, 2015.",
+      "url": "https://csr.lanl.gov/data/cyber1/",
+      "license": "CC0 1.0 (public domain dedication)",
+      "character": "real enterprise authentication telemetry, anonymized (users/hosts pseudonymized)",
+      "synthetic": false
+    },
+    "auth": {
+      "file": "auth.txt.gz",
+      "bytes_compressed": 7626505158,
+      "sha256": "9c6b0cc261b0edd19324f6fd1839743224938a7f644ed202ca70bd70a89bf672",
+      "rows": 1051430459,
+      "unparseable_rows": 0,
+      "time_min_seconds": 1,
+      "time_max_seconds": 5011199,
+      "span_days": 58.0,
+      "columns": [
+        "time",
+        "src_user",
+        "dst_user",
+        "src_computer",
+        "dst_computer",
+        "auth_type",
+        "logon_type",
+        "auth_orientation",
+        "outcome"
+      ]
+    },
+    "redteam": {
+      "file": "redteam.txt.gz",
+      "bytes_compressed": 4846,
+      "sha256": "606635837c684ad11e464075ecf97bc5df325ff7d7f64614d2d8c8af18051669",
+      "rows": 749,
+      "columns": [
+        "time",
+        "user",
+        "src_computer",
+        "dst_computer"
+      ]
+    },
+    "ci_slice": {
+      "path": "data/sample/",
+      "seed": 20260117,
+      "window_days": 8.0,
+      "modulus": 1331
+    },
+    "measured_at": "2026-07-14T00:38:00+00:00",
+    "measured_by": "data/fetch.py describe"
+  },
+  "diurnal": {
+    "what": "Hour-of-day activity curve, measured over the lake. The off-hours band that fact_auth_event.is_off_hours and warehouse Q2 use is DERIVED from this measurement \u2014 it is never assumed.",
+    "caveat": "LANL ships relative seconds, not wall-clock time; hour = (t mod 86400) // 3600, so hour labels are offsets from the start of collection rather than certified local clock hours. The SHAPE of the curve is a real measurement. That the human trough lands on hours 00-05 and the peak on 07-15 is itself evidence that t=0 sits near local midnight \u2014 but that is an inference from the data, not something LANL documents, and nothing in Tarn depends on it being exactly right.",
+    "key_finding": "Machine accounts run around the clock and are the bulk of the traffic, which flattens the aggregate curve to a peak:trough of 1.46x and hides the cycle entirely. Human accounts alone show 1.79x, with a clean overnight trough. Splitting them is what makes an off-hours claim defensible at all.",
+    "peak_to_trough_ratio": {
+      "all_accounts": 1.46,
+      "human_accounts": 1.79,
+      "machine_accounts": 1.28
+    },
+    "human_peak_hour": {
+      "hour": 9,
+      "events": 53449137,
+      "human_events": 23410087,
+      "machine_events": 30039050,
+      "failures": 607789,
+      "distinct_identities": 52493
+    },
+    "human_trough_hour": {
+      "hour": 3,
+      "events": 36559921,
+      "human_events": 13107764,
+      "machine_events": 23452157,
+      "failures": 459877,
+      "distinct_identities": 28666
+    },
+    "total_events": 1051430459,
+    "total_human_events": 418236956,
+    "total_machine_events": 633193503,
+    "off_hours": {
+      "band": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "band_hours": 12,
+      "band_start_hour": 18,
+      "band_end_hour": 5,
+      "rule": "hour is off-hours when its human-account volume is within 15% of the quietest hour (13,107,764 events)",
+      "cutoff": 15073928.6,
+      "quietest_hour_volume": 13107764,
+      "busiest_hour_volume": 23410087,
+      "peak_to_trough_ratio": 1.79,
+      "mean_hourly_volume": 17426539.8,
+      "share_of_human_events_in_band": 0.38863,
+      "verdict": "diurnal cycle present; off-hours band derived from the measured trough"
+    },
+    "histogram": [
+      {
+        "hour": 0,
+        "events": 38324827,
+        "human_events": 13317405,
+        "machine_events": 25007422,
+        "failures": 468111,
+        "distinct_identities": 30147
+      },
+      {
+        "hour": 1,
+        "events": 37484599,
+        "human_events": 13581363,
+        "machine_events": 23903236,
+        "failures": 474555,
+        "distinct_identities": 29351
+      },
+      {
+        "hour": 2,
+        "events": 37231887,
+        "human_events": 13552517,
+        "machine_events": 23679370,
+        "failures": 459971,
+        "distinct_identities": 28959
+      },
+      {
+        "hour": 3,
+        "events": 36559921,
+        "human_events": 13107764,
+        "machine_events": 23452157,
+        "failures": 459877,
+        "distinct_identities": 28666
+      },
+      {
+        "hour": 4,
+        "events": 36770840,
+        "human_events": 13154252,
+        "machine_events": 23616588,
+        "failures": 486648,
+        "distinct_identities": 28733
+      },
+      {
+        "hour": 5,
+        "events": 37109066,
+        "human_events": 13239645,
+        "machine_events": 23869421,
+        "failures": 473957,
+        "distinct_identities": 32432
+      },
+      {
+        "hour": 6,
+        "events": 41361062,
+        "human_events": 15388383,
+        "machine_events": 25972679,
+        "failures": 508179,
+        "distinct_identities": 40439
+      },
+      {
+        "hour": 7,
+        "events": 49325493,
+        "human_events": 20348996,
+        "machine_events": 28976497,
+        "failures": 595142,
+        "distinct_identities": 49132
+      },
+      {
+        "hour": 8,
+        "events": 53167566,
+        "human_events": 23067737,
+        "machine_events": 30099829,
+        "failures": 629904,
+        "distinct_identities": 53315
+      },
+      {
+        "hour": 9,
+        "events": 53449137,
+        "human_events": 23410087,
+        "machine_events": 30039050,
+        "failures": 607789,
+        "distinct_identities": 52493
+      },
+      {
+        "hour": 10,
+        "events": 53212156,
+        "human_events": 23255789,
+        "machine_events": 29956367,
+        "failures": 605764,
+        "distinct_identities": 50747
+      },
+      {
+        "hour": 11,
+        "events": 52060457,
+        "human_events": 22678803,
+        "machine_events": 29381654,
+        "failures": 612490,
+        "distinct_identities": 48269
+      },
+      {
+        "hour": 12,
+        "events": 50988888,
+        "human_events": 22343502,
+        "machine_events": 28645386,
+        "failures": 622557,
+        "distinct_identities": 46925
+      },
+      {
+        "hour": 13,
+        "events": 51730221,
+        "human_events": 22882060,
+        "machine_events": 28848161,
+        "failures": 636119,
+        "distinct_identities": 47816
+      },
+      {
+        "hour": 14,
+        "events": 52286374,
+        "human_events": 23030358,
+        "machine_events": 29256016,
+        "failures": 620563,
+        "distinct_identities": 47968
+      },
+      {
+        "hour": 15,
+        "events": 51571966,
+        "human_events": 22541221,
+        "machine_events": 29030745,
+        "failures": 618402,
+        "distinct_identities": 47690
+      },
+      {
+        "hour": 16,
+        "events": 48138529,
+        "human_events": 20231671,
+        "machine_events": 27906858,
+        "failures": 572286,
+        "distinct_identities": 44093
+      },
+      {
+        "hour": 17,
+        "events": 42317420,
+        "human_events": 16520697,
+        "machine_events": 25796723,
+        "failures": 522759,
+        "distinct_identities": 36851
+      },
+      {
+        "hour": 18,
+        "events": 39072483,
+        "human_events": 14480439,
+        "machine_events": 24592044,
+        "failures": 487712,
+        "distinct_identities": 32136
+      },
+      {
+        "hour": 19,
+        "events": 37968236,
+        "human_events": 13812658,
+        "machine_events": 24155578,
+        "failures": 477841,
+        "distinct_identities": 30336
+      },
+      {
+        "hour": 20,
+        "events": 37713186,
+        "human_events": 13649513,
+        "machine_events": 24063673,
+        "failures": 473642,
+        "distinct_identities": 29465
+      },
+      {
+        "hour": 21,
+        "events": 37731637,
+        "human_events": 13638496,
+        "machine_events": 24093141,
+        "failures": 472263,
+        "distinct_identities": 30161
+      },
+      {
+        "hour": 22,
+        "events": 38131476,
+        "human_events": 13531483,
+        "machine_events": 24599993,
+        "failures": 476414,
+        "distinct_identities": 28807
+      },
+      {
+        "hour": 23,
+        "events": 37723032,
+        "human_events": 13472117,
+        "machine_events": 24250915,
+        "failures": 477363,
+        "distinct_identities": 35451
+      }
+    ],
+    "lake": "/data/lake/auth",
+    "measured_at": "2026-07-14T00:52:56+00:00"
+  },
+  "graph_stats": {
+    "what": "Shape and query performance of the Neo4j privilege-path graph (Stage 4).",
+    "graph": {
+      "users": 72751,
+      "computers": 14540,
+      "auth_edges": 600145,
+      "redteam_edges": 437,
+      "compromised_identities": 104,
+      "redteam_pivot_hosts": [
+        "C22409",
+        "C19932"
+      ]
+    },
+    "shortest_paths": {
+      "pairs_queried": 40,
+      "paths_found": 40,
+      "hop_length_histogram": {
+        "2": 31,
+        "4": 9
+      },
+      "min_hops": 2,
+      "max_hops": 4,
+      "median_query_ms": 2.6,
+      "note": "Hops alternate User -> Computer -> User. A 2-hop path means the two identities share a single host; 4 hops means one intermediate identity."
+    },
+    "blast_radius": {
+      "compromised_mean_hosts_1_hop": 113.0,
+      "compromised_mean_hosts_3_hops": 14256.2,
+      "benign_control_mean_hosts_1_hop": 59.6,
+      "benign_control_mean_hosts_3_hops": 14253.0,
+      "total_hosts_in_graph": 14540,
+      "note": "The benign control group is what makes these numbers mean anything. Compare compromised vs. control rather than reading either alone \u2014 see the verdicts.",
+      "at_1_hop": {
+        "compromised_mean": 113.0,
+        "benign_control_mean": 59.6,
+        "ratio": 1.9,
+        "pct_of_all_hosts_covered": 0.8,
+        "discriminates": true,
+        "verdict": "USABLE at 1 hop: compromised identities reach 1.9x what the control reaches, and the reachable set is still only 0.8% of the network."
+      },
+      "at_3_hops": {
+        "compromised_mean": 14256.2,
+        "benign_control_mean": 14253.0,
+        "ratio": 1.0,
+        "pct_of_all_hosts_covered": 98.0,
+        "discriminates": false,
+        "verdict": "NOT A SIGNAL at 3 hops: both groups reach ~98.0% of every host in the graph (ratio 1.0x). The metric has saturated \u2014 quoting the compromised number alone would be true and completely meaningless."
+      },
+      "headline_finding": "BLAST RADIUS SATURATES. At 3 hops both compromised and ordinary identities reach essentially every host in the network (14,256 vs 14,253 of 14,540), so the measure carries no information at that depth. The cause is visible in choke_points_top: hub hosts here are authenticated to by tens of thousands of distinct identities, which collapses the graph into a small world where almost everyone is two hops from almost everyone. Only the 1-hop measure discriminates \u2014 and even that is confounded, because the accounts the red team chose to compromise were higher-privilege to begin with. The genuinely actionable output of this stage is therefore not blast radius but the choke points: harden those hubs and you break the paths.",
+      "detail": [
+        {
+          "identity": "U66@DOM1",
+          "hosts_1_hop": 249,
+          "identities_2_hops": 27522,
+          "hosts_3_hops": 14216,
+          "is_compromised": true
+        },
+        {
+          "identity": "U3005@DOM1",
+          "hosts_1_hop": 68,
+          "identities_2_hops": 36903,
+          "hosts_3_hops": 14261,
+          "is_compromised": true
+        },
+        {
+          "identity": "U293@DOM1",
+          "hosts_1_hop": 78,
+          "identities_2_hops": 36896,
+          "hosts_3_hops": 14263,
+          "is_compromised": true
+        },
+        {
+          "identity": "U737@DOM1",
+          "hosts_1_hop": 129,
+          "identities_2_hops": 37066,
+          "hosts_3_hops": 14262,
+          "is_compromised": true
+        },
+        {
+          "identity": "U3635@DOM1",
+          "hosts_1_hop": 143,
+          "identities_2_hops": 37026,
+          "hosts_3_hops": 14260,
+          "is_compromised": true
+        },
+        {
+          "identity": "U748@DOM1",
+          "hosts_1_hop": 113,
+          "identities_2_hops": 36831,
+          "hosts_3_hops": 14266,
+          "is_compromised": true
+        },
+        {
+          "identity": "U4448@DOM1",
+          "hosts_1_hop": 55,
+          "identities_2_hops": 36444,
+          "hosts_3_hops": 14262,
+          "is_compromised": true
+        },
+        {
+          "identity": "U9947@DOM1",
+          "hosts_1_hop": 69,
+          "identities_2_hops": 36524,
+          "hosts_3_hops": 14260,
+          "is_compromised": true
+        },
+        {
+          "identity": "U6801@DOM1",
+          "hosts_1_hop": 61,
+          "identities_2_hops": 36845,
+          "hosts_3_hops": 14262,
+          "is_compromised": false
+        },
+        {
+          "identity": "U139@DOM1",
+          "hosts_1_hop": 61,
+          "identities_2_hops": 36897,
+          "hosts_3_hops": 14265,
+          "is_compromised": false
+        },
+        {
+          "identity": "U1631@DOM1",
+          "hosts_1_hop": 60,
+          "identities_2_hops": 36525,
+          "hosts_3_hops": 14258,
+          "is_compromised": false
+        },
+        {
+          "identity": "U4250@DOM1",
+          "hosts_1_hop": 59,
+          "identities_2_hops": 36706,
+          "hosts_3_hops": 14261,
+          "is_compromised": false
+        },
+        {
+          "identity": "U7780@DOM1",
+          "hosts_1_hop": 59,
+          "identities_2_hops": 36520,
+          "hosts_3_hops": 14225,
+          "is_compromised": false
+        },
+        {
+          "identity": "U11440@DOM1",
+          "hosts_1_hop": 59,
+          "identities_2_hops": 36582,
+          "hosts_3_hops": 14231,
+          "is_compromised": false
+        },
+        {
+          "identity": "U149@DOM1",
+          "hosts_1_hop": 59,
+          "identities_2_hops": 36854,
+          "hosts_3_hops": 14260,
+          "is_compromised": false
+        },
+        {
+          "identity": "U5785@DOM1",
+          "hosts_1_hop": 59,
+          "identities_2_hops": 36831,
+          "hosts_3_hops": 14262,
+          "is_compromised": false
+        }
+      ]
+    },
+    "choke_points_top": [
+      {
+        "host": "C1065",
+        "identities": 28483,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C612",
+        "identities": 28437,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C529",
+        "identities": 28373,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C528",
+        "identities": 28262,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C457",
+        "identities": 28035,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C625",
+        "identities": 28011,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C467",
+        "identities": 27710,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C586",
+        "identities": 24771,
+        "was_pivot": false,
+        "was_target": true
+      },
+      {
+        "host": "C1640",
+        "identities": 22765,
+        "was_pivot": false,
+        "was_target": false
+      },
+      {
+        "host": "C2106",
+        "identities": 21928,
+        "was_pivot": false,
+        "was_target": false
+      }
+    ],
+    "attacker_vs_baseline_top": [
+      {
+        "identity": "U66@DOM1",
+        "hosts_via_redteam_edges": 71,
+        "hosts_total_footprint": 249,
+        "pct_of_footprint_that_was_attack": 28.5
+      },
+      {
+        "identity": "U3005@DOM1",
+        "hosts_via_redteam_edges": 25,
+        "hosts_total_footprint": 68,
+        "pct_of_footprint_that_was_attack": 36.8
+      },
+      {
+        "identity": "U293@DOM1",
+        "hosts_via_redteam_edges": 24,
+        "hosts_total_footprint": 78,
+        "pct_of_footprint_that_was_attack": 30.8
+      },
+      {
+        "identity": "U737@DOM1",
+        "hosts_via_redteam_edges": 18,
+        "hosts_total_footprint": 129,
+        "pct_of_footprint_that_was_attack": 14.0
+      },
+      {
+        "identity": "U3635@DOM1",
+        "hosts_via_redteam_edges": 14,
+        "hosts_total_footprint": 143,
+        "pct_of_footprint_that_was_attack": 9.8
+      },
+      {
+        "identity": "U748@DOM1",
+        "hosts_via_redteam_edges": 13,
+        "hosts_total_footprint": 113,
+        "pct_of_footprint_that_was_attack": 11.5
+      },
+      {
+        "identity": "U4448@DOM1",
+        "hosts_via_redteam_edges": 10,
+        "hosts_total_footprint": 55,
+        "pct_of_footprint_that_was_attack": 18.2
+      },
+      {
+        "identity": "U9947@DOM1",
+        "hosts_via_redteam_edges": 9,
+        "hosts_total_footprint": 69,
+        "pct_of_footprint_that_was_attack": 13.0
+      },
+      {
+        "identity": "U1480@DOM1",
+        "hosts_via_redteam_edges": 9,
+        "hosts_total_footprint": 76,
+        "pct_of_footprint_that_was_attack": 11.8
+      },
+      {
+        "identity": "U2575@DOM1",
+        "hosts_via_redteam_edges": 9,
+        "hosts_total_footprint": 71,
+        "pct_of_footprint_that_was_attack": 12.7
+      }
+    ],
+    "query_timings_ms": {
+      "counts": 407.9,
+      "choke_points": 302.3,
+      "attacker_vs_baseline": 18.7,
+      "blast_radius_all": 48954.3,
+      "shortest_paths_all": 110.4,
+      "subgraph_export": 81.6
+    },
+    "environment": {
+      "neo4j": "5.26-community (Docker), 2 GB heap",
+      "host": "Windows 11 Pro 26200, Docker Desktop (WSL2 backend)",
+      "note": "Timings are single-run against a warm page cache, on a laptop. Indicative, not a benchmark."
+    },
+    "measured_at": "2026-07-14T04:11:01+00:00"
+  },
+  "lake_build": {
+    "input": "/data/raw/auth.txt",
+    "output": "/data/lake/auth",
+    "lake": {
+      "rows": 1051430459,
+      "partitions": 58,
+      "seconds": 1343.07
+    },
+    "redteam": {
+      "rows": 749,
+      "compromised_identities": 104,
+      "pivot_source_computers": 4,
+      "target_computers": 301,
+      "time_min_seconds": 150885,
+      "time_max_seconds": 2557047,
+      "path": "/data/lake/redteam"
+    }
+  },
+  "rollup": {
+    "rows": 1604500,
+    "identities": 80553,
+    "redteam_identity_days": 181,
+    "max_fanout": 9169,
+    "off_hours_band": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "seconds": 715.43,
+    "output": "/data/lake/rollup"
+  },
+  "spark_opt": {
+    "what": "Controlled 2x2 benchmark of two independent optimizations to the Stage-1 per-identity daily rollup, on an identical slice of the Parquet lake.",
+    "honesty": {
+      "identical_output_verified": true,
+      "identical_output_note": "All four variants were checksummed with an order-independent fingerprint (sum of per-row CRC32 over every output column). They agree, so the speedup is a change in execution strategy, not in what was computed.",
+      "baseline_join_is_forced": "The SortMergeJoin baseline is forced via spark.sql.autoBroadcastJoinThreshold=-1. With Spark's default AQE the 749-row red-team table would be broadcast automatically. Optimization B therefore measures the COST of a shuffle join on this workload \u2014 it is not a bug that was found and fixed. Optimization A (two-stage distinct aggregation) is the real code-level win: Spark does not perform that rewrite on its own.",
+      "measurement": "1 untimed warm-up run then 5 timed runs per variant, same Spark session, same slice, same shuffle-partition count. Reported figure is the MEDIAN. All raw run timings are included below.",
+      "optimization_won": true,
+      "scale_dependence": "This optimization is SCALE-DEPENDENT, and pretending otherwise would be the easiest lie in the project. Run against the ~100k-event CI slice, the baseline WINS: the Expand operator has almost nothing to replay, so the extra shuffle introduced by the two-stage aggregation costs more than it saves. The rewrite only pays once the input is large enough for the Expand's row multiplication to dominate \u2014 which is exactly why the benchmark below runs on a large slice of the real corpus and states its row count. Quote the speedup WITH its slice size, never on its own."
+    },
+    "slice": {
+      "lake": "/data/lake/auth",
+      "rows": 113699303,
+      "dates": 7,
+      "date_min": "2015-01-01",
+      "date_max": "2015-01-07"
+    },
+    "environment": {
+      "cpu": "AMD Ryzen 5 7600X3D 6-Core Processor",
+      "cpu_count": 12,
+      "memory_total_gb": 15.2,
+      "container_os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+      "host": "Windows 11 Pro 26200, Docker Desktop (WSL2 backend)",
+      "python": "3.11.15",
+      "spark": "3.5.3",
+      "java": "openjdk version \"17.0.19\" 2026-04-21",
+      "spark_master": "local[*]",
+      "spark_driver_memory": "10g",
+      "spark_sql_shuffle_partitions": "24",
+      "adaptive_query_execution": "true"
+    },
+    "method": {
+      "runs_per_variant": 5,
+      "warmup_runs": 1,
+      "reported_statistic": "median",
+      "action": "df.write.format('noop') \u2014 forces full execution, excludes sink I/O"
+    },
+    "variants": {
+      "baseline": {
+        "runs_seconds": [
+          51.832,
+          50.696,
+          49.657,
+          48.914,
+          51.104
+        ],
+        "median_seconds": 50.696,
+        "mean_seconds": 50.441,
+        "min_seconds": 48.914,
+        "max_seconds": 51.832,
+        "stdev_seconds": 1.16,
+        "checksum": {
+          "rows": 184974,
+          "hash": 397409229658182,
+          "auth_count": 113699303,
+          "fanout_total": 1310221,
+          "redteam_days": 12
+        },
+        "physical_plan": "AdaptiveSparkPlan isFinalPlan=false\n+- Project [src_user#2188, event_date#2204, auth_count#2244L, success_count#2246L, failure_count#2248L, off_hours_events#2250L, distinct_dst_computers#2251L, distinct_src_computers#2252L, new_dst_computers#2332L, coalesce(is_redteam_day#2371, false) AS is_redteam_day#2395, CASE WHEN (auth_count#2244L > 0) THEN (cast(failure_count#2248L as double) / cast(auth_count#2244L as double)) ELSE 0.0 END AS failure_ratio#2406, CASE WHEN (auth_count#2244L > 0) THEN (cast(off_hours_events#2250L as double) / cast(auth_count#2244L as double)) ELSE 0.0 END AS off_hours_share#2418]\n   +- SortMergeJoin [src_user#2188, event_date#2204], [src_user#2361, event_date#2365], LeftOuter\n      :- Project [src_user#2188, event_date#2204, auth_count#2244L, success_count#2246L, failure_count#2248L, off_hours_events#2250L, distinct_dst_computers#2251L, distinct_src_computers#2252L, coalesce(new_dst_computers#2291L, 0) AS new_dst_computers#2332L]\n      :  +- SortMergeJoin [src_user#2188, event_date#2204], [src_user#2296, event_date#2286], LeftOuter\n      :     :- Sort [src_user#2188 ASC NULLS FIRST, event_date#2204 ASC NULLS FIRST], false, 0\n      :     :  +- HashAggregate(keys=[src_user#2188, event_date#2204], functions=[first(count(1)#2594L, true), first(sum(succ)#2596L, true), first(sum(fail)#2598L, true), first(sum(off_hours)#2600L, true), count(dst_computer#2589), count(src_computer#2590)], output=[src_user#2188, event_date#2204, auth_count#2244L, success_count#2246L, failure_count#2248L, off_hours_events#2250L, distinct_dst_computers#2251L, distinct_src_computers#2252L])\n      :     :     +- Exchange hashpartitioning(src_user#2188, event_date#2204, 24), ENSURE_REQUIREMENTS, [plan_id=4177]\n      :     :        +- HashAggregate(keys=[src_user#2188, event_date#2204], functions=[partial_first(count(1)#2594L, true) FILTER (WHERE (gid#2588 = 0)), partial_first(sum(succ)#2596L, true) FILTER (WHERE (gid#2588 = 0)), partial_first(sum(fail)#2598L, true) FILTER (WHERE (gid#2588 = 0)), partial_first(sum(off_hours)#2600L, true) FILTER (WHERE (gid#2588 = 0)), partial_count(dst_computer#2589) FILTER (WHERE (gid#2588 = 1)), partial_count(src_computer#2590) FILTER (WHERE (gid#2588 = 2))], output=[src_user#2188, event_date#2204, first#2612L, valueSet#2613, first#2614L, valueSet#2615, first#2616L, valueSet#2617, first#2618L, valueSet#2619, count#2620L, count#2621L])\n      :     :           +- HashAggregate(keys=[src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588], functions=[count(1), sum(succ#2591), sum(fail#2592), sum(off_hours#2593)], output=[src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588, count(1)#2594L, sum(succ)#2596L, sum(fail)#2598L, sum(off_hours)#2600L])\n      :     :              +- Exchange hashpartitioning(src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588, 24), ENSURE_REQUIREMENTS, [plan_id=4173]\n      :     :                 +- HashAggregate(keys=[src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588], functions=[partial_count(1), partial_sum(succ#2591), partial_sum(fail#2592), partial_sum(off_hours#2593)], output=[src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588, count#2494L, sum#2625L, sum#2626L, sum#2627L])\n      :     :                    +- Expand [[src_user#2188, event_date#2204, null, null, 0, succ#2224, fail#2225, off_hours#2226], [src_user#2188, event_date#2204, dst_computer#2191, null, 1, null, null, null], [src_user#2188, event_date#2204, null, src_computer#2190, 2, null, null, null]], [src_user#2188, event_date#2204, dst_computer#2589, src_computer#2590, gid#2588, succ#2591, fail#2592, off_hours#2593]\n      :     :                       +- Project [src_user#2188, event_date#2204, dst_computer#2191, src_computer#2190, cast(is_success#2199 as int) AS succ#2224, cast(is_failure#2200 as int) AS fail#2225, cast(hour_of_day#2197 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#2226]\n      :     :                          +- Filter ((isnotnull(day_index#2196) AND isnotnull(src_user#2188)) AND (day_index#2196 < 7))\n      :     :                             +- FileScan parquet [src_user#2188,src_computer#2190,dst_computer#2191,day_index#2196,hour_of_day#2197,is_success#2199,is_failure#2200,event_date#2204] Batched: true, DataFilters: [isnotnull(day_index#2196), isnotnull(src_user#2188), (day_index#2196 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      :     +- Sort [src_user#2296 ASC NULLS FIRST, event_date#2286 ASC NULLS FIRST], false, 0\n      :        +- HashAggregate(keys=[src_user#2296, first_seen_date#2282], functions=[count(1)], output=[src_user#2296, event_date#2286, new_dst_computers#2291L])\n      :           +- Exchange hashpartitioning(src_user#2296, first_seen_date#2282, 24), ENSURE_REQUIREMENTS, [plan_id=4184]\n      :              +- HashAggregate(keys=[src_user#2296, first_seen_date#2282], functions=[partial_count(1)], output=[src_user#2296, first_seen_date#2282, count#2499L])\n      :                 +- Filter isnotnull(first_seen_date#2282)\n      :                    +- HashAggregate(keys=[src_user#2296, dst_computer#2299], functions=[min(event_date#2312)], output=[src_user#2296, first_seen_date#2282])\n      :                       +- Exchange hashpartitioning(src_user#2296, dst_computer#2299, 24), ENSURE_REQUIREMENTS, [plan_id=4179]\n      :                          +- HashAggregate(keys=[src_user#2296, dst_computer#2299], functions=[partial_min(event_date#2312)], output=[src_user#2296, dst_computer#2299, min#2501])\n      :                             +- Project [src_user#2296, dst_computer#2299, event_date#2312]\n      :                                +- Filter (((isnotnull(day_index#2304) AND isnotnull(src_user#2296)) AND (day_index#2304 < 7)) AND isnotnull(dst_computer#2299))\n      :                                   +- FileScan parquet [src_user#2296,dst_computer#2299,day_index#2304,event_date#2312] Batched: true, DataFilters: [isnotnull(day_index#2304), isnotnull(src_user#2296), (day_index#2304 < 7), isnotnull(dst_compute..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7), IsNotNull(dst_computer)], ReadSchema: struct<src_user:string,dst_computer:string,day_index:int>\n      +- Sort [src_user#2361 ASC NULLS FIRST, event_date#2365 ASC NULLS FIRST], false, 0\n         +- HashAggregate(keys=[src_user#2361, event_date#2365], functions=[], output=[src_user#2361, event_date#2365, is_redteam_day#2371])\n            +- Exchange hashpartitioning(src_user#2361, event_date#2365, 24), ENSURE_REQUIREMENTS, [plan_id=4192]\n               +- HashAggregate(keys=[src_user#2361, event_date#2365], functions=[], output=[src_user#2361, event_date#2365])\n                  +- Project [user#2343 AS src_user#2361, date_add(2015-01-01, cast((cast(time#2342 as double) / 86400.0) as int)) AS event_date#2365]\n                     +- Filter (isnotnull(user#2343) AND isnotnull(date_add(2015-01-01, cast((cast(time#2342 as double) / 86400.0) as int))))\n                        +- FileScan parquet [time#2342,user#2343] Batched: true, DataFilters: [isnotnull(user#2343), isnotnull(date_add(2015-01-01, cast((cast(time#2342 as double) / 86400.0) ..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/redteam], PartitionFilters: [], PushedFilters: [IsNotNull(user)], ReadSchema: struct<time:int,user:string>\n",
+        "label": "two scans + Expand COUNT(DISTINCT) + SortMergeJoin",
+        "config": {
+          "broadcast_redteam": false,
+          "dedup_distincts": false
+        },
+        "speedup_vs_baseline": 1.0,
+        "pct_faster_than_baseline": 0.0
+      },
+      "broadcast_only": {
+        "runs_seconds": [
+          39.665,
+          39.176,
+          41.901,
+          46.694,
+          54.49
+        ],
+        "median_seconds": 41.901,
+        "mean_seconds": 44.385,
+        "min_seconds": 39.176,
+        "max_seconds": 54.49,
+        "stdev_seconds": 6.384,
+        "checksum": {
+          "rows": 184974,
+          "hash": 397409229658182,
+          "auth_count": 113699303,
+          "fanout_total": 1310221,
+          "redteam_days": 12
+        },
+        "physical_plan": "AdaptiveSparkPlan isFinalPlan=false\n+- Project [src_user#4717, event_date#4733, auth_count#4773L, success_count#4775L, failure_count#4777L, off_hours_events#4779L, distinct_dst_computers#4780L, distinct_src_computers#4781L, new_dst_computers#4861L, coalesce(is_redteam_day#4900, false) AS is_redteam_day#4924, CASE WHEN (auth_count#4773L > 0) THEN (cast(failure_count#4777L as double) / cast(auth_count#4773L as double)) ELSE 0.0 END AS failure_ratio#4935, CASE WHEN (auth_count#4773L > 0) THEN (cast(off_hours_events#4779L as double) / cast(auth_count#4773L as double)) ELSE 0.0 END AS off_hours_share#4947]\n   +- BroadcastHashJoin [src_user#4717, event_date#4733], [src_user#4890, event_date#4894], LeftOuter, BuildRight, false\n      :- Project [src_user#4717, event_date#4733, auth_count#4773L, success_count#4775L, failure_count#4777L, off_hours_events#4779L, distinct_dst_computers#4780L, distinct_src_computers#4781L, coalesce(new_dst_computers#4820L, 0) AS new_dst_computers#4861L]\n      :  +- SortMergeJoin [src_user#4717, event_date#4733], [src_user#4825, event_date#4815], LeftOuter\n      :     :- Sort [src_user#4717 ASC NULLS FIRST, event_date#4733 ASC NULLS FIRST], false, 0\n      :     :  +- HashAggregate(keys=[src_user#4717, event_date#4733], functions=[first(count(1)#5127L, true), first(sum(succ)#5129L, true), first(sum(fail)#5131L, true), first(sum(off_hours)#5133L, true), count(dst_computer#5122), count(src_computer#5123)], output=[src_user#4717, event_date#4733, auth_count#4773L, success_count#4775L, failure_count#4777L, off_hours_events#4779L, distinct_dst_computers#4780L, distinct_src_computers#4781L])\n      :     :     +- Exchange hashpartitioning(src_user#4717, event_date#4733, 24), ENSURE_REQUIREMENTS, [plan_id=8343]\n      :     :        +- HashAggregate(keys=[src_user#4717, event_date#4733], functions=[partial_first(count(1)#5127L, true) FILTER (WHERE (gid#5121 = 0)), partial_first(sum(succ)#5129L, true) FILTER (WHERE (gid#5121 = 0)), partial_first(sum(fail)#5131L, true) FILTER (WHERE (gid#5121 = 0)), partial_first(sum(off_hours)#5133L, true) FILTER (WHERE (gid#5121 = 0)), partial_count(dst_computer#5122) FILTER (WHERE (gid#5121 = 1)), partial_count(src_computer#5123) FILTER (WHERE (gid#5121 = 2))], output=[src_user#4717, event_date#4733, first#5145L, valueSet#5146, first#5147L, valueSet#5148, first#5149L, valueSet#5150, first#5151L, valueSet#5152, count#5153L, count#5154L])\n      :     :           +- HashAggregate(keys=[src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121], functions=[count(1), sum(succ#5124), sum(fail#5125), sum(off_hours#5126)], output=[src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121, count(1)#5127L, sum(succ)#5129L, sum(fail)#5131L, sum(off_hours)#5133L])\n      :     :              +- Exchange hashpartitioning(src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121, 24), ENSURE_REQUIREMENTS, [plan_id=8339]\n      :     :                 +- HashAggregate(keys=[src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121], functions=[partial_count(1), partial_sum(succ#5124), partial_sum(fail#5125), partial_sum(off_hours#5126)], output=[src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121, count#5023L, sum#5158L, sum#5159L, sum#5160L])\n      :     :                    +- Expand [[src_user#4717, event_date#4733, null, null, 0, succ#4753, fail#4754, off_hours#4755], [src_user#4717, event_date#4733, dst_computer#4720, null, 1, null, null, null], [src_user#4717, event_date#4733, null, src_computer#4719, 2, null, null, null]], [src_user#4717, event_date#4733, dst_computer#5122, src_computer#5123, gid#5121, succ#5124, fail#5125, off_hours#5126]\n      :     :                       +- Project [src_user#4717, event_date#4733, dst_computer#4720, src_computer#4719, cast(is_success#4728 as int) AS succ#4753, cast(is_failure#4729 as int) AS fail#4754, cast(hour_of_day#4726 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#4755]\n      :     :                          +- Filter ((isnotnull(day_index#4725) AND isnotnull(src_user#4717)) AND (day_index#4725 < 7))\n      :     :                             +- FileScan parquet [src_user#4717,src_computer#4719,dst_computer#4720,day_index#4725,hour_of_day#4726,is_success#4728,is_failure#4729,event_date#4733] Batched: true, DataFilters: [isnotnull(day_index#4725), isnotnull(src_user#4717), (day_index#4725 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      :     +- Sort [src_user#4825 ASC NULLS FIRST, event_date#4815 ASC NULLS FIRST], false, 0\n      :        +- HashAggregate(keys=[src_user#4825, first_seen_date#4811], functions=[count(1)], output=[src_user#4825, event_date#4815, new_dst_computers#4820L])\n      :           +- Exchange hashpartitioning(src_user#4825, first_seen_date#4811, 24), ENSURE_REQUIREMENTS, [plan_id=8350]\n      :              +- HashAggregate(keys=[src_user#4825, first_seen_date#4811], functions=[partial_count(1)], output=[src_user#4825, first_seen_date#4811, count#5028L])\n      :                 +- Filter isnotnull(first_seen_date#4811)\n      :                    +- HashAggregate(keys=[src_user#4825, dst_computer#4828], functions=[min(event_date#4841)], output=[src_user#4825, first_seen_date#4811])\n      :                       +- Exchange hashpartitioning(src_user#4825, dst_computer#4828, 24), ENSURE_REQUIREMENTS, [plan_id=8345]\n      :                          +- HashAggregate(keys=[src_user#4825, dst_computer#4828], functions=[partial_min(event_date#4841)], output=[src_user#4825, dst_computer#4828, min#5030])\n      :                             +- Project [src_user#4825, dst_computer#4828, event_date#4841]\n      :                                +- Filter (((isnotnull(day_index#4833) AND isnotnull(src_user#4825)) AND (day_index#4833 < 7)) AND isnotnull(dst_computer#4828))\n      :                                   +- FileScan parquet [src_user#4825,dst_computer#4828,day_index#4833,event_date#4841] Batched: true, DataFilters: [isnotnull(day_index#4833), isnotnull(src_user#4825), (day_index#4833 < 7), isnotnull(dst_compute..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7), IsNotNull(dst_computer)], ReadSchema: struct<src_user:string,dst_computer:string,day_index:int>\n      +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, true], input[1, date, true]),false), [plan_id=8361]\n         +- HashAggregate(keys=[src_user#4890, event_date#4894], functions=[], output=[src_user#4890, event_date#4894, is_redteam_day#4900])\n            +- Exchange hashpartitioning(src_user#4890, event_date#4894, 24), ENSURE_REQUIREMENTS, [plan_id=8358]\n               +- HashAggregate(keys=[src_user#4890, event_date#4894], functions=[], output=[src_user#4890, event_date#4894])\n                  +- Project [user#4872 AS src_user#4890, date_add(2015-01-01, cast((cast(time#4871 as double) / 86400.0) as int)) AS event_date#4894]\n                     +- Filter (isnotnull(user#4872) AND isnotnull(date_add(2015-01-01, cast((cast(time#4871 as double) / 86400.0) as int))))\n                        +- FileScan parquet [time#4871,user#4872] Batched: true, DataFilters: [isnotnull(user#4872), isnotnull(date_add(2015-01-01, cast((cast(time#4871 as double) / 86400.0) ..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/redteam], PartitionFilters: [], PushedFilters: [IsNotNull(user)], ReadSchema: struct<time:int,user:string>\n",
+        "label": "two scans + Expand COUNT(DISTINCT) + BroadcastHashJoin",
+        "config": {
+          "broadcast_redteam": true,
+          "dedup_distincts": false
+        },
+        "speedup_vs_baseline": 1.21,
+        "pct_faster_than_baseline": 17.3
+      },
+      "dedup_only": {
+        "runs_seconds": [
+          39.337,
+          38.045,
+          39.378,
+          41.245,
+          39.827
+        ],
+        "median_seconds": 39.378,
+        "mean_seconds": 39.566,
+        "min_seconds": 38.045,
+        "max_seconds": 41.245,
+        "stdev_seconds": 1.15,
+        "checksum": {
+          "rows": 184974,
+          "hash": 397409229658182,
+          "auth_count": 113699303,
+          "fanout_total": 1310221,
+          "redteam_days": 12
+        },
+        "physical_plan": "AdaptiveSparkPlan isFinalPlan=false\n+- Project [src_user#10178, event_date#10194, auth_count#10258L, success_count#10260L, failure_count#10262L, off_hours_events#10264L, distinct_dst_computers#10265L, distinct_src_computers#10266L, new_dst_computers#10336L, coalesce(is_redteam_day#10375, false) AS is_redteam_day#10399, CASE WHEN (auth_count#10258L > 0) THEN (cast(failure_count#10262L as double) / cast(auth_count#10258L as double)) ELSE 0.0 END AS failure_ratio#10410, CASE WHEN (auth_count#10258L > 0) THEN (cast(off_hours_events#10264L as double) / cast(auth_count#10258L as double)) ELSE 0.0 END AS off_hours_share#10422]\n   +- SortMergeJoin [src_user#10178, event_date#10194], [src_user#10365, event_date#10369], LeftOuter\n      :- Project [src_user#10178, event_date#10194, auth_count#10258L, success_count#10260L, failure_count#10262L, off_hours_events#10264L, distinct_dst_computers#10265L, distinct_src_computers#10266L, coalesce(new_dst_computers#10295L, 0) AS new_dst_computers#10336L]\n      :  +- SortMergeJoin [src_user#10178, event_date#10194], [src_user#10300, event_date#10290], LeftOuter\n      :     :- Sort [src_user#10178 ASC NULLS FIRST, event_date#10194 ASC NULLS FIRST], false, 0\n      :     :  +- HashAggregate(keys=[src_user#10178, event_date#10194], functions=[first(sum(n)#11183L, true), first(sum(succ)#11185L, true), first(sum(fail)#11187L, true), first(sum(off_hours)#11189L, true), count(dst_computer#11177), count(src_computer#11178)], output=[src_user#10178, event_date#10194, auth_count#10258L, success_count#10260L, failure_count#10262L, off_hours_events#10264L, distinct_dst_computers#10265L, distinct_src_computers#10266L])\n      :     :     +- Exchange hashpartitioning(src_user#10178, event_date#10194, 24), ENSURE_REQUIREMENTS, [plan_id=13631]\n      :     :        +- HashAggregate(keys=[src_user#10178, event_date#10194], functions=[partial_first(sum(n)#11183L, true) FILTER (WHERE (gid#11176 = 0)), partial_first(sum(succ)#11185L, true) FILTER (WHERE (gid#11176 = 0)), partial_first(sum(fail)#11187L, true) FILTER (WHERE (gid#11176 = 0)), partial_first(sum(off_hours)#11189L, true) FILTER (WHERE (gid#11176 = 0)), partial_count(dst_computer#11177) FILTER (WHERE (gid#11176 = 1)), partial_count(src_computer#11178) FILTER (WHERE (gid#11176 = 2))], output=[src_user#10178, event_date#10194, first#11281L, valueSet#11282, first#11283L, valueSet#11284, first#11285L, valueSet#11286, first#11287L, valueSet#11288, count#11289L, count#11290L])\n      :     :           +- HashAggregate(keys=[src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176], functions=[sum(n#11179L), sum(succ#11180L), sum(fail#11181L), sum(off_hours#11182L)], output=[src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176, sum(n)#11183L, sum(succ)#11185L, sum(fail)#11187L, sum(off_hours)#11189L])\n      :     :              +- Exchange hashpartitioning(src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176, 24), ENSURE_REQUIREMENTS, [plan_id=13627]\n      :     :                 +- HashAggregate(keys=[src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176], functions=[partial_sum(n#11179L), partial_sum(succ#11180L), partial_sum(fail#11181L), partial_sum(off_hours#11182L)], output=[src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176, sum#11295L, sum#11296L, sum#11297L, sum#11298L])\n      :     :                    +- Expand [[src_user#10178, event_date#10194, null, null, 0, n#10234L, succ#10236L, fail#10238L, off_hours#10240L], [src_user#10178, event_date#10194, dst_computer#10181, null, 1, null, null, null, null], [src_user#10178, event_date#10194, null, src_computer#10180, 2, null, null, null, null]], [src_user#10178, event_date#10194, dst_computer#11177, src_computer#11178, gid#11176, n#11179L, succ#11180L, fail#11181L, off_hours#11182L]\n      :     :                       +- InMemoryTableScan [src_user#10178, event_date#10194, dst_computer#10181, src_computer#10180, n#10234L, succ#10236L, fail#10238L, off_hours#10240L]\n      :     :                             +- InMemoryRelation [src_user#10178, event_date#10194, dst_computer#10181, src_computer#10180, n#10234L, succ#10236L, fail#10238L, off_hours#10240L], StorageLevel(disk, memory, 1 replicas)\n      :     :                                   +- AdaptiveSparkPlan isFinalPlan=true\n                                                   +- == Final Plan ==\n                                                      *(2) HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[count(1), sum(succ#9378), sum(fail#9379), sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, n#9398L, succ#9400L, fail#9402L, off_hours#9404L])\n                                                      +- ShuffleQueryStage 0\n                                                         +- Exchange hashpartitioning(src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, 24), ENSURE_REQUIREMENTS, [plan_id=12227]\n                                                            +- *(1) HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[partial_count(1), partial_sum(succ#9378), partial_sum(fail#9379), partial_sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, count#9417L, sum#9418L, sum#9419L, sum#9420L])\n                                                               +- *(1) Project [src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, cast(is_success#9353 as int) AS succ#9378, cast(is_failure#9354 as int) AS fail#9379, cast(hour_of_day#9351 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#9380]\n                                                                  +- *(1) Filter ((isnotnull(day_index#9350) AND isnotnull(src_user#9342)) AND (day_index#9350 < 7))\n                                                                     +- *(1) ColumnarToRow\n                                                                        +- FileScan parquet [src_user#9342,src_computer#9344,dst_computer#9345,day_index#9350,hour_of_day#9351,is_success#9353,is_failure#9354,event_date#9358] Batched: true, DataFilters: [isnotnull(day_index#9350), isnotnull(src_user#9342), (day_index#9350 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n                                                   +- == Initial Plan ==\n                                                      HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[count(1), sum(succ#9378), sum(fail#9379), sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, n#9398L, succ#9400L, fail#9402L, off_hours#9404L])\n                                                      +- Exchange hashpartitioning(src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, 24), ENSURE_REQUIREMENTS, [plan_id=12011]\n                                                         +- HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[partial_count(1), partial_sum(succ#9378), partial_sum(fail#9379), partial_sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, count#9417L, sum#9418L, sum#9419L, sum#9420L])\n                                                            +- Project [src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, cast(is_success#9353 as int) AS succ#9378, cast(is_failure#9354 as int) AS fail#9379, cast(hour_of_day#9351 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#9380]\n                                                               +- Filter ((isnotnull(day_index#9350) AND isnotnull(src_user#9342)) AND (day_index#9350 < 7))\n                                                                  +- FileScan parquet [src_user#9342,src_computer#9344,dst_computer#9345,day_index#9350,hour_of_day#9351,is_success#9353,is_failure#9354,event_date#9358] Batched: true, DataFilters: [isnotnull(day_index#9350), isnotnull(src_user#9342), (day_index#9350 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      :     +- Sort [src_user#10300 ASC NULLS FIRST, event_date#10290 ASC NULLS FIRST], false, 0\n      :        +- HashAggregate(keys=[src_user#10300, first_seen_date#10286], functions=[count(1)], output=[src_user#10300, event_date#10290, new_dst_computers#10295L])\n      :           +- Exchange hashpartitioning(src_user#10300, first_seen_date#10286, 24), ENSURE_REQUIREMENTS, [plan_id=13638]\n      :              +- HashAggregate(keys=[src_user#10300, first_seen_date#10286], functions=[partial_count(1)], output=[src_user#10300, first_seen_date#10286, count#10744L])\n      :                 +- Filter isnotnull(first_seen_date#10286)\n      :                    +- HashAggregate(keys=[src_user#10300, dst_computer#10303], functions=[min(event_date#10316)], output=[src_user#10300, first_seen_date#10286])\n      :                       +- Exchange hashpartitioning(src_user#10300, dst_computer#10303, 24), ENSURE_REQUIREMENTS, [plan_id=13633]\n      :                          +- HashAggregate(keys=[src_user#10300, dst_computer#10303], functions=[partial_min(event_date#10316)], output=[src_user#10300, dst_computer#10303, min#10746])\n      :                             +- Filter (isnotnull(dst_computer#10303) AND isnotnull(src_user#10300))\n      :                                +- InMemoryTableScan [src_user#10300, event_date#10316, dst_computer#10303], [isnotnull(dst_computer#10303), isnotnull(src_user#10300)]\n      :                                      +- InMemoryRelation [src_user#10300, event_date#10316, dst_computer#10303, src_computer#10302, n#10234L, succ#10236L, fail#10238L, off_hours#10240L], StorageLevel(disk, memory, 1 replicas)\n      :                                            +- AdaptiveSparkPlan isFinalPlan=true\n                                                      +- == Final Plan ==\n                                                         *(2) HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[count(1), sum(succ#9378), sum(fail#9379), sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, n#9398L, succ#9400L, fail#9402L, off_hours#9404L])\n                                                         +- ShuffleQueryStage 0\n                                                            +- Exchange hashpartitioning(src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, 24), ENSURE_REQUIREMENTS, [plan_id=12227]\n                                                               +- *(1) HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[partial_count(1), partial_sum(succ#9378), partial_sum(fail#9379), partial_sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, count#9417L, sum#9418L, sum#9419L, sum#9420L])\n                                                                  +- *(1) Project [src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, cast(is_success#9353 as int) AS succ#9378, cast(is_failure#9354 as int) AS fail#9379, cast(hour_of_day#9351 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#9380]\n                                                                     +- *(1) Filter ((isnotnull(day_index#9350) AND isnotnull(src_user#9342)) AND (day_index#9350 < 7))\n                                                                        +- *(1) ColumnarToRow\n                                                                           +- FileScan parquet [src_user#9342,src_computer#9344,dst_computer#9345,day_index#9350,hour_of_day#9351,is_success#9353,is_failure#9354,event_date#9358] Batched: true, DataFilters: [isnotnull(day_index#9350), isnotnull(src_user#9342), (day_index#9350 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n                                                      +- == Initial Plan ==\n                                                         HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[count(1), sum(succ#9378), sum(fail#9379), sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, n#9398L, succ#9400L, fail#9402L, off_hours#9404L])\n                                                         +- Exchange hashpartitioning(src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, 24), ENSURE_REQUIREMENTS, [plan_id=12011]\n                                                            +- HashAggregate(keys=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344], functions=[partial_count(1), partial_sum(succ#9378), partial_sum(fail#9379), partial_sum(off_hours#9380)], output=[src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, count#9417L, sum#9418L, sum#9419L, sum#9420L])\n                                                               +- Project [src_user#9342, event_date#9358, dst_computer#9345, src_computer#9344, cast(is_success#9353 as int) AS succ#9378, cast(is_failure#9354 as int) AS fail#9379, cast(hour_of_day#9351 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#9380]\n                                                                  +- Filter ((isnotnull(day_index#9350) AND isnotnull(src_user#9342)) AND (day_index#9350 < 7))\n                                                                     +- FileScan parquet [src_user#9342,src_computer#9344,dst_computer#9345,day_index#9350,hour_of_day#9351,is_success#9353,is_failure#9354,event_date#9358] Batched: true, DataFilters: [isnotnull(day_index#9350), isnotnull(src_user#9342), (day_index#9350 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      +- Sort [src_user#10365 ASC NULLS FIRST, event_date#10369 ASC NULLS FIRST], false, 0\n         +- HashAggregate(keys=[src_user#10365, event_date#10369], functions=[], output=[src_user#10365, event_date#10369, is_redteam_day#10375])\n            +- Exchange hashpartitioning(src_user#10365, event_date#10369, 24), ENSURE_REQUIREMENTS, [plan_id=13646]\n               +- HashAggregate(keys=[src_user#10365, event_date#10369], functions=[], output=[src_user#10365, event_date#10369])\n                  +- Project [user#10347 AS src_user#10365, date_add(2015-01-01, cast((cast(time#10346 as double) / 86400.0) as int)) AS event_date#10369]\n                     +- Filter (isnotnull(user#10347) AND isnotnull(date_add(2015-01-01, cast((cast(time#10346 as double) / 86400.0) as int))))\n                        +- FileScan parquet [time#10346,user#10347] Batched: true, DataFilters: [isnotnull(user#10347), isnotnull(date_add(2015-01-01, cast((cast(time#10346 as double) / 86400.0..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/redteam], PartitionFilters: [], PushedFilters: [IsNotNull(user)], ReadSchema: struct<time:int,user:string>\n",
+        "label": "shared persisted grain (one scan) + SortMergeJoin",
+        "config": {
+          "broadcast_redteam": false,
+          "dedup_distincts": true
+        },
+        "speedup_vs_baseline": 1.287,
+        "pct_faster_than_baseline": 22.3
+      },
+      "both": {
+        "runs_seconds": [
+          39.122,
+          39.776,
+          40.672,
+          39.877,
+          39.771
+        ],
+        "median_seconds": 39.776,
+        "mean_seconds": 39.844,
+        "min_seconds": 39.122,
+        "max_seconds": 40.672,
+        "stdev_seconds": 0.552,
+        "checksum": {
+          "rows": 184974,
+          "hash": 397409229658182,
+          "auth_count": 113699303,
+          "fanout_total": 1310221,
+          "redteam_days": 12
+        },
+        "physical_plan": "AdaptiveSparkPlan isFinalPlan=false\n+- Project [src_user#16316, event_date#16332, auth_count#16396L, success_count#16398L, failure_count#16400L, off_hours_events#16402L, distinct_dst_computers#16403L, distinct_src_computers#16404L, new_dst_computers#16474L, coalesce(is_redteam_day#16513, false) AS is_redteam_day#16537, CASE WHEN (auth_count#16396L > 0) THEN (cast(failure_count#16400L as double) / cast(auth_count#16396L as double)) ELSE 0.0 END AS failure_ratio#16548, CASE WHEN (auth_count#16396L > 0) THEN (cast(off_hours_events#16402L as double) / cast(auth_count#16396L as double)) ELSE 0.0 END AS off_hours_share#16560]\n   +- BroadcastHashJoin [src_user#16316, event_date#16332], [src_user#16503, event_date#16507], LeftOuter, BuildRight, false\n      :- Project [src_user#16316, event_date#16332, auth_count#16396L, success_count#16398L, failure_count#16400L, off_hours_events#16402L, distinct_dst_computers#16403L, distinct_src_computers#16404L, coalesce(new_dst_computers#16433L, 0) AS new_dst_computers#16474L]\n      :  +- SortMergeJoin [src_user#16316, event_date#16332], [src_user#16438, event_date#16428], LeftOuter\n      :     :- Sort [src_user#16316 ASC NULLS FIRST, event_date#16332 ASC NULLS FIRST], false, 0\n      :     :  +- HashAggregate(keys=[src_user#16316, event_date#16332], functions=[first(sum(n)#17325L, true), first(sum(succ)#17327L, true), first(sum(fail)#17329L, true), first(sum(off_hours)#17331L, true), count(dst_computer#17319), count(src_computer#17320)], output=[src_user#16316, event_date#16332, auth_count#16396L, success_count#16398L, failure_count#16400L, off_hours_events#16402L, distinct_dst_computers#16403L, distinct_src_computers#16404L])\n      :     :     +- Exchange hashpartitioning(src_user#16316, event_date#16332, 24), ENSURE_REQUIREMENTS, [plan_id=19135]\n      :     :        +- HashAggregate(keys=[src_user#16316, event_date#16332], functions=[partial_first(sum(n)#17325L, true) FILTER (WHERE (gid#17318 = 0)), partial_first(sum(succ)#17327L, true) FILTER (WHERE (gid#17318 = 0)), partial_first(sum(fail)#17329L, true) FILTER (WHERE (gid#17318 = 0)), partial_first(sum(off_hours)#17331L, true) FILTER (WHERE (gid#17318 = 0)), partial_count(dst_computer#17319) FILTER (WHERE (gid#17318 = 1)), partial_count(src_computer#17320) FILTER (WHERE (gid#17318 = 2))], output=[src_user#16316, event_date#16332, first#17423L, valueSet#17424, first#17425L, valueSet#17426, first#17427L, valueSet#17428, first#17429L, valueSet#17430, count#17431L, count#17432L])\n      :     :           +- HashAggregate(keys=[src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318], functions=[sum(n#17321L), sum(succ#17322L), sum(fail#17323L), sum(off_hours#17324L)], output=[src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318, sum(n)#17325L, sum(succ)#17327L, sum(fail)#17329L, sum(off_hours)#17331L])\n      :     :              +- Exchange hashpartitioning(src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318, 24), ENSURE_REQUIREMENTS, [plan_id=19131]\n      :     :                 +- HashAggregate(keys=[src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318], functions=[partial_sum(n#17321L), partial_sum(succ#17322L), partial_sum(fail#17323L), partial_sum(off_hours#17324L)], output=[src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318, sum#17437L, sum#17438L, sum#17439L, sum#17440L])\n      :     :                    +- Expand [[src_user#16316, event_date#16332, null, null, 0, n#16372L, succ#16374L, fail#16376L, off_hours#16378L], [src_user#16316, event_date#16332, dst_computer#16319, null, 1, null, null, null, null], [src_user#16316, event_date#16332, null, src_computer#16318, 2, null, null, null, null]], [src_user#16316, event_date#16332, dst_computer#17319, src_computer#17320, gid#17318, n#17321L, succ#17322L, fail#17323L, off_hours#17324L]\n      :     :                       +- InMemoryTableScan [src_user#16316, event_date#16332, dst_computer#16319, src_computer#16318, n#16372L, succ#16374L, fail#16376L, off_hours#16378L]\n      :     :                             +- InMemoryRelation [src_user#16316, event_date#16332, dst_computer#16319, src_computer#16318, n#16372L, succ#16374L, fail#16376L, off_hours#16378L], StorageLevel(disk, memory, 1 replicas)\n      :     :                                   +- AdaptiveSparkPlan isFinalPlan=true\n                                                   +- == Final Plan ==\n                                                      *(2) HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[count(1), sum(succ#15516), sum(fail#15517), sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, n#15536L, succ#15538L, fail#15540L, off_hours#15542L])\n                                                      +- ShuffleQueryStage 0\n                                                         +- Exchange hashpartitioning(src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, 24), ENSURE_REQUIREMENTS, [plan_id=17665]\n                                                            +- *(1) HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[partial_count(1), partial_sum(succ#15516), partial_sum(fail#15517), partial_sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, count#15555L, sum#15556L, sum#15557L, sum#15558L])\n                                                               +- *(1) Project [src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, cast(is_success#15491 as int) AS succ#15516, cast(is_failure#15492 as int) AS fail#15517, cast(hour_of_day#15489 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#15518]\n                                                                  +- *(1) Filter ((isnotnull(day_index#15488) AND isnotnull(src_user#15480)) AND (day_index#15488 < 7))\n                                                                     +- *(1) ColumnarToRow\n                                                                        +- FileScan parquet [src_user#15480,src_computer#15482,dst_computer#15483,day_index#15488,hour_of_day#15489,is_success#15491,is_failure#15492,event_date#15496] Batched: true, DataFilters: [isnotnull(day_index#15488), isnotnull(src_user#15480), (day_index#15488 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n                                                   +- == Initial Plan ==\n                                                      HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[count(1), sum(succ#15516), sum(fail#15517), sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, n#15536L, succ#15538L, fail#15540L, off_hours#15542L])\n                                                      +- Exchange hashpartitioning(src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, 24), ENSURE_REQUIREMENTS, [plan_id=17447]\n                                                         +- HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[partial_count(1), partial_sum(succ#15516), partial_sum(fail#15517), partial_sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, count#15555L, sum#15556L, sum#15557L, sum#15558L])\n                                                            +- Project [src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, cast(is_success#15491 as int) AS succ#15516, cast(is_failure#15492 as int) AS fail#15517, cast(hour_of_day#15489 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#15518]\n                                                               +- Filter ((isnotnull(day_index#15488) AND isnotnull(src_user#15480)) AND (day_index#15488 < 7))\n                                                                  +- FileScan parquet [src_user#15480,src_computer#15482,dst_computer#15483,day_index#15488,hour_of_day#15489,is_success#15491,is_failure#15492,event_date#15496] Batched: true, DataFilters: [isnotnull(day_index#15488), isnotnull(src_user#15480), (day_index#15488 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      :     +- Sort [src_user#16438 ASC NULLS FIRST, event_date#16428 ASC NULLS FIRST], false, 0\n      :        +- HashAggregate(keys=[src_user#16438, first_seen_date#16424], functions=[count(1)], output=[src_user#16438, event_date#16428, new_dst_computers#16433L])\n      :           +- Exchange hashpartitioning(src_user#16438, first_seen_date#16424, 24), ENSURE_REQUIREMENTS, [plan_id=19142]\n      :              +- HashAggregate(keys=[src_user#16438, first_seen_date#16424], functions=[partial_count(1)], output=[src_user#16438, first_seen_date#16424, count#16882L])\n      :                 +- Filter isnotnull(first_seen_date#16424)\n      :                    +- HashAggregate(keys=[src_user#16438, dst_computer#16441], functions=[min(event_date#16454)], output=[src_user#16438, first_seen_date#16424])\n      :                       +- Exchange hashpartitioning(src_user#16438, dst_computer#16441, 24), ENSURE_REQUIREMENTS, [plan_id=19137]\n      :                          +- HashAggregate(keys=[src_user#16438, dst_computer#16441], functions=[partial_min(event_date#16454)], output=[src_user#16438, dst_computer#16441, min#16884])\n      :                             +- Filter (isnotnull(dst_computer#16441) AND isnotnull(src_user#16438))\n      :                                +- InMemoryTableScan [src_user#16438, event_date#16454, dst_computer#16441], [isnotnull(dst_computer#16441), isnotnull(src_user#16438)]\n      :                                      +- InMemoryRelation [src_user#16438, event_date#16454, dst_computer#16441, src_computer#16440, n#16372L, succ#16374L, fail#16376L, off_hours#16378L], StorageLevel(disk, memory, 1 replicas)\n      :                                            +- AdaptiveSparkPlan isFinalPlan=true\n                                                      +- == Final Plan ==\n                                                         *(2) HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[count(1), sum(succ#15516), sum(fail#15517), sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, n#15536L, succ#15538L, fail#15540L, off_hours#15542L])\n                                                         +- ShuffleQueryStage 0\n                                                            +- Exchange hashpartitioning(src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, 24), ENSURE_REQUIREMENTS, [plan_id=17665]\n                                                               +- *(1) HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[partial_count(1), partial_sum(succ#15516), partial_sum(fail#15517), partial_sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, count#15555L, sum#15556L, sum#15557L, sum#15558L])\n                                                                  +- *(1) Project [src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, cast(is_success#15491 as int) AS succ#15516, cast(is_failure#15492 as int) AS fail#15517, cast(hour_of_day#15489 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#15518]\n                                                                     +- *(1) Filter ((isnotnull(day_index#15488) AND isnotnull(src_user#15480)) AND (day_index#15488 < 7))\n                                                                        +- *(1) ColumnarToRow\n                                                                           +- FileScan parquet [src_user#15480,src_computer#15482,dst_computer#15483,day_index#15488,hour_of_day#15489,is_success#15491,is_failure#15492,event_date#15496] Batched: true, DataFilters: [isnotnull(day_index#15488), isnotnull(src_user#15480), (day_index#15488 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n                                                      +- == Initial Plan ==\n                                                         HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[count(1), sum(succ#15516), sum(fail#15517), sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, n#15536L, succ#15538L, fail#15540L, off_hours#15542L])\n                                                         +- Exchange hashpartitioning(src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, 24), ENSURE_REQUIREMENTS, [plan_id=17447]\n                                                            +- HashAggregate(keys=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482], functions=[partial_count(1), partial_sum(succ#15516), partial_sum(fail#15517), partial_sum(off_hours#15518)], output=[src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, count#15555L, sum#15556L, sum#15557L, sum#15558L])\n                                                               +- Project [src_user#15480, event_date#15496, dst_computer#15483, src_computer#15482, cast(is_success#15491 as int) AS succ#15516, cast(is_failure#15492 as int) AS fail#15517, cast(hour_of_day#15489 INSET 0, 1, 18, 19, 2, 20, 21, 22, 23, 3, 4, 5 as int) AS off_hours#15518]\n                                                                  +- Filter ((isnotnull(day_index#15488) AND isnotnull(src_user#15480)) AND (day_index#15488 < 7))\n                                                                     +- FileScan parquet [src_user#15480,src_computer#15482,dst_computer#15483,day_index#15488,hour_of_day#15489,is_success#15491,is_failure#15492,event_date#15496] Batched: true, DataFilters: [isnotnull(day_index#15488), isnotnull(src_user#15480), (day_index#15488 < 7)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/auth], PartitionFilters: [], PushedFilters: [IsNotNull(day_index), IsNotNull(src_user), LessThan(day_index,7)], ReadSchema: struct<src_user:string,src_computer:string,dst_computer:string,day_index:int,hour_of_day:int,is_s...\n      +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, true], input[1, date, true]),false), [plan_id=19153]\n         +- HashAggregate(keys=[src_user#16503, event_date#16507], functions=[], output=[src_user#16503, event_date#16507, is_redteam_day#16513])\n            +- Exchange hashpartitioning(src_user#16503, event_date#16507, 24), ENSURE_REQUIREMENTS, [plan_id=19150]\n               +- HashAggregate(keys=[src_user#16503, event_date#16507], functions=[], output=[src_user#16503, event_date#16507])\n                  +- Project [user#16485 AS src_user#16503, date_add(2015-01-01, cast((cast(time#16484 as double) / 86400.0) as int)) AS event_date#16507]\n                     +- Filter (isnotnull(user#16485) AND isnotnull(date_add(2015-01-01, cast((cast(time#16484 as double) / 86400.0) as int))))\n                        +- FileScan parquet [time#16484,user#16485] Batched: true, DataFilters: [isnotnull(user#16485), isnotnull(date_add(2015-01-01, cast((cast(time#16484 as double) / 86400.0..., Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/data/lake/redteam], PartitionFilters: [], PushedFilters: [IsNotNull(user)], ReadSchema: struct<time:int,user:string>\n",
+        "label": "shared persisted grain (one scan) + BroadcastHashJoin",
+        "config": {
+          "broadcast_redteam": true,
+          "dedup_distincts": true
+        },
+        "speedup_vs_baseline": 1.275,
+        "pct_faster_than_baseline": 21.5
+      }
+    },
+    "headline": {
+      "winner": "dedup_only",
+      "baseline_median_seconds": 50.696,
+      "winner_median_seconds": 39.378,
+      "speedup": 1.287,
+      "pct_faster": 22.3
+    },
+    "measured_at": "2026-07-14T01:52:49+00:00"
+  },
+  "streaming_lag": {
+    "what": "End-to-end lag and throughput of the Stage-3 Spark Structured Streaming job consuming replayed LANL auth events from Redpanda (Kafka API).",
+    "lag_definition": "commit_wallclock - newest_produce_wallclock_in_window. Spans Kafka publish, broker, Spark fetch, parse, shuffle, windowed aggregation, WATERMARK HOLD, Parquet write, and batch commit. The watermark hold dominates by design: a 1 minute window under a 2 minutes watermark cannot legally emit before its window closes and the watermark passes it. A sub-second figure here would mean the watermark was not doing its job.",
+    "not_measured": "Event-time-to-now lag. The replay is accelerated, so the 58-day corpus is pushed through in minutes; event-time lag would be weeks by construction and reporting it would be meaningless.",
+    "honesty": "This is an ACCELERATED LOCAL REPLAY from a file into a single-broker Redpanda on the same laptop as the Spark driver \u2014 not a live production feed. No network hop, no broker cluster, no competing load. Treat these figures as a measurement of this pipeline's processing latency, not of a production system's.",
+    "config": {
+      "window": "1 minute",
+      "watermark": "2 minutes",
+      "trigger": "5 seconds",
+      "output_mode": "append",
+      "target_replay_rate_eps": 5000,
+      "sink": "Parquet, partitioned by event_date",
+      "broker": "Redpanda v24.2.7, single node, 1 core / 1 GB"
+    },
+    "event_time_acceleration": {
+      "event_time_span_seconds": 15120,
+      "wall_clock_seconds": 207.5,
+      "acceleration_factor": 72.9,
+      "note": "Event time advanced ~72.9x faster than wall clock during the replay. The 1-minute window + 2-minute watermark means a window cannot emit until 3 minutes of EVENT time have passed, which at this acceleration is roughly 2.5s of real waiting \u2014 that is the floor the measured lag sits on. Quoting the lag without this factor would invite the reader to assume a 180s hold that never happened."
+    },
+    "lag_ms": {
+      "samples": 250183,
+      "p50": 12540.0,
+      "p90": 15099.0,
+      "p95": 15568.0,
+      "p99": 16289.0,
+      "min": 8012,
+      "max": 17179,
+      "mean": 12569.6
+    },
+    "throughput": {
+      "windows_committed": 250183,
+      "events_aggregated": 1481012,
+      "batches": 43,
+      "run_seconds": 207.5,
+      "events_per_second_sustained": 7138.9,
+      "spark_processed_rows_per_second_median": 7401.1,
+      "spark_input_rows_per_second_median": 5004.6,
+      "spark_total_input_rows": 1500000
+    },
+    "environment": {
+      "cpu": "AMD Ryzen 5 7600X3D 6-Core Processor",
+      "cpu_count": 12,
+      "container_os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+      "host": "Windows 11 Pro 26200, Docker Desktop (WSL2 backend)",
+      "python": "3.11.15",
+      "spark": "3.5.3"
+    },
+    "measured_at": "2026-07-14T05:53:05+00:00"
+  },
+  "queries": {
+    "_summary": {
+      "warehouse": "/data/work/tarn.duckdb",
+      "run_at": "2026-07-14T05:31:42+00:00",
+      "queries": [
+        {
+          "id": "q1_fanout_week_over_week",
+          "title": "Q1 \u2014 Lateral-movement precursor: destination fan-out, week over week.",
+          "sql": "warehouse/queries/q1_fanout_week_over_week.sql",
+          "result": "warehouse/queries/results/q1_fanout_week_over_week.csv",
+          "rows_returned": 25,
+          "rows_committed": 25,
+          "seconds": 1.091
+        },
+        {
+          "id": "q2_off_hours_vs_baseline",
+          "title": "Q2 \u2014 Off-hours authentication share, each identity against its OWN baseline.",
+          "sql": "warehouse/queries/q2_off_hours_vs_baseline.sql",
+          "result": "warehouse/queries/results/q2_off_hours_vs_baseline.csv",
+          "rows_returned": 25,
+          "rows_committed": 25,
+          "seconds": 0.097
+        },
+        {
+          "id": "q3_new_access_path_rate",
+          "title": "Q3 \u2014 New-access-path rate: first-time (identity -> computer) edges per day.",
+          "sql": "warehouse/queries/q3_new_access_path_rate.sql",
+          "result": "warehouse/queries/results/q3_new_access_path_rate.csv",
+          "rows_returned": 78,
+          "rows_committed": 78,
+          "seconds": 0.194
+        },
+        {
+          "id": "q4_failure_spike_zscore",
+          "title": "Q4 \u2014 Failure-ratio spike detection: windowed z-score, in SQL.",
+          "sql": "warehouse/queries/q4_failure_spike_zscore.sql",
+          "result": "warehouse/queries/results/q4_failure_spike_zscore.csv",
+          "rows_returned": 25,
+          "rows_committed": 25,
+          "seconds": 0.051
+        },
+        {
+          "id": "q5_redteam_enrichment",
+          "title": "Q5 \u2014 Red-team enrichment: would Q1-Q4 actually have surfaced the attacker?",
+          "sql": "warehouse/queries/q5_redteam_enrichment.sql",
+          "result": "warehouse/queries/results/q5_redteam_enrichment.csv",
+          "rows_returned": 6,
+          "rows_committed": 6,
+          "seconds": 0.103
+        }
+      ]
+    },
+    "q1_fanout_week_over_week": {
+      "columns": [
+        "identity",
+        "week_index",
+        "prev_week_peak_fanout",
+        "peak_daily_fanout",
+        "fanout_delta",
+        "fanout_multiple",
+        "new_destinations",
+        "auth_events",
+        "had_redteam_activity"
+      ],
+      "rows": [
+        {
+          "identity": "U6836@C15244",
+          "week_index": "2",
+          "prev_week_peak_fanout": "1",
+          "peak_daily_fanout": "9169",
+          "fanout_delta": "9168",
+          "fanout_multiple": "9169.0",
+          "new_destinations": "9169.0",
+          "auth_events": "17129.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1653@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "500",
+          "peak_daily_fanout": "2343",
+          "fanout_delta": "1843",
+          "fanout_multiple": "4.69",
+          "new_destinations": "2039.0",
+          "auth_events": "44243.0",
+          "had_redteam_activity": "True"
+        },
+        {
+          "identity": "U1653@DOM1",
+          "week_index": "5",
+          "prev_week_peak_fanout": "59",
+          "peak_daily_fanout": "941",
+          "fanout_delta": "882",
+          "fanout_multiple": "15.95",
+          "new_destinations": "2332.0",
+          "auth_events": "12033.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1718@?",
+          "week_index": "6",
+          "prev_week_peak_fanout": "756",
+          "peak_daily_fanout": "936",
+          "fanout_delta": "180",
+          "fanout_multiple": "1.24",
+          "new_destinations": "161.0",
+          "auth_events": "2914.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1718@?",
+          "week_index": "1",
+          "prev_week_peak_fanout": "1000",
+          "peak_daily_fanout": "1161",
+          "fanout_delta": "161",
+          "fanout_multiple": "1.16",
+          "new_destinations": "3829.0",
+          "auth_events": "4885.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1718@?",
+          "week_index": "5",
+          "prev_week_peak_fanout": "609",
+          "peak_daily_fanout": "756",
+          "fanout_delta": "147",
+          "fanout_multiple": "1.24",
+          "new_destinations": "268.0",
+          "auth_events": "2793.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U636@DOM1",
+          "week_index": "8",
+          "prev_week_peak_fanout": "30",
+          "peak_daily_fanout": "143",
+          "fanout_delta": "113",
+          "fanout_multiple": "4.77",
+          "new_destinations": "3.0",
+          "auth_events": "5259.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U636@DOM1",
+          "week_index": "6",
+          "prev_week_peak_fanout": "33",
+          "peak_daily_fanout": "144",
+          "fanout_delta": "111",
+          "fanout_multiple": "4.36",
+          "new_destinations": "6.0",
+          "auth_events": "8107.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U636@DOM1",
+          "week_index": "2",
+          "prev_week_peak_fanout": "28",
+          "peak_daily_fanout": "138",
+          "fanout_delta": "110",
+          "fanout_multiple": "4.93",
+          "new_destinations": "114.0",
+          "auth_events": "7780.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1723@DOM1",
+          "week_index": "3",
+          "prev_week_peak_fanout": "47",
+          "peak_daily_fanout": "151",
+          "fanout_delta": "104",
+          "fanout_multiple": "3.21",
+          "new_destinations": "8.0",
+          "auth_events": "4415.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U3840@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "19",
+          "peak_daily_fanout": "80",
+          "fanout_delta": "61",
+          "fanout_multiple": "4.21",
+          "new_destinations": "64.0",
+          "auth_events": "3735.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U66@DOM1",
+          "week_index": "2",
+          "prev_week_peak_fanout": "155",
+          "peak_daily_fanout": "214",
+          "fanout_delta": "59",
+          "fanout_multiple": "1.38",
+          "new_destinations": "78.0",
+          "auth_events": "1264983.0",
+          "had_redteam_activity": "True"
+        },
+        {
+          "identity": "U8841@DOM1",
+          "week_index": "4",
+          "prev_week_peak_fanout": "12",
+          "peak_daily_fanout": "67",
+          "fanout_delta": "55",
+          "fanout_multiple": "5.58",
+          "new_destinations": "57.0",
+          "auth_events": "1995.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U737@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "30",
+          "peak_daily_fanout": "83",
+          "fanout_delta": "53",
+          "fanout_multiple": "2.77",
+          "new_destinations": "58.0",
+          "auth_events": "9316.0",
+          "had_redteam_activity": "True"
+        },
+        {
+          "identity": "U1325@DOM1",
+          "week_index": "7",
+          "prev_week_peak_fanout": "11",
+          "peak_daily_fanout": "62",
+          "fanout_delta": "51",
+          "fanout_multiple": "5.64",
+          "new_destinations": "37.0",
+          "auth_events": "5115.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U3635@DOM1",
+          "week_index": "2",
+          "prev_week_peak_fanout": "49",
+          "peak_daily_fanout": "100",
+          "fanout_delta": "51",
+          "fanout_multiple": "2.04",
+          "new_destinations": "85.0",
+          "auth_events": "8634.0",
+          "had_redteam_activity": "True"
+        },
+        {
+          "identity": "U7998@DOM1",
+          "week_index": "4",
+          "prev_week_peak_fanout": "132",
+          "peak_daily_fanout": "179",
+          "fanout_delta": "47",
+          "fanout_multiple": "1.36",
+          "new_destinations": "106.0",
+          "auth_events": "1354.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U2222@DOM1",
+          "week_index": "4",
+          "prev_week_peak_fanout": "18",
+          "peak_daily_fanout": "64",
+          "fanout_delta": "46",
+          "fanout_multiple": "3.56",
+          "new_destinations": "46.0",
+          "auth_events": "2287.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U2257@DOM1",
+          "week_index": "5",
+          "prev_week_peak_fanout": "20",
+          "peak_daily_fanout": "64",
+          "fanout_delta": "44",
+          "fanout_multiple": "3.2",
+          "new_destinations": "49.0",
+          "auth_events": "1743.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U78@?",
+          "week_index": "4",
+          "prev_week_peak_fanout": "2",
+          "peak_daily_fanout": "41",
+          "fanout_delta": "39",
+          "fanout_multiple": "20.5",
+          "new_destinations": "42.0",
+          "auth_events": "17611.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U1723@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "118",
+          "peak_daily_fanout": "154",
+          "fanout_delta": "36",
+          "fanout_multiple": "1.31",
+          "new_destinations": "56.0",
+          "auth_events": "6127.0",
+          "had_redteam_activity": "True"
+        },
+        {
+          "identity": "U7374@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "1",
+          "peak_daily_fanout": "35",
+          "fanout_delta": "34",
+          "fanout_multiple": "35.0",
+          "new_destinations": "53.0",
+          "auth_events": "5470.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U9237@DOM1",
+          "week_index": "1",
+          "prev_week_peak_fanout": "2",
+          "peak_daily_fanout": "36",
+          "fanout_delta": "34",
+          "fanout_multiple": "18.0",
+          "new_destinations": "38.0",
+          "auth_events": "6954.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U6181@DOM1",
+          "week_index": "2",
+          "prev_week_peak_fanout": "13",
+          "peak_daily_fanout": "47",
+          "fanout_delta": "34",
+          "fanout_multiple": "3.62",
+          "new_destinations": "20.0",
+          "auth_events": "5386.0",
+          "had_redteam_activity": "False"
+        },
+        {
+          "identity": "U5886@DOM1",
+          "week_index": "4",
+          "prev_week_peak_fanout": "2",
+          "peak_daily_fanout": "35",
+          "fanout_delta": "33",
+          "fanout_multiple": "17.5",
+          "new_destinations": "5.0",
+          "auth_events": "4167.0",
+          "had_redteam_activity": "False"
+        }
+      ]
+    },
+    "q2_off_hours_vs_baseline": {
+      "columns": [
+        "identity",
+        "event_date",
+        "auth_count",
+        "off_hours_events",
+        "off_hours_share_today",
+        "off_hours_share_baseline",
+        "excess_over_own_baseline",
+        "baseline_days_available",
+        "is_redteam_day"
+      ],
+      "rows": [
+        {
+          "identity": "U78@?",
+          "event_date": "2015-01-30",
+          "auth_count": "2943",
+          "off_hours_events": "2943",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "6",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U71@?",
+          "event_date": "2015-02-10",
+          "auth_count": "2268",
+          "off_hours_events": "2268",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "8",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U107@?",
+          "event_date": "2015-02-11",
+          "auth_count": "1203",
+          "off_hours_events": "1203",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "5",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U5184@?",
+          "event_date": "2015-02-11",
+          "auth_count": "1130",
+          "off_hours_events": "1130",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "10",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U9455@?",
+          "event_date": "2015-02-21",
+          "auth_count": "650",
+          "off_hours_events": "650",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "3",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U9499@?",
+          "event_date": "2015-02-11",
+          "auth_count": "530",
+          "off_hours_events": "530",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "8",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U6359@?",
+          "event_date": "2015-02-13",
+          "auth_count": "460",
+          "off_hours_events": "460",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "4",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U430@?",
+          "event_date": "2015-02-11",
+          "auth_count": "422",
+          "off_hours_events": "422",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "13",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U7427@?",
+          "event_date": "2015-02-21",
+          "auth_count": "292",
+          "off_hours_events": "292",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "10",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U10572@DOM1",
+          "event_date": "2015-02-15",
+          "auth_count": "258",
+          "off_hours_events": "258",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "10",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U7151@?",
+          "event_date": "2015-02-19",
+          "auth_count": "241",
+          "off_hours_events": "241",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "5",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U12087@DOM1",
+          "event_date": "2015-02-24",
+          "auth_count": "210",
+          "off_hours_events": "210",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "4",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U3957@?",
+          "event_date": "2015-02-10",
+          "auth_count": "197",
+          "off_hours_events": "197",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "9",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U1321@?",
+          "event_date": "2015-02-10",
+          "auth_count": "190",
+          "off_hours_events": "190",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "11",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "NETWORK SERVICE@C21000",
+          "event_date": "2015-02-11",
+          "auth_count": "181",
+          "off_hours_events": "181",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "9",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "ANONYMOUS LOGON@C12839",
+          "event_date": "2015-01-07",
+          "auth_count": "179",
+          "off_hours_events": "179",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "3",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U6326@?",
+          "event_date": "2015-02-10",
+          "auth_count": "157",
+          "off_hours_events": "157",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "5",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U936@?",
+          "event_date": "2015-02-21",
+          "auth_count": "134",
+          "off_hours_events": "134",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "7",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "ANONYMOUS LOGON@C13722",
+          "event_date": "2015-01-22",
+          "auth_count": "125",
+          "off_hours_events": "125",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "5",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "ANONYMOUS LOGON@C16991",
+          "event_date": "2015-02-23",
+          "auth_count": "120",
+          "off_hours_events": "120",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "11",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "ANONYMOUS LOGON@C15477",
+          "event_date": "2015-01-24",
+          "auth_count": "114",
+          "off_hours_events": "114",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "3",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U2748@?",
+          "event_date": "2015-02-11",
+          "auth_count": "109",
+          "off_hours_events": "109",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "6",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U5737@DOM1",
+          "event_date": "2015-01-07",
+          "auth_count": "98",
+          "off_hours_events": "98",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "3",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U6176@DOM1",
+          "event_date": "2015-01-13",
+          "auth_count": "92",
+          "off_hours_events": "92",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "3",
+          "is_redteam_day": "False"
+        },
+        {
+          "identity": "U10134@DOM1",
+          "event_date": "2015-02-25",
+          "auth_count": "90",
+          "off_hours_events": "90",
+          "off_hours_share_today": "1.0",
+          "off_hours_share_baseline": "0.0",
+          "excess_over_own_baseline": "1.0",
+          "baseline_days_available": "24",
+          "is_redteam_day": "False"
+        }
+      ]
+    },
+    "q3_new_access_path_rate": {
+      "columns": [
+        "scope",
+        "event_date",
+        "identity",
+        "new_edges",
+        "total_edges_touched",
+        "active_identities",
+        "redteam_identities_active"
+      ],
+      "rows": [
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-15",
+          "identity": "U6836@C15244",
+          "new_edges": "9166.0",
+          "total_edges_touched": "9169.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-10",
+          "identity": "U1653@DOM1",
+          "new_edges": "1674.0",
+          "total_edges_touched": "2343.0",
+          "active_identities": "1",
+          "redteam_identities_active": "1.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-08",
+          "identity": "U1718@?",
+          "new_edges": "1070.0",
+          "total_edges_touched": "1161.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-01",
+          "identity": "U1718@?",
+          "new_edges": "1000.0",
+          "total_edges_touched": "1000.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-02",
+          "identity": "U1718@?",
+          "new_edges": "878.0",
+          "total_edges_touched": "922.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-09",
+          "identity": "U1718@?",
+          "new_edges": "767.0",
+          "total_edges_touched": "878.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-02-04",
+          "identity": "U1653@DOM1",
+          "new_edges": "717.0",
+          "total_edges_touched": "941.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-18",
+          "identity": "U1718@?",
+          "new_edges": "708.0",
+          "total_edges_touched": "765.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-07",
+          "identity": "U1718@?",
+          "new_edges": "636.0",
+          "total_edges_touched": "740.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-02-05",
+          "identity": "U1653@DOM1",
+          "new_edges": "634.0",
+          "total_edges_touched": "916.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-06",
+          "identity": "U1718@?",
+          "new_edges": "579.0",
+          "total_edges_touched": "640.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-02-06",
+          "identity": "U1653@DOM1",
+          "new_edges": "561.0",
+          "total_edges_touched": "737.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-21",
+          "identity": "U1718@?",
+          "new_edges": "546.0",
+          "total_edges_touched": "712.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-13",
+          "identity": "U1718@?",
+          "new_edges": "518.0",
+          "total_edges_touched": "667.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-15",
+          "identity": "U1718@?",
+          "new_edges": "518.0",
+          "total_edges_touched": "860.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-01",
+          "identity": "U1653@DOM1",
+          "new_edges": "500.0",
+          "total_edges_touched": "500.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-17",
+          "identity": "U1718@?",
+          "new_edges": "498.0",
+          "total_edges_touched": "988.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-14",
+          "identity": "U1718@?",
+          "new_edges": "450.0",
+          "total_edges_touched": "575.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-01-10",
+          "identity": "U1718@?",
+          "new_edges": "429.0",
+          "total_edges_touched": "531.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "IDENTITY",
+          "event_date": "2015-02-03",
+          "identity": "U1653@DOM1",
+          "new_edges": "391.0",
+          "total_edges_touched": "530.0",
+          "active_identities": "1",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-01",
+          "identity": "",
+          "new_edges": "213227.0",
+          "total_edges_touched": "213227.0",
+          "active_identities": "33593",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-02",
+          "identity": "",
+          "new_edges": "54757.0",
+          "total_edges_touched": "208888.0",
+          "active_identities": "29343",
+          "redteam_identities_active": "4.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-06",
+          "identity": "",
+          "new_edges": "53578.0",
+          "total_edges_touched": "238765.0",
+          "active_identities": "33703",
+          "redteam_identities_active": "4.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-10",
+          "identity": "",
+          "new_edges": "36024.0",
+          "total_edges_touched": "227798.0",
+          "active_identities": "28693",
+          "redteam_identities_active": "1.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-07",
+          "identity": "",
+          "new_edges": "26192.0",
+          "total_edges_touched": "241755.0",
+          "active_identities": "32428",
+          "redteam_identities_active": "2.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-19",
+          "identity": "",
+          "new_edges": "25907.0",
+          "total_edges_touched": "299193.0",
+          "active_identities": "33482",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-03",
+          "identity": "",
+          "new_edges": "23849.0",
+          "total_edges_touched": "175294.0",
+          "active_identities": "24365",
+          "redteam_identities_active": "2.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-15",
+          "identity": "",
+          "new_edges": "23067.0",
+          "total_edges_touched": "302949.0",
+          "active_identities": "43423",
+          "redteam_identities_active": "13.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-08",
+          "identity": "",
+          "new_edges": "19566.0",
+          "total_edges_touched": "243492.0",
+          "active_identities": "32069",
+          "redteam_identities_active": "1.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-13",
+          "identity": "",
+          "new_edges": "19107.0",
+          "total_edges_touched": "251952.0",
+          "active_identities": "34684",
+          "redteam_identities_active": "39.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-04",
+          "identity": "",
+          "new_edges": "17248.0",
+          "total_edges_touched": "261675.0",
+          "active_identities": "34386",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-05",
+          "identity": "",
+          "new_edges": "16926.0",
+          "total_edges_touched": "264573.0",
+          "active_identities": "34221",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-09",
+          "identity": "",
+          "new_edges": "16497.0",
+          "total_edges_touched": "242944.0",
+          "active_identities": "32251",
+          "redteam_identities_active": "45.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-06",
+          "identity": "",
+          "new_edges": "15452.0",
+          "total_edges_touched": "262898.0",
+          "active_identities": "33935",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-03",
+          "identity": "",
+          "new_edges": "13201.0",
+          "total_edges_touched": "255874.0",
+          "active_identities": "35273",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-14",
+          "identity": "",
+          "new_edges": "12920.0",
+          "total_edges_touched": "261553.0",
+          "active_identities": "33375",
+          "redteam_identities_active": "22.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-16",
+          "identity": "",
+          "new_edges": "11043.0",
+          "total_edges_touched": "245782.0",
+          "active_identities": "35310",
+          "redteam_identities_active": "14.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-21",
+          "identity": "",
+          "new_edges": "10038.0",
+          "total_edges_touched": "243102.0",
+          "active_identities": "33411",
+          "redteam_identities_active": "1.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-22",
+          "identity": "",
+          "new_edges": "9309.0",
+          "total_edges_touched": "250919.0",
+          "active_identities": "33408",
+          "redteam_identities_active": "2.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-10",
+          "identity": "",
+          "new_edges": "9279.0",
+          "total_edges_touched": "262482.0",
+          "active_identities": "35089",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-27",
+          "identity": "",
+          "new_edges": "9065.0",
+          "total_edges_touched": "244667.0",
+          "active_identities": "33101",
+          "redteam_identities_active": "19.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-28",
+          "identity": "",
+          "new_edges": "8330.0",
+          "total_edges_touched": "240555.0",
+          "active_identities": "31171",
+          "redteam_identities_active": "6.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-11",
+          "identity": "",
+          "new_edges": "8196.0",
+          "total_edges_touched": "260335.0",
+          "active_identities": "33131",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-23",
+          "identity": "",
+          "new_edges": "8068.0",
+          "total_edges_touched": "265832.0",
+          "active_identities": "36768",
+          "redteam_identities_active": "1.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-12",
+          "identity": "",
+          "new_edges": "7141.0",
+          "total_edges_touched": "258542.0",
+          "active_identities": "32632",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-17",
+          "identity": "",
+          "new_edges": "7071.0",
+          "total_edges_touched": "197280.0",
+          "active_identities": "26170",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-24",
+          "identity": "",
+          "new_edges": "6934.0",
+          "total_edges_touched": "262400.0",
+          "active_identities": "33979",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-30",
+          "identity": "",
+          "new_edges": "6919.0",
+          "total_edges_touched": "240950.0",
+          "active_identities": "31387",
+          "redteam_identities_active": "3.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-20",
+          "identity": "",
+          "new_edges": "6831.0",
+          "total_edges_touched": "292875.0",
+          "active_identities": "42568",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-29",
+          "identity": "",
+          "new_edges": "6717.0",
+          "total_edges_touched": "245718.0",
+          "active_identities": "31512",
+          "redteam_identities_active": "2.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-13",
+          "identity": "",
+          "new_edges": "6647.0",
+          "total_edges_touched": "255812.0",
+          "active_identities": "32746",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-18",
+          "identity": "",
+          "new_edges": "6416.0",
+          "total_edges_touched": "261857.0",
+          "active_identities": "34696",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-07",
+          "identity": "",
+          "new_edges": "5887.0",
+          "total_edges_touched": "204834.0",
+          "active_identities": "26187",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-04",
+          "identity": "",
+          "new_edges": "5725.0",
+          "total_edges_touched": "115986.0",
+          "active_identities": "15843",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-25",
+          "identity": "",
+          "new_edges": "5541.0",
+          "total_edges_touched": "259106.0",
+          "active_identities": "32639",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-26",
+          "identity": "",
+          "new_edges": "5480.0",
+          "total_edges_touched": "260857.0",
+          "active_identities": "32126",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-24",
+          "identity": "",
+          "new_edges": "5206.0",
+          "total_edges_touched": "199219.0",
+          "active_identities": "27559",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-05",
+          "identity": "",
+          "new_edges": "4638.0",
+          "total_edges_touched": "116306.0",
+          "active_identities": "15699",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-21",
+          "identity": "",
+          "new_edges": "4410.0",
+          "total_edges_touched": "213594.0",
+          "active_identities": "27654",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-27",
+          "identity": "",
+          "new_edges": "4301.0",
+          "total_edges_touched": "257466.0",
+          "active_identities": "31635",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-31",
+          "identity": "",
+          "new_edges": "4167.0",
+          "total_edges_touched": "196557.0",
+          "active_identities": "26183",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-14",
+          "identity": "",
+          "new_edges": "4067.0",
+          "total_edges_touched": "199543.0",
+          "active_identities": "26339",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-11",
+          "identity": "",
+          "new_edges": "1963.0",
+          "total_edges_touched": "128715.0",
+          "active_identities": "17751",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-18",
+          "identity": "",
+          "new_edges": "1649.0",
+          "total_edges_touched": "124593.0",
+          "active_identities": "17562",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-12",
+          "identity": "",
+          "new_edges": "1540.0",
+          "total_edges_touched": "129144.0",
+          "active_identities": "16973",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-20",
+          "identity": "",
+          "new_edges": "1205.0",
+          "total_edges_touched": "125061.0",
+          "active_identities": "16965",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-08",
+          "identity": "",
+          "new_edges": "1076.0",
+          "total_edges_touched": "127681.0",
+          "active_identities": "16981",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-26",
+          "identity": "",
+          "new_edges": "1046.0",
+          "total_edges_touched": "130351.0",
+          "active_identities": "17143",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-17",
+          "identity": "",
+          "new_edges": "1043.0",
+          "total_edges_touched": "137978.0",
+          "active_identities": "18274",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-25",
+          "identity": "",
+          "new_edges": "1040.0",
+          "total_edges_touched": "129851.0",
+          "active_identities": "17444",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-09",
+          "identity": "",
+          "new_edges": "874.0",
+          "total_edges_touched": "125383.0",
+          "active_identities": "16354",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-01-19",
+          "identity": "",
+          "new_edges": "789.0",
+          "total_edges_touched": "125142.0",
+          "active_identities": "16509",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-01",
+          "identity": "",
+          "new_edges": "777.0",
+          "total_edges_touched": "133054.0",
+          "active_identities": "17711",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-23",
+          "identity": "",
+          "new_edges": "686.0",
+          "total_edges_touched": "129179.0",
+          "active_identities": "16897",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-02",
+          "identity": "",
+          "new_edges": "679.0",
+          "total_edges_touched": "133497.0",
+          "active_identities": "17297",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-15",
+          "identity": "",
+          "new_edges": "627.0",
+          "total_edges_touched": "136399.0",
+          "active_identities": "17902",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-22",
+          "identity": "",
+          "new_edges": "486.0",
+          "total_edges_touched": "127861.0",
+          "active_identities": "16894",
+          "redteam_identities_active": "0.0"
+        },
+        {
+          "scope": "NETWORK",
+          "event_date": "2015-02-16",
+          "identity": "",
+          "new_edges": "468.0",
+          "total_edges_touched": "138614.0",
+          "active_identities": "17676",
+          "redteam_identities_active": "0.0"
+        }
+      ]
+    },
+    "q4_failure_spike_zscore": {
+      "columns": [
+        "identity",
+        "event_date",
+        "auth_count",
+        "failure_count",
+        "failure_ratio_today",
+        "failure_ratio_baseline",
+        "baseline_stddev",
+        "failure_zscore",
+        "baseline_days_available",
+        "distinct_dst_computers",
+        "is_redteam_day",
+        "is_machine_account"
+      ],
+      "rows": [
+        {
+          "identity": "U5113@DOM1",
+          "event_date": "2015-02-25",
+          "auth_count": "7639",
+          "failure_count": "1768",
+          "failure_ratio_today": "0.2314",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0001",
+          "failure_zscore": "3481.79",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "17",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C15196$@DOM1",
+          "event_date": "2015-01-13",
+          "auth_count": "12974",
+          "failure_count": "11497",
+          "failure_ratio_today": "0.8862",
+          "failure_ratio_baseline": "0.0002",
+          "baseline_stddev": "0.0004",
+          "failure_zscore": "2109.72",
+          "baseline_days_available": "7",
+          "distinct_dst_computers": "18",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "C1328$@DOM1",
+          "event_date": "2015-02-20",
+          "auth_count": "4757",
+          "failure_count": "4167",
+          "failure_ratio_today": "0.876",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0005",
+          "failure_zscore": "1740.81",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "16",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U42@DOM1",
+          "event_date": "2015-02-10",
+          "auth_count": "4949",
+          "failure_count": "197",
+          "failure_ratio_today": "0.0398",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0",
+          "failure_zscore": "1694.76",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "26",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U8@DOM1",
+          "event_date": "2015-01-29",
+          "auth_count": "82148",
+          "failure_count": "838",
+          "failure_ratio_today": "0.0102",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0",
+          "failure_zscore": "1482.02",
+          "baseline_days_available": "28",
+          "distinct_dst_computers": "44",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U12@DOM1",
+          "event_date": "2015-02-12",
+          "auth_count": "17681",
+          "failure_count": "6084",
+          "failure_ratio_today": "0.3441",
+          "failure_ratio_baseline": "0.0003",
+          "baseline_stddev": "0.0002",
+          "failure_zscore": "1458.55",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "32",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C2700$@DOM1",
+          "event_date": "2015-02-27",
+          "auth_count": "972",
+          "failure_count": "370",
+          "failure_ratio_today": "0.3807",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "1442.6",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "13",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "C15339$@DOM1",
+          "event_date": "2015-01-24",
+          "auth_count": "533",
+          "failure_count": "263",
+          "failure_ratio_today": "0.4934",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "1431.48",
+          "baseline_days_available": "23",
+          "distinct_dst_computers": "10",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U5365@DOM1",
+          "event_date": "2015-02-12",
+          "auth_count": "23",
+          "failure_count": "6",
+          "failure_ratio_today": "0.2609",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0002",
+          "failure_zscore": "1276.46",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "3",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U8614@DOM1",
+          "event_date": "2015-02-03",
+          "auth_count": "38",
+          "failure_count": "38",
+          "failure_ratio_today": "1.0",
+          "failure_ratio_baseline": "0.0002",
+          "baseline_stddev": "0.0008",
+          "failure_zscore": "1266.2",
+          "baseline_days_available": "22",
+          "distinct_dst_computers": "1",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U1584@DOM1",
+          "event_date": "2015-02-24",
+          "auth_count": "1662",
+          "failure_count": "166",
+          "failure_ratio_today": "0.0999",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0001",
+          "failure_zscore": "1208.28",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "25",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C583$@DOM1",
+          "event_date": "2015-02-26",
+          "auth_count": "1045",
+          "failure_count": "472",
+          "failure_ratio_today": "0.4517",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0004",
+          "failure_zscore": "1202.14",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "7",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U4626@DOM1",
+          "event_date": "2015-02-13",
+          "auth_count": "7282",
+          "failure_count": "132",
+          "failure_ratio_today": "0.0181",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0",
+          "failure_zscore": "1170.98",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "16",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U4965@DOM1",
+          "event_date": "2015-01-17",
+          "auth_count": "2889",
+          "failure_count": "2820",
+          "failure_ratio_today": "0.9761",
+          "failure_ratio_baseline": "0.0004",
+          "baseline_stddev": "0.001",
+          "failure_zscore": "1021.25",
+          "baseline_days_available": "16",
+          "distinct_dst_computers": "5",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C20023$@DOM1",
+          "event_date": "2015-01-25",
+          "auth_count": "796",
+          "failure_count": "209",
+          "failure_ratio_today": "0.2626",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "1005.77",
+          "baseline_days_available": "19",
+          "distinct_dst_computers": "12",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "C765$@DOM1",
+          "event_date": "2015-02-13",
+          "auth_count": "965",
+          "failure_count": "74",
+          "failure_ratio_today": "0.0767",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0001",
+          "failure_zscore": "803.73",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "13",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U6173@DOM1",
+          "event_date": "2015-02-13",
+          "auth_count": "193",
+          "failure_count": "50",
+          "failure_ratio_today": "0.2591",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "787.35",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "7",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U2435@DOM1",
+          "event_date": "2015-02-25",
+          "auth_count": "6039",
+          "failure_count": "1089",
+          "failure_ratio_today": "0.1803",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0002",
+          "failure_zscore": "745.79",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "19",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C8141$@DOM1",
+          "event_date": "2015-02-13",
+          "auth_count": "317",
+          "failure_count": "87",
+          "failure_ratio_today": "0.2744",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0004",
+          "failure_zscore": "737.67",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "12",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U7@DOM1",
+          "event_date": "2015-01-15",
+          "auth_count": "72822",
+          "failure_count": "234",
+          "failure_ratio_today": "0.0032",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0",
+          "failure_zscore": "726.89",
+          "baseline_days_available": "14",
+          "distinct_dst_computers": "22",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "C21761$@DOM1",
+          "event_date": "2015-01-21",
+          "auth_count": "1926",
+          "failure_count": "1423",
+          "failure_ratio_today": "0.7388",
+          "failure_ratio_baseline": "0.0005",
+          "baseline_stddev": "0.001",
+          "failure_zscore": "704.44",
+          "baseline_days_available": "5",
+          "distinct_dst_computers": "14",
+          "is_redteam_day": "False",
+          "is_machine_account": "True"
+        },
+        {
+          "identity": "U2298@DOM1",
+          "event_date": "2015-02-25",
+          "auth_count": "5357",
+          "failure_count": "1213",
+          "failure_ratio_today": "0.2264",
+          "failure_ratio_baseline": "0.0001",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "704.26",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "14",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U1237@DOM1",
+          "event_date": "2015-02-03",
+          "auth_count": "203",
+          "failure_count": "35",
+          "failure_ratio_today": "0.1724",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0003",
+          "failure_zscore": "683.53",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "8",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U294@DOM1",
+          "event_date": "2015-02-13",
+          "auth_count": "827",
+          "failure_count": "37",
+          "failure_ratio_today": "0.0447",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0001",
+          "failure_zscore": "681.55",
+          "baseline_days_available": "30",
+          "distinct_dst_computers": "30",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        },
+        {
+          "identity": "U2935@DOM1",
+          "event_date": "2015-02-10",
+          "auth_count": "414",
+          "failure_count": "46",
+          "failure_ratio_today": "0.1111",
+          "failure_ratio_baseline": "0.0",
+          "baseline_stddev": "0.0002",
+          "failure_zscore": "664.26",
+          "baseline_days_available": "21",
+          "distinct_dst_computers": "14",
+          "is_redteam_day": "False",
+          "is_machine_account": "False"
+        }
+      ]
+    },
+    "q5_redteam_enrichment": {
+      "columns": [
+        "detector",
+        "redteam_days_total",
+        "redteam_days_caught",
+        "redteam_days_MISSED",
+        "recall_pct",
+        "alerts_raised",
+        "precision_pct",
+        "identity_days_scanned",
+        "lift_over_random"
+      ],
+      "rows": [
+        {
+          "detector": "ANY of Q1-Q4",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "62.0",
+          "redteam_days_MISSED": "119.0",
+          "recall_pct": "34.3",
+          "alerts_raised": "63891.0",
+          "precision_pct": "0.097",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "8.6"
+        },
+        {
+          "detector": "Q3 new access paths (>=5 new hosts/day)",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "56.0",
+          "redteam_days_MISSED": "125.0",
+          "recall_pct": "30.9",
+          "alerts_raised": "33319.0",
+          "precision_pct": "0.168",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "14.9"
+        },
+        {
+          "detector": "TWO OR MORE of Q1-Q4",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "22.0",
+          "redteam_days_MISSED": "159.0",
+          "recall_pct": "12.2",
+          "alerts_raised": "2599.0",
+          "precision_pct": "0.846",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "75.0"
+        },
+        {
+          "detector": "Q1 fan-out spike (z>3 vs own baseline)",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "20.0",
+          "redteam_days_MISSED": "161.0",
+          "recall_pct": "11.0",
+          "alerts_raised": "21136.0",
+          "precision_pct": "0.095",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "8.4"
+        },
+        {
+          "detector": "Q4 failure-ratio spike (z>3)",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "11.0",
+          "redteam_days_MISSED": "170.0",
+          "recall_pct": "6.1",
+          "alerts_raised": "5752.0",
+          "precision_pct": "0.191",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "17.0"
+        },
+        {
+          "detector": "Q2 off-hours vs own baseline",
+          "redteam_days_total": "181.0",
+          "redteam_days_caught": "0.0",
+          "redteam_days_MISSED": "181.0",
+          "recall_pct": "0.0",
+          "alerts_raised": "6379.0",
+          "precision_pct": "0.0",
+          "identity_days_scanned": "1604500",
+          "lift_over_random": "0.0"
+        }
+      ]
+    }
+  },
+  "sql": {
+    "q1_fanout_week_over_week": "-- Q1 \u2014 Lateral-movement precursor: destination fan-out, week over week.\n--\n-- QUESTION: which identities are reaching many more distinct hosts this week than they did\n--           last week? An account that touched 3 machines a week for a month and suddenly\n--           touches 40 is the classic precursor to lateral movement.\n--\n-- WHY WEEK-OVER-WEEK AND NOT RAW FAN-OUT: raw fan-out just ranks service accounts. A\n-- backup agent legitimately hits 500 hosts every single day and is the least interesting\n-- row in the corpus. The signal is the CHANGE against the identity's own prior week, so\n-- every identity is scored against itself.\n--\n-- Machine accounts are excluded here (not in the model \u2014 see dim_identity) because this\n-- specific question is about human-shaped lateral movement.\n\nwith weekly as (\n    select\n        r.identity_key,\n        r.src_user,\n        t.week_index,\n        sum(r.auth_count)                       as auth_events,\n        max(r.distinct_dst_computers)           as peak_daily_fanout,\n        sum(r.new_dst_computers)                as new_destinations,\n        max(r.is_redteam_day::int)::boolean     as had_redteam_activity\n    from {{ROLLUP}} r\n    join {{DIM_TIME}} t on r.time_key = t.time_key\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n    group by 1, 2, 3\n),\n\nweek_over_week as (\n    select\n        *,\n        lag(peak_daily_fanout) over (\n            partition by identity_key order by week_index\n        )                                       as prev_week_peak_fanout\n    from weekly\n)\n\nselect\n    src_user                                    as identity,\n    week_index,\n    prev_week_peak_fanout,\n    peak_daily_fanout,\n    peak_daily_fanout - prev_week_peak_fanout   as fanout_delta,\n    round(\n        peak_daily_fanout * 1.0 / nullif(prev_week_peak_fanout, 0), 2\n    )                                           as fanout_multiple,\n    new_destinations,\n    auth_events,\n    had_redteam_activity\nfrom week_over_week\nwhere prev_week_peak_fanout is not null\n  and prev_week_peak_fanout > 0\n  and peak_daily_fanout > prev_week_peak_fanout\norder by fanout_delta desc, fanout_multiple desc\nlimit 25\n",
+    "q2_off_hours_vs_baseline": "-- Q2 \u2014 Off-hours authentication share, each identity against its OWN baseline.\n--\n-- QUESTION: who is suddenly working at hours they never worked before?\n--\n-- READ THE CAVEAT. LANL has no wall-clock time \u2014 only seconds since collection started.\n-- \"3am\" is not a fact in this corpus. What IS a fact is the diurnal cycle: pipeline/\n-- diurnal.py measures the volume-by-hour curve, finds the trough, and that measured band\n-- is what `is_off_hours` means here. So this query does not ask \"who worked at 3am\"; it\n-- asks \"who worked during the hours when this network is measurably asleep\", which is the\n-- question that actually survives a screening interview.\n--\n-- Scoring each identity against its own baseline (rather than a global threshold) is what\n-- separates \"the night-shift admin, as always\" from \"the day-shift user who has never once\n-- logged in during the trough and just did it forty times\".\n\nwith daily as (\n    select\n        r.identity_key,\n        r.src_user,\n        r.event_date,\n        r.auth_count,\n        r.off_hours_events,\n        r.off_hours_share,\n        r.off_hours_share_baseline_mean,\n        r.baseline_days_available,\n        r.is_redteam_day\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      -- An identity with a handful of events a day produces a meaningless share (1 of 2\n      -- events off-hours = 50%). Require enough volume for the ratio to mean something.\n      and r.auth_count >= 10\n)\n\nselect\n    src_user                                        as identity,\n    event_date,\n    auth_count,\n    off_hours_events,\n    round(off_hours_share, 4)                       as off_hours_share_today,\n    round(off_hours_share_baseline_mean, 4)         as off_hours_share_baseline,\n    round(\n        off_hours_share - off_hours_share_baseline_mean, 4\n    )                                               as excess_over_own_baseline,\n    baseline_days_available,\n    is_redteam_day\nfrom daily\nwhere baseline_days_available >= 3\n  and off_hours_share > 0\n  -- The identity's own history says it essentially never works the trough...\n  and off_hours_share_baseline_mean < 0.05\n  -- ...and today it did, materially.\n  and off_hours_share > 0.25\norder by excess_over_own_baseline desc, off_hours_events desc\nlimit 25\n",
+    "q3_new_access_path_rate": "-- Q3 \u2014 New-access-path rate: first-time (identity -> computer) edges per day.\n--\n-- QUESTION: how fast is the network's access graph growing new edges, and who is creating\n--           them? Every genuinely new user->host edge is a path that did not exist\n--           yesterday. In a stable enterprise this rate decays as identities settle into\n--           their normal set of machines; a spike is either onboarding or an intruder\n--           exploring.\n--\n-- This is the query that most directly maps to \"paths to privilege\": the edge set IS the\n-- privilege graph, and this measures its growth.\n--\n-- Two result shapes in one query, via the `scope` column:\n--   scope='NETWORK'  \u2014 the daily network-wide new-edge rate (the decay curve)\n--   scope='IDENTITY' \u2014 the identities creating the most new edges on their peak day\n\nwith network_daily as (\n    select\n        'NETWORK'                               as scope,\n        cast(r.event_date as varchar)           as event_date,\n        null                                    as identity,\n        sum(r.new_dst_computers)                as new_edges,\n        sum(r.distinct_dst_computers)           as total_edges_touched,\n        count(distinct r.identity_key)          as active_identities,\n        sum(r.is_redteam_day::int)              as redteam_identities_active\n    from {{ROLLUP}} r\n    group by 1, 2, 3\n),\n\nidentity_peaks as (\n    select\n        'IDENTITY'                              as scope,\n        cast(r.event_date as varchar)           as event_date,\n        r.src_user                              as identity,\n        r.new_dst_computers                     as new_edges,\n        r.distinct_dst_computers                as total_edges_touched,\n        1                                       as active_identities,\n        r.is_redteam_day::int                   as redteam_identities_active\n    from {{ROLLUP}} r\n    join {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\n    where not i.is_machine_account\n      and r.new_dst_computers > 0\n    order by r.new_dst_computers desc\n    limit 20\n)\n\nselect * from network_daily\nunion all\nselect * from identity_peaks\norder by scope, new_edges desc, event_date\n",
+    "q4_failure_spike_zscore": "-- Q4 \u2014 Failure-ratio spike detection: windowed z-score, in SQL.\n--\n-- QUESTION: whose authentication failure rate today is anomalous *for them*?\n--\n-- Credential stuffing, password spraying, and a Kerberoasting attempt that guesses wrong\n-- all look the same in the telemetry: a sudden burst of failures from an identity that\n-- normally succeeds. A global threshold (\"alert above 20% failures\") is useless \u2014 some\n-- service accounts fail 30% of the time forever and are fine.\n--\n-- So: z-score against the identity's own trailing 30-day mean and stddev, computed in the\n-- mart with a window frame that EXCLUDES the current day (rows between 30 preceding and 1\n-- preceding). Excluding today matters more than it sounds: if the spike is allowed into\n-- its own baseline it inflates the mean and stddev and damps the very signal we want.\n--\n-- The z-score is NULL, not zero, when there are fewer than 3 baseline days or the baseline\n-- has no variance. That is why this query can say \"top 25 spikes\" and mean it, rather than\n-- ranking 500 identities whose entire history is one quiet day.\n\nselect\n    r.src_user                                      as identity,\n    r.event_date,\n    r.auth_count,\n    r.failure_count,\n    round(r.failure_ratio, 4)                       as failure_ratio_today,\n    round(r.failure_ratio_baseline_mean, 4)         as failure_ratio_baseline,\n    round(r.failure_ratio_baseline_stddev, 4)       as baseline_stddev,\n    round(r.failure_ratio_zscore, 2)                as failure_zscore,\n    r.baseline_days_available,\n    r.distinct_dst_computers,\n    r.is_redteam_day,\n    i.is_machine_account\nfrom {{ROLLUP}} r\njoin {{DIM_IDENTITY}} i on r.identity_key = i.identity_key\nwhere r.failure_ratio_zscore is not null\n  and r.failure_ratio_zscore > 3          -- 3 sigma against the identity's own history\n  and r.failure_count >= 5                -- and not merely 1 failure out of 2 attempts\norder by r.failure_ratio_zscore desc, r.failure_count desc\nlimit 25\n",
+    "q5_redteam_enrichment": "-- Q5 \u2014 Red-team enrichment: would Q1-Q4 actually have surfaced the attacker?\n--\n-- This is the query the whole warehouse exists to answer, and the only honest way to\n-- answer it is as a DETECTION EVALUATION, not a highlight reel. So each of the four\n-- signals is treated as a detector, run over every identity-day in the corpus, and scored\n-- against LANL's ground truth:\n--\n--   recall     of the identity-days that really were compromised, what fraction did this\n--              detector flag?  (the misses are the part everyone leaves out)\n--   precision  of the identity-days this detector flagged, what fraction really were\n--              compromised?\n--   alerts     how many identity-days a human would have to triage. A detector with\n--              perfect recall and 40,000 alerts a day is not a detector, it is a denial of\n--              service against your SOC.\n--   lift       precision / base_rate. How much better than picking an identity-day at\n--              random. This is the number that says whether the signal is real at all.\n--\n-- Expect unflattering numbers. Precision on a corpus where compromised identity-days are\n-- ~0.001% of all identity-days is going to be brutal for every single-signal detector, and\n-- saying so is the point. A portfolio project that reports 100% recall and hides the alert\n-- volume is lying by omission.\n\nwith scored as (\n    select\n        r.identity_key,\n        r.event_date,\n        r.is_redteam_day,\n\n        -- The four detectors, expressed as the same booleans Q1-Q4 rank on.\n        (r.fanout_zscore is not null and r.fanout_zscore > 3)                as d1_fanout_spike,\n        (r.baseline_days_available >= 3\n            and r.off_hours_share_baseline_mean < 0.05\n            and r.off_hours_share > 0.25\n            and r.auth_count >= 10)                                          as d2_off_hours,\n        (r.new_dst_computers >= 5)                                           as d3_new_paths,\n        (r.failure_ratio_zscore is not null\n            and r.failure_ratio_zscore > 3\n            and r.failure_count >= 5)                                        as d4_failure_spike\n    from {{ROLLUP}} r\n),\n\nflagged as (\n    select\n        *,\n        (d1_fanout_spike or d2_off_hours or d3_new_paths or d4_failure_spike) as d_any,\n        (d1_fanout_spike::int + d2_off_hours::int\n            + d3_new_paths::int + d4_failure_spike::int) >= 2                 as d_two_or_more\n    from scored\n),\n\ntotals as (\n    select\n        count(*)                                    as all_identity_days,\n        sum(is_redteam_day::int)                    as redteam_identity_days\n    from flagged\n),\n\n-- One row per detector. UNPIVOT by hand: five UNION ALL branches, each computing the same\n-- four numbers for a different flag column.\nper_detector as (\n    select 'Q1 fan-out spike (z>3 vs own baseline)' as detector,\n           sum(d1_fanout_spike::int)                                     as alerts,\n           sum((d1_fanout_spike and is_redteam_day)::int)                as true_positives\n    from flagged\n    union all\n    select 'Q2 off-hours vs own baseline',\n           sum(d2_off_hours::int),\n           sum((d2_off_hours and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q3 new access paths (>=5 new hosts/day)',\n           sum(d3_new_paths::int),\n           sum((d3_new_paths and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'Q4 failure-ratio spike (z>3)',\n           sum(d4_failure_spike::int),\n           sum((d4_failure_spike and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'ANY of Q1-Q4',\n           sum(d_any::int),\n           sum((d_any and is_redteam_day)::int)\n    from flagged\n    union all\n    select 'TWO OR MORE of Q1-Q4',\n           sum(d_two_or_more::int),\n           sum((d_two_or_more and is_redteam_day)::int)\n    from flagged\n)\n\nselect\n    p.detector,\n    t.redteam_identity_days                                          as redteam_days_total,\n    p.true_positives                                                 as redteam_days_caught,\n    t.redteam_identity_days - p.true_positives                       as redteam_days_MISSED,\n    round(100.0 * p.true_positives / nullif(t.redteam_identity_days, 0), 1)\n                                                                     as recall_pct,\n    p.alerts                                                         as alerts_raised,\n    round(100.0 * p.true_positives / nullif(p.alerts, 0), 3)         as precision_pct,\n    t.all_identity_days                                              as identity_days_scanned,\n    round(\n        (p.true_positives * 1.0 / nullif(p.alerts, 0))\n        / nullif(t.redteam_identity_days * 1.0 / t.all_identity_days, 0), 1\n    )                                                                as lift_over_random\nfrom per_detector p\ncross join totals t\norder by recall_pct desc nulls last, precision_pct desc nulls last\n"
+  },
+  "built_at": "2026-07-14T06:09:55+00:00",
+  "extracts": {
+    "rollup": {
+      "file": "data/rollup.parquet",
+      "rows": 1604500,
+      "bytes": 21221127,
+      "mb": 21.22
+    },
+    "dim_identity": {
+      "file": "data/dim_identity.parquet",
+      "rows": 80553,
+      "bytes": 805355,
+      "mb": 0.81
+    },
+    "dim_computer": {
+      "file": "data/dim_computer.parquet",
+      "rows": 17666,
+      "bytes": 217967,
+      "mb": 0.22
+    },
+    "dim_time": {
+      "file": "data/dim_time.parquet",
+      "rows": 58,
+      "bytes": 3291,
+      "mb": 0.0
+    },
+    "redteam": {
+      "file": "data/redteam.parquet",
+      "rows": 749,
+      "bytes": 6410,
+      "mb": 0.01
+    }
+  }
+}

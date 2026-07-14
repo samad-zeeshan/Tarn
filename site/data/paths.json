@@ -1,0 +1,1014 @@
+{
+  "what": "Shortest privilege paths, precomputed. The browser cannot run Cypher, so the path explorer replays these REAL shortestPath() results rather than recomputing them. Each entry records the query time it actually took.",
+  "cypher": "MATCH p = shortestPath((a:User)-[:AUTH*..6]-(b:User)) RETURN p",
+  "paths": [
+    {
+      "hops": [
+        "U66@DOM1",
+        "C177",
+        "U3005@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        2,
+        1
+      ],
+      "traverses_redteam": false,
+      "from_user": "U66@DOM1",
+      "to_user": "U3005@DOM1",
+      "query_ms": 4.9
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C1737",
+        "U293@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        6,
+        2
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U293@DOM1",
+      "query_ms": 3.3
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C586",
+        "U737@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        7,
+        2419
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U737@DOM1",
+      "query_ms": 5.1
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C423",
+        "U3635@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        4,
+        31
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U3635@DOM1",
+      "query_ms": 3.5
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "TGT",
+        "U748@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        213,
+        647
+      ],
+      "traverses_redteam": false,
+      "from_user": "U66@DOM1",
+      "to_user": "U748@DOM1",
+      "query_ms": 2.7
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C4106",
+        "U1718@?"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        2,
+        1
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U1718@?",
+      "query_ms": 2.9
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C513",
+        "ANONYMOUS LOGON@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        6,
+        2,
+        444,
+        19
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "ANONYMOUS LOGON@C513",
+      "query_ms": 3.5
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C553",
+        "U456@DOM5"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        2,
+        1
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U456@DOM5",
+      "query_ms": 5.3
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C92",
+        "U8321@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        8,
+        22
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "U8321@DOM1",
+      "query_ms": 3.7
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C513",
+        "SYSTEM@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        6,
+        2,
+        444,
+        4
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "SYSTEM@C513",
+      "query_ms": 2.7
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C633",
+        "ANONYMOUS LOGON@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        6,
+        2,
+        246,
+        18
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "ANONYMOUS LOGON@C633",
+      "query_ms": 2.9
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C586",
+        "U1158@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        7,
+        3729
+      ],
+      "traverses_redteam": false,
+      "from_user": "U66@DOM1",
+      "to_user": "U1158@DOM1",
+      "query_ms": 2.6
+    },
+    {
+      "hops": [
+        "U66@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C633",
+        "SYSTEM@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        6,
+        2,
+        246,
+        5
+      ],
+      "traverses_redteam": true,
+      "from_user": "U66@DOM1",
+      "to_user": "SYSTEM@C633",
+      "query_ms": 2.5
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1737",
+        "U293@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        8,
+        2
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "U293@DOM1",
+      "query_ms": 2.5
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C625",
+        "U737@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        1641,
+        1838
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "U737@DOM1",
+      "query_ms": 2.1
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C423",
+        "U3635@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        703,
+        31
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "U3635@DOM1",
+      "query_ms": 2.0
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C2327",
+        "U748@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        521,
+        375
+      ],
+      "traverses_redteam": false,
+      "from_user": "U3005@DOM1",
+      "to_user": "U748@DOM1",
+      "query_ms": 2.2
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C78",
+        "U1718@?"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        2,
+        1
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "U1718@?",
+      "query_ms": 2.9
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C513",
+        "ANONYMOUS LOGON@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        8,
+        2,
+        444,
+        19
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "ANONYMOUS LOGON@C513",
+      "query_ms": 2.3
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1810",
+        "U456@DOM5"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        24,
+        1
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "U456@DOM5",
+      "query_ms": 1.9
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1065",
+        "U8321@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        1694,
+        788
+      ],
+      "traverses_redteam": false,
+      "from_user": "U3005@DOM1",
+      "to_user": "U8321@DOM1",
+      "query_ms": 3.0
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C513",
+        "SYSTEM@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        8,
+        2,
+        444,
+        4
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "SYSTEM@C513",
+      "query_ms": 3.2
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C633",
+        "ANONYMOUS LOGON@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        8,
+        2,
+        246,
+        18
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "ANONYMOUS LOGON@C633",
+      "query_ms": 3.2
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C586",
+        "U1158@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        1674,
+        3729
+      ],
+      "traverses_redteam": false,
+      "from_user": "U3005@DOM1",
+      "to_user": "U1158@DOM1",
+      "query_ms": 2.4
+    },
+    {
+      "hops": [
+        "U3005@DOM1",
+        "C1737",
+        "U293@DOM1",
+        "C633",
+        "SYSTEM@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        8,
+        2,
+        246,
+        5
+      ],
+      "traverses_redteam": true,
+      "from_user": "U3005@DOM1",
+      "to_user": "SYSTEM@C633",
+      "query_ms": 2.0
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C538",
+        "U737@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        2,
+        216
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U737@DOM1",
+      "query_ms": 2.2
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C4161",
+        "U3635@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        311,
+        4
+      ],
+      "traverses_redteam": true,
+      "from_user": "U293@DOM1",
+      "to_user": "U3635@DOM1",
+      "query_ms": 2.7
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C2327",
+        "U748@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        271,
+        375
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U748@DOM1",
+      "query_ms": 2.1
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C1901",
+        "U1718@?"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        325,
+        2
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U1718@?",
+      "query_ms": 2.5
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C513",
+        "ANONYMOUS LOGON@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        444,
+        19
+      ],
+      "traverses_redteam": true,
+      "from_user": "U293@DOM1",
+      "to_user": "ANONYMOUS LOGON@C513",
+      "query_ms": 2.8
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C92",
+        "U456@DOM5"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        76,
+        5
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U456@DOM5",
+      "query_ms": 2.4
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C1065",
+        "U8321@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        8244,
+        788
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U8321@DOM1",
+      "query_ms": 2.6
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C513",
+        "SYSTEM@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        444,
+        4
+      ],
+      "traverses_redteam": true,
+      "from_user": "U293@DOM1",
+      "to_user": "SYSTEM@C513",
+      "query_ms": 2.2
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C633",
+        "ANONYMOUS LOGON@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        246,
+        18
+      ],
+      "traverses_redteam": true,
+      "from_user": "U293@DOM1",
+      "to_user": "ANONYMOUS LOGON@C633",
+      "query_ms": 2.2
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C586",
+        "U1158@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        7671,
+        3729
+      ],
+      "traverses_redteam": false,
+      "from_user": "U293@DOM1",
+      "to_user": "U1158@DOM1",
+      "query_ms": 2.0
+    },
+    {
+      "hops": [
+        "U293@DOM1",
+        "C633",
+        "SYSTEM@C633"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        246,
+        5
+      ],
+      "traverses_redteam": true,
+      "from_user": "U293@DOM1",
+      "to_user": "SYSTEM@C633",
+      "query_ms": 2.0
+    },
+    {
+      "hops": [
+        "U737@DOM1",
+        "C104",
+        "U3635@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        186,
+        2
+      ],
+      "traverses_redteam": false,
+      "from_user": "U737@DOM1",
+      "to_user": "U3635@DOM1",
+      "query_ms": 2.1
+    },
+    {
+      "hops": [
+        "U737@DOM1",
+        "C2327",
+        "U748@DOM1"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        322,
+        375
+      ],
+      "traverses_redteam": false,
+      "from_user": "U737@DOM1",
+      "to_user": "U748@DOM1",
+      "query_ms": 2.2
+    },
+    {
+      "hops": [
+        "U737@DOM1",
+        "C23055",
+        "U1718@?"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 2,
+      "weights": [
+        4,
+        2
+      ],
+      "traverses_redteam": false,
+      "from_user": "U737@DOM1",
+      "to_user": "U1718@?",
+      "query_ms": 2.8
+    },
+    {
+      "hops": [
+        "U737@DOM1",
+        "C7597",
+        "U293@DOM1",
+        "C513",
+        "ANONYMOUS LOGON@C513"
+      ],
+      "kinds": [
+        "User",
+        "Computer",
+        "User",
+        "Computer",
+        "User"
+      ],
+      "hop_count": 4,
+      "weights": [
+        4,
+        1,
+        444,
+        19
+      ],
+      "traverses_redteam": true,
+      "from_user": "U737@DOM1",
+      "to_user": "ANONYMOUS LOGON@C513",
+      "query_ms": 2.1
+    }
+  ],
+  "blast_radius": [
+    {
+      "identity": "U66@DOM1",
+      "hosts_1_hop": 249,
+      "identities_2_hops": 27522,
+      "hosts_3_hops": 14216,
+      "is_compromised": true
+    },
+    {
+      "identity": "U3005@DOM1",
+      "hosts_1_hop": 68,
+      "identities_2_hops": 36903,
+      "hosts_3_hops": 14261,
+      "is_compromised": true
+    },
+    {
+      "identity": "U293@DOM1",
+      "hosts_1_hop": 78,
+      "identities_2_hops": 36896,
+      "hosts_3_hops": 14263,
+      "is_compromised": true
+    },
+    {
+      "identity": "U737@DOM1",
+      "hosts_1_hop": 129,
+      "identities_2_hops": 37066,
+      "hosts_3_hops": 14262,
+      "is_compromised": true
+    },
+    {
+      "identity": "U3635@DOM1",
+      "hosts_1_hop": 143,
+      "identities_2_hops": 37026,
+      "hosts_3_hops": 14260,
+      "is_compromised": true
+    },
+    {
+      "identity": "U748@DOM1",
+      "hosts_1_hop": 113,
+      "identities_2_hops": 36831,
+      "hosts_3_hops": 14266,
+      "is_compromised": true
+    },
+    {
+      "identity": "U4448@DOM1",
+      "hosts_1_hop": 55,
+      "identities_2_hops": 36444,
+      "hosts_3_hops": 14262,
+      "is_compromised": true
+    },
+    {
+      "identity": "U9947@DOM1",
+      "hosts_1_hop": 69,
+      "identities_2_hops": 36524,
+      "hosts_3_hops": 14260,
+      "is_compromised": true
+    },
+    {
+      "identity": "U6801@DOM1",
+      "hosts_1_hop": 61,
+      "identities_2_hops": 36845,
+      "hosts_3_hops": 14262,
+      "is_compromised": false
+    },
+    {
+      "identity": "U139@DOM1",
+      "hosts_1_hop": 61,
+      "identities_2_hops": 36897,
+      "hosts_3_hops": 14265,
+      "is_compromised": false
+    },
+    {
+      "identity": "U1631@DOM1",
+      "hosts_1_hop": 60,
+      "identities_2_hops": 36525,
+      "hosts_3_hops": 14258,
+      "is_compromised": false
+    },
+    {
+      "identity": "U4250@DOM1",
+      "hosts_1_hop": 59,
+      "identities_2_hops": 36706,
+      "hosts_3_hops": 14261,
+      "is_compromised": false
+    },
+    {
+      "identity": "U7780@DOM1",
+      "hosts_1_hop": 59,
+      "identities_2_hops": 36520,
+      "hosts_3_hops": 14225,
+      "is_compromised": false
+    },
+    {
+      "identity": "U11440@DOM1",
+      "hosts_1_hop": 59,
+      "identities_2_hops": 36582,
+      "hosts_3_hops": 14231,
+      "is_compromised": false
+    },
+    {
+      "identity": "U149@DOM1",
+      "hosts_1_hop": 59,
+      "identities_2_hops": 36854,
+      "hosts_3_hops": 14260,
+      "is_compromised": false
+    },
+    {
+      "identity": "U5785@DOM1",
+      "hosts_1_hop": 59,
+      "identities_2_hops": 36831,
+      "hosts_3_hops": 14262,
+      "is_compromised": false
+    }
+  ]
+}
