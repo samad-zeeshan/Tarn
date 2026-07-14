@@ -1,0 +1,50 @@
+{
+  "what": "End-to-end lag and throughput of the Stage-3 Spark Structured Streaming job consuming replayed LANL auth events from Redpanda (Kafka API).",
+  "lag_definition": "commit_wallclock - newest_produce_wallclock_in_window. Spans Kafka publish, broker, Spark fetch, parse, shuffle, windowed aggregation, WATERMARK HOLD, Parquet write, and batch commit. The watermark hold dominates by design: a 1 minute window under a 2 minutes watermark cannot legally emit before its window closes and the watermark passes it. A sub-second figure here would mean the watermark was not doing its job.",
+  "not_measured": "Event-time-to-now lag. The replay is accelerated, so the 58-day corpus is pushed through in minutes; event-time lag would be weeks by construction and reporting it would be meaningless.",
+  "honesty": "This is an ACCELERATED LOCAL REPLAY from a file into a single-broker Redpanda on the same laptop as the Spark driver \u2014 not a live production feed. No network hop, no broker cluster, no competing load. Treat these figures as a measurement of this pipeline's processing latency, not of a production system's.",
+  "config": {
+    "window": "1 minute",
+    "watermark": "2 minutes",
+    "trigger": "5 seconds",
+    "output_mode": "append",
+    "target_replay_rate_eps": 5000,
+    "sink": "Parquet, partitioned by event_date",
+    "broker": "Redpanda v24.2.7, single node, 1 core / 1 GB"
+  },
+  "event_time_acceleration": {
+    "event_time_span_seconds": 15120,
+    "wall_clock_seconds": 207.5,
+    "acceleration_factor": 72.9,
+    "note": "Event time advanced ~72.9x faster than wall clock during the replay. The 1-minute window + 2-minute watermark means a window cannot emit until 3 minutes of EVENT time have passed, which at this acceleration is roughly 2.5s of real waiting \u2014 that is the floor the measured lag sits on. Quoting the lag without this factor would invite the reader to assume a 180s hold that never happened."
+  },
+  "lag_ms": {
+    "samples": 250183,
+    "p50": 12540.0,
+    "p90": 15099.0,
+    "p95": 15568.0,
+    "p99": 16289.0,
+    "min": 8012,
+    "max": 17179,
+    "mean": 12569.6
+  },
+  "throughput": {
+    "windows_committed": 250183,
+    "events_aggregated": 1481012,
+    "batches": 43,
+    "run_seconds": 207.5,
+    "events_per_second_sustained": 7138.9,
+    "spark_processed_rows_per_second_median": 7401.1,
+    "spark_input_rows_per_second_median": 5004.6,
+    "spark_total_input_rows": 1500000
+  },
+  "environment": {
+    "cpu": "AMD Ryzen 5 7600X3D 6-Core Processor",
+    "cpu_count": 12,
+    "container_os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+    "host": "Windows 11 Pro 26200, Docker Desktop (WSL2 backend)",
+    "python": "3.11.15",
+    "spark": "3.5.3"
+  },
+  "measured_at": "2026-07-14T05:53:05+00:00"
+}

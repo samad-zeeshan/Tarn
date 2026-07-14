@@ -1,0 +1,51 @@
+{
+  "dataset": {
+    "name": "LANL Comprehensive, Multi-Source Cyber-Security Events",
+    "citation": "A. D. Kent, 'Cybersecurity Data Sources for Dynamic Network Research', in Dynamic Networks in Cybersecurity, Imperial College Press, 2015.",
+    "url": "https://csr.lanl.gov/data/cyber1/",
+    "license": "CC0 1.0 (public domain dedication)",
+    "character": "real enterprise authentication telemetry, anonymized (users/hosts pseudonymized)",
+    "synthetic": false
+  },
+  "auth": {
+    "file": "auth.txt.gz",
+    "bytes_compressed": 7626505158,
+    "sha256": "9c6b0cc261b0edd19324f6fd1839743224938a7f644ed202ca70bd70a89bf672",
+    "rows": 1051430459,
+    "unparseable_rows": 0,
+    "time_min_seconds": 1,
+    "time_max_seconds": 5011199,
+    "span_days": 58.0,
+    "columns": [
+      "time",
+      "src_user",
+      "dst_user",
+      "src_computer",
+      "dst_computer",
+      "auth_type",
+      "logon_type",
+      "auth_orientation",
+      "outcome"
+    ]
+  },
+  "redteam": {
+    "file": "redteam.txt.gz",
+    "bytes_compressed": 4846,
+    "sha256": "606635837c684ad11e464075ecf97bc5df325ff7d7f64614d2d8c8af18051669",
+    "rows": 749,
+    "columns": [
+      "time",
+      "user",
+      "src_computer",
+      "dst_computer"
+    ]
+  },
+  "ci_slice": {
+    "path": "data/sample/",
+    "seed": 20260117,
+    "window_days": 8.0,
+    "modulus": 1331
+  },
+  "measured_at": "2026-07-14T00:38:00+00:00",
+  "measured_by": "data/fetch.py describe"
+}

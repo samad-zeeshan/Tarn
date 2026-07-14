@@ -1,0 +1,252 @@
+{
+  "what": "Hour-of-day activity curve, measured over the lake. The off-hours band that fact_auth_event.is_off_hours and warehouse Q2 use is DERIVED from this measurement \u2014 it is never assumed.",
+  "caveat": "LANL ships relative seconds, not wall-clock time; hour = (t mod 86400) // 3600, so hour labels are offsets from the start of collection rather than certified local clock hours. The SHAPE of the curve is a real measurement. That the human trough lands on hours 00-05 and the peak on 07-15 is itself evidence that t=0 sits near local midnight \u2014 but that is an inference from the data, not something LANL documents, and nothing in Tarn depends on it being exactly right.",
+  "key_finding": "Machine accounts run around the clock and are the bulk of the traffic, which flattens the aggregate curve to a peak:trough of 1.46x and hides the cycle entirely. Human accounts alone show 1.79x, with a clean overnight trough. Splitting them is what makes an off-hours claim defensible at all.",
+  "peak_to_trough_ratio": {
+    "all_accounts": 1.46,
+    "human_accounts": 1.79,
+    "machine_accounts": 1.28
+  },
+  "human_peak_hour": {
+    "hour": 9,
+    "events": 53449137,
+    "human_events": 23410087,
+    "machine_events": 30039050,
+    "failures": 607789,
+    "distinct_identities": 52493
+  },
+  "human_trough_hour": {
+    "hour": 3,
+    "events": 36559921,
+    "human_events": 13107764,
+    "machine_events": 23452157,
+    "failures": 459877,
+    "distinct_identities": 28666
+  },
+  "total_events": 1051430459,
+  "total_human_events": 418236956,
+  "total_machine_events": 633193503,
+  "off_hours": {
+    "band": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "band_hours": 12,
+    "band_start_hour": 18,
+    "band_end_hour": 5,
+    "rule": "hour is off-hours when its human-account volume is within 15% of the quietest hour (13,107,764 events)",
+    "cutoff": 15073928.6,
+    "quietest_hour_volume": 13107764,
+    "busiest_hour_volume": 23410087,
+    "peak_to_trough_ratio": 1.79,
+    "mean_hourly_volume": 17426539.8,
+    "share_of_human_events_in_band": 0.38863,
+    "verdict": "diurnal cycle present; off-hours band derived from the measured trough"
+  },
+  "histogram": [
+    {
+      "hour": 0,
+      "events": 38324827,
+      "human_events": 13317405,
+      "machine_events": 25007422,
+      "failures": 468111,
+      "distinct_identities": 30147
+    },
+    {
+      "hour": 1,
+      "events": 37484599,
+      "human_events": 13581363,
+      "machine_events": 23903236,
+      "failures": 474555,
+      "distinct_identities": 29351
+    },
+    {
+      "hour": 2,
+      "events": 37231887,
+      "human_events": 13552517,
+      "machine_events": 23679370,
+      "failures": 459971,
+      "distinct_identities": 28959
+    },
+    {
+      "hour": 3,
+      "events": 36559921,
+      "human_events": 13107764,
+      "machine_events": 23452157,
+      "failures": 459877,
+      "distinct_identities": 28666
+    },
+    {
+      "hour": 4,
+      "events": 36770840,
+      "human_events": 13154252,
+      "machine_events": 23616588,
+      "failures": 486648,
+      "distinct_identities": 28733
+    },
+    {
+      "hour": 5,
+      "events": 37109066,
+      "human_events": 13239645,
+      "machine_events": 23869421,
+      "failures": 473957,
+      "distinct_identities": 32432
+    },
+    {
+      "hour": 6,
+      "events": 41361062,
+      "human_events": 15388383,
+      "machine_events": 25972679,
+      "failures": 508179,
+      "distinct_identities": 40439
+    },
+    {
+      "hour": 7,
+      "events": 49325493,
+      "human_events": 20348996,
+      "machine_events": 28976497,
+      "failures": 595142,
+      "distinct_identities": 49132
+    },
+    {
+      "hour": 8,
+      "events": 53167566,
+      "human_events": 23067737,
+      "machine_events": 30099829,
+      "failures": 629904,
+      "distinct_identities": 53315
+    },
+    {
+      "hour": 9,
+      "events": 53449137,
+      "human_events": 23410087,
+      "machine_events": 30039050,
+      "failures": 607789,
+      "distinct_identities": 52493
+    },
+    {
+      "hour": 10,
+      "events": 53212156,
+      "human_events": 23255789,
+      "machine_events": 29956367,
+      "failures": 605764,
+      "distinct_identities": 50747
+    },
+    {
+      "hour": 11,
+      "events": 52060457,
+      "human_events": 22678803,
+      "machine_events": 29381654,
+      "failures": 612490,
+      "distinct_identities": 48269
+    },
+    {
+      "hour": 12,
+      "events": 50988888,
+      "human_events": 22343502,
+      "machine_events": 28645386,
+      "failures": 622557,
+      "distinct_identities": 46925
+    },
+    {
+      "hour": 13,
+      "events": 51730221,
+      "human_events": 22882060,
+      "machine_events": 28848161,
+      "failures": 636119,
+      "distinct_identities": 47816
+    },
+    {
+      "hour": 14,
+      "events": 52286374,
+      "human_events": 23030358,
+      "machine_events": 29256016,
+      "failures": 620563,
+      "distinct_identities": 47968
+    },
+    {
+      "hour": 15,
+      "events": 51571966,
+      "human_events": 22541221,
+      "machine_events": 29030745,
+      "failures": 618402,
+      "distinct_identities": 47690
+    },
+    {
+      "hour": 16,
+      "events": 48138529,
+      "human_events": 20231671,
+      "machine_events": 27906858,
+      "failures": 572286,
+      "distinct_identities": 44093
+    },
+    {
+      "hour": 17,
+      "events": 42317420,
+      "human_events": 16520697,
+      "machine_events": 25796723,
+      "failures": 522759,
+      "distinct_identities": 36851
+    },
+    {
+      "hour": 18,
+      "events": 39072483,
+      "human_events": 14480439,
+      "machine_events": 24592044,
+      "failures": 487712,
+      "distinct_identities": 32136
+    },
+    {
+      "hour": 19,
+      "events": 37968236,
+      "human_events": 13812658,
+      "machine_events": 24155578,
+      "failures": 477841,
+      "distinct_identities": 30336
+    },
+    {
+      "hour": 20,
+      "events": 37713186,
+      "human_events": 13649513,
+      "machine_events": 24063673,
+      "failures": 473642,
+      "distinct_identities": 29465
+    },
+    {
+      "hour": 21,
+      "events": 37731637,
+      "human_events": 13638496,
+      "machine_events": 24093141,
+      "failures": 472263,
+      "distinct_identities": 30161
+    },
+    {
+      "hour": 22,
+      "events": 38131476,
+      "human_events": 13531483,
+      "machine_events": 24599993,
+      "failures": 476414,
+      "distinct_identities": 28807
+    },
+    {
+      "hour": 23,
+      "events": 37723032,
+      "human_events": 13472117,
+      "machine_events": 24250915,
+      "failures": 477363,
+      "distinct_identities": 35451
+    }
+  ],
+  "lake": "/data/lake/auth",
+  "measured_at": "2026-07-14T00:52:56+00:00"
+}
