@@ -1,17 +1,7 @@
--- mart_daily_identity_rollup — the analytics-facing aggregate. One row per identity-day.
+-- One row per identity per day. The aggregate that Q1 to Q5 and the demo actually read.
 --
--- GRAIN: one row per (identity_key, event_date).
---
--- This is a *pass-through* of what Spark already computed in Stage 1
--- (pipeline/rollup.py), not a recomputation of it. That is deliberate: the expensive
--- distributed aggregation belongs in Spark, and having the warehouse recompute the same
--- numbers in DuckDB would be both slower and a second source of truth for figures the
--- site quotes. dbt's job here is to conform it into the star (attach the surrogate keys),
--- add the peer-relative measures that are natural in SQL, and test it.
---
--- The baseline columns are what turn a raw count into a signal: 30 destinations is
--- unremarkable for a service account and alarming for a workstation user, so every
--- behavioural measure is also expressed relative to that identity's OWN trailing history.
+-- A pass-through of what Spark already computed, conformed into the star and enriched with each
+-- identity's own trailing baseline.
 
 {{ config(materialized='table') }}
 
@@ -72,7 +62,7 @@ with_baselines as (
 select
     *,
     -- Z-scores against the identity's own trailing baseline. NULL (not 0, not Infinity)
-    -- when the baseline is too thin or has no variance — a z-score computed from 1 prior
+    -- when the baseline is too thin or has no variance, a z-score computed from 1 prior
     -- day is noise wearing a lab coat, and emitting it as a number would let it rank.
     case
         when baseline_days_available >= 3 and fanout_baseline_stddev > 0

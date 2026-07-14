@@ -1,19 +1,8 @@
-"""Stage 1a — raw LANL auth events -> date-partitioned Parquet lake + logon sessions.
+"""
+Parse raw auth events into a date partitioned Parquet lake, and collapse them into sessions.
 
-Two outputs:
-
-  <output>/            the lake: every parsed auth event, partitioned by event_date.
-                       Written once, read by every stage after it.
-  <output>-sessions/   logon sessions: consecutive auth events from the same identity on
-                       the same source computer, collapsed into a session whenever the
-                       idle gap exceeds --idle-gap (default 30 min).
-
-Sessionization is the window-function workload: LAG over (src_user, src_computer) ordered
-by time, a boolean "this row starts a new session", then a running sum of that boolean to
-number the sessions. It is a genuine wide shuffle over the whole corpus, which is the
-point — this is the distributed-processing stage.
-
-    python pipeline/sessionize.py --input /data/raw/auth.txt.gz --output /data/lake/auth
+Also lands the red-team labels in the lake as Parquet so later stages never have to know
+which source format they came from.
 """
 
 from __future__ import annotations
@@ -34,16 +23,11 @@ from pipeline.common import (
     spark_session,
 )
 
-IDLE_GAP_DEFAULT = 1800  # 30 minutes
+IDLE_GAP_DEFAULT = 1800
 
 
 def build_redteam(spark, redteam_path: str, output_path: str) -> dict:
-    """Land the labelled compromise events in the lake as Parquet.
-
-    Raw redteam.txt.gz is headerless; the committed CI slice has a header. Normalising
-    both into one Parquet table here means the warehouse and graph stages never have to
-    know which one they are looking at.
-    """
+    """Land the labelled compromise events in the lake as Parquet."""
     redteam = read_redteam(spark, redteam_path)
     labelled = (
         redteam.withColumn("day_index", (F.col("time") / F.lit(86_400)).cast("int"))
@@ -75,7 +59,7 @@ def build_redteam(spark, redteam_path: str, output_path: str) -> dict:
 
 
 def build_lake(spark, input_path: str, output_path: str, coalesce: int) -> dict:
-    """Parse raw events and write the date-partitioned Parquet lake."""
+    """Parse raw events and write the date partitioned Parquet lake."""
     raw = read_auth_raw(spark, input_path)
     events = derive_columns(raw)
 
@@ -86,8 +70,8 @@ def build_lake(spark, input_path: str, output_path: str, coalesce: int) -> dict:
         .parquet(output_path)
     )
 
-    # Count from the written lake, not the in-memory DataFrame: this is the number that
-    # ends up in bench/ and on the site, so it must describe bytes that exist on disk.
+    # Count from the written lake, not the in-memory frame. This number ends up in bench/ and
+    # on the site, so it has to describe bytes that exist on disk.
     written = spark.read.parquet(output_path)
     return {
         "rows": written.count(),
@@ -96,7 +80,7 @@ def build_lake(spark, input_path: str, output_path: str, coalesce: int) -> dict:
 
 
 def build_sessions(spark, lake_path: str, output_path: str, idle_gap: int) -> dict:
-    """Collapse consecutive auth events into logon sessions per (identity, source host)."""
+    """Collapse consecutive auth events into logon sessions per identity and source host."""
     events = spark.read.parquet(lake_path).filter(F.col("src_user").isNotNull())
 
     by_identity_host = Window.partitionBy("src_user", "src_computer").orderBy("time")
@@ -114,7 +98,8 @@ def build_sessions(spark, lake_path: str, output_path: str, idle_gap: int) -> di
                 1,
             ).otherwise(0),
         )
-        # Running sum of the session-start flag numbers each identity's sessions 1..N.
+        # A running sum of the start flag numbers each identity's sessions 1..N. This is the
+        # trick that turns a gap rule into a session id without a self join.
         .withColumn(
             "session_seq",
             F.sum("is_session_start").over(
@@ -166,23 +151,14 @@ def build_sessions(spark, lake_path: str, output_path: str, idle_gap: int) -> di
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--input", required=True, help="auth.txt.gz or the CI sample csv.gz")
-    ap.add_argument("--output", required=True, help="lake path (Parquet, partitioned)")
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
+    ap.add_argument("--input", required=True, help="auth.txt.gz, auth.txt, or the CI sample")
+    ap.add_argument("--output", required=True, help="lake path")
     ap.add_argument("--idle-gap", type=int, default=IDLE_GAP_DEFAULT)
-    ap.add_argument(
-        "--coalesce",
-        type=int,
-        default=0,
-        help="repartition by event_date before write; 0 = let Spark decide",
-    )
+    ap.add_argument("--coalesce", type=int, default=0)
     ap.add_argument("--skip-sessions", action="store_true")
-    ap.add_argument(
-        "--redteam",
-        default=None,
-        help="redteam.txt.gz (or the CI slice); landed in the lake as Parquet alongside auth",
-    )
-    ap.add_argument("--stats-out", default=None, help="write timing/shape JSON here")
+    ap.add_argument("--redteam", default=None)
+    ap.add_argument("--stats-out", default=None)
     args = ap.parse_args()
 
     spark = spark_session("sessionize")
@@ -204,7 +180,6 @@ def main() -> int:
               f"({report['sessions']['seconds']}s)")
 
     if args.redteam:
-        # The lake root is the parent of the auth path: /data/lake/auth -> /data/lake/redteam
         redteam_out = str(Path(args.output).parent / "redteam")
         report["redteam"] = build_redteam(spark, args.redteam, redteam_out)
         print(f"[redteam] {report['redteam']['rows']} labelled events "

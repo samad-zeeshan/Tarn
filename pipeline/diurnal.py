@@ -1,39 +1,7 @@
-"""Stage 1b — measure the corpus's daily activity curve and derive the off-hours band.
+"""
+Measure the daily activity curve and derive the off-hours band from it.
 
-Why this job exists at all: LANL's `time` column is seconds since the start of collection,
-so nothing in the data says "this event happened at 3am". Every paper that talks about
-"off-hours activity" in this corpus is making an assumption. Tarn refuses to make it
-silently — it measures the curve and lets the histogram decide.
-
-WHAT THE MEASUREMENT FOUND (and why this job splits human from machine accounts)
---------------------------------------------------------------------------------
-The first run of this job over the whole corpus reported a peak:trough ratio of 1.66x and
-refused to emit a band at all — the curve looked nearly flat. That turned out to be a real
-finding rather than a bug: MACHINE accounts (trailing `$` — service and computer accounts
-doing Kerberos/NTLM service auth) run around the clock, they are the majority of all
-traffic, and they were flattening the aggregate curve.
-
-Split them out and the picture is unambiguous:
-
-    human accounts    peak:trough 2.20x   trough at hours 00-05, peak at hours 07-15
-    machine accounts  peak:trough 1.44x   essentially flat, as you would expect
-
-So the band is derived from the HUMAN curve, which is also the only curve Q2 asks about
-(Q2 filters to non-machine identities). A useful side-effect: the trough landing squarely
-on hours 00-05 is evidence that LANL's t=0 sits near local midnight — which nothing in the
-corpus documentation actually tells you.
-
-HOW THE BAND IS DEFINED (no hand-tuned fraction-of-the-mean)
------------------------------------------------------------
-An hour is off-hours when its human volume sits within `--near-min-pct` of the QUIETEST
-hour of the day. Anchoring to the measured minimum rather than to a fraction of the mean
-keeps the rule scale-free and stops the threshold from being reverse-engineered to produce
-a tidy answer. The band is then the longest contiguous run of such hours (hours wrap).
-
-The full 24-hour histogram is committed to bench/diurnal.json regardless, so anyone who
-dislikes the threshold can re-derive the band with their own.
-
-    python pipeline/diurnal.py --lake /data/lake/auth --out bench/diurnal.json
+LANL has no wall clock, so "off-hours" cannot be assumed. It has to be measured or dropped.
 """
 
 from __future__ import annotations
@@ -47,22 +15,13 @@ from pyspark.sql import functions as F
 
 from pipeline.common import spark_session
 
-MIN_PEAK_TROUGH_RATIO = 1.5  # below this the curve is too flat to call anything "off-hours"
+# Below this ratio the curve is too flat to call any hour quiet, and an off-hours claim built
+# on it would be fiction.
+MIN_PEAK_TROUGH_RATIO = 1.5
 
 
 def derive_off_hours(counts: dict[int, int], near_min_pct: float) -> dict:
-    """Off-hours = the longest contiguous run of hours sitting within `near_min_pct` of the
-    QUIETEST hour of the day.
-
-    Anchored to the measured minimum, not to a fraction of the mean: the minimum is a real
-    observation, whereas "0.6 x mean" is a knob that can be turned until the answer looks
-    tidy. Hours wrap (23 -> 0). Ties break toward the earlier start hour so the result is
-    deterministic.
-
-    Refuses to emit a band at all when the curve is too flat to support one — a flat curve
-    means hour-of-day carries no signal, and an off-hours claim built on it would be
-    fiction.
-    """
+    """Off-hours is the longest run of hours sitting within near_min_pct of the quietest hour."""
     total = sum(counts.values())
     if not total:
         return {"band": [], "verdict": "no events", "cutoff": 0}
@@ -77,12 +36,14 @@ def derive_off_hours(counts: dict[int, int], near_min_pct: float) -> dict:
             "band": [],
             "peak_to_trough_ratio": round(ratio, 2),
             "verdict": (
-                f"curve too flat (peak:trough {ratio:.2f}x < {MIN_PEAK_TROUGH_RATIO}x) — "
-                "hour-of-day carries no usable signal here and off-hours MUST NOT be claimed"
+                f"curve too flat (peak:trough {ratio:.2f}x < {MIN_PEAK_TROUGH_RATIO}x). "
+                "Hour of day carries no usable signal here and off-hours MUST NOT be claimed"
             ),
             "cutoff": 0,
         }
 
+    # Anchored to the measured minimum rather than a fraction of the mean. The minimum is an
+    # observation. "0.6 x mean" is a knob that can be turned until the answer looks tidy.
     cutoff = lo * (1 + near_min_pct)
     quiet_set = {h for h in range(24) if counts.get(h, 0) <= cutoff}
 
@@ -90,7 +51,8 @@ def derive_off_hours(counts: dict[int, int], near_min_pct: float) -> dict:
     for start in range(24):
         if start not in quiet_set:
             continue
-        # Only start a run where the previous hour is NOT quiet, so we measure whole runs.
+        # Only start a run where the previous hour is noisy, so we measure whole runs and not
+        # the tail of one. Hours wrap, so 23 can be the start.
         if (start - 1) % 24 in quiet_set and len(quiet_set) < 24:
             continue
         length = 0
@@ -130,16 +92,10 @@ def _ratio(counts: dict[int, int]) -> float | None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--lake", required=True)
     ap.add_argument("--out", default="bench/diurnal.json")
-    ap.add_argument(
-        "--near-min-pct",
-        type=float,
-        default=0.15,
-        help="an hour is off-hours when its human volume is within this fraction of the "
-             "quietest hour's volume",
-    )
+    ap.add_argument("--near-min-pct", type=float, default=0.15)
     args = ap.parse_args()
 
     spark = spark_session("diurnal")
@@ -174,8 +130,9 @@ def main() -> int:
     human_counts = {r["hour"]: r["human_events"] for r in histogram}
     machine_counts = {r["hour"]: r["machine_events"] for r in histogram}
 
-    # The band comes from the HUMAN curve — see the module docstring. Machine accounts run
-    # around the clock and would flatten it into uselessness.
+    # The first version of this job ran on all accounts and refused to emit a band, because
+    # machine accounts authenticate around the clock and are most of the traffic, which
+    # flattens the curve into uselessness. Splitting them out is what makes a band defensible.
     off_hours = derive_off_hours(human_counts, args.near_min_pct)
 
     human_peak = max(histogram, key=lambda r: r["human_events"])
@@ -183,24 +140,19 @@ def main() -> int:
 
     payload = {
         "what": (
-            "Hour-of-day activity curve, measured over the lake. The off-hours band that "
-            "fact_auth_event.is_off_hours and warehouse Q2 use is DERIVED from this "
-            "measurement — it is never assumed."
+            "Hour of day activity curve. The off-hours band that fact_auth_event.is_off_hours "
+            "and warehouse Q2 use is derived from this measurement, never assumed."
         ),
         "caveat": (
-            "LANL ships relative seconds, not wall-clock time; hour = (t mod 86400) // 3600, "
-            "so hour labels are offsets from the start of collection rather than certified "
-            "local clock hours. The SHAPE of the curve is a real measurement. That the human "
-            "trough lands on hours 00-05 and the peak on 07-15 is itself evidence that t=0 "
-            "sits near local midnight — but that is an inference from the data, not something "
-            "LANL documents, and nothing in Tarn depends on it being exactly right."
+            "hour = (t mod 86400) // 3600, so the labels are offsets from the start of "
+            "collection, not certified clock hours. The shape of the curve is a real "
+            "measurement. That the human trough lands on 00-05 is evidence t=0 sits near local "
+            "midnight, but that is an inference and nothing here depends on it."
         ),
         "key_finding": (
             "Machine accounts run around the clock and are the bulk of the traffic, which "
-            "flattens the aggregate curve to a peak:trough of "
-            f"{_ratio(all_counts)}x and hides the cycle entirely. Human accounts alone show "
-            f"{_ratio(human_counts)}x, with a clean overnight trough. Splitting them is what "
-            "makes an off-hours claim defensible at all."
+            f"flattens the aggregate curve to {_ratio(all_counts)}x and hides the cycle. Human "
+            f"accounts alone show {_ratio(human_counts)}x with a clean overnight trough."
         ),
         "peak_to_trough_ratio": {
             "all_accounts": _ratio(all_counts),
@@ -222,7 +174,7 @@ def main() -> int:
     Path(args.out).write_text(json.dumps(payload, indent=2) + "\n")
 
     r = payload["peak_to_trough_ratio"]
-    print(f"[diurnal] peak:trough — all {r['all_accounts']}x | "
+    print(f"[diurnal] peak:trough - all {r['all_accounts']}x | "
           f"human {r['human_accounts']}x | machine {r['machine_accounts']}x")
     print(f"[diurnal] human peak hour {human_peak['hour']} ({human_peak['human_events']:,}), "
           f"trough hour {human_trough['hour']} ({human_trough['human_events']:,})")

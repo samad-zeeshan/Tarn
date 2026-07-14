@@ -33,7 +33,7 @@ jobs:
       # The site is static and its payloads are committed (there is no lake in CI to rebuild
       # them from). What CI CAN do is prove the page is not lying: every number it renders must
       # come from a bench artifact, and the payload budget must hold.
-      - name: Audit — no hard-coded metrics, budgets hold
+      - name: Audit, no hard-coded metrics, budgets hold
         run: python site/audit.py
 
       - uses: actions/configure-pages@v5

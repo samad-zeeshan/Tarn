@@ -1,18 +1,9 @@
-"""Stage 3 — windowing, watermark, and checkpoint recovery.
+"""
+Windowing, watermark, and checkpoint recovery.
 
-These drive the REAL transformation (streaming.stream_job.windowed_aggregate) through a
-real Structured Streaming query. The source is a file stream rather than Kafka, which is
-what lets the tests run in CI with no broker while still exercising genuine streaming
-semantics — watermarks, append-mode emission, and checkpoint state are all properties of
-the query, not of the source.
-
-The two things worth testing here are the two things that are easy to get silently wrong:
-
-  1. A late event must still land in ITS window (not the current one), and an event later
-     than the watermark allows must be DROPPED rather than corrupting a closed window.
-  2. Restarting from a checkpoint must not re-emit windows that were already committed.
-     Append mode plus a checkpoint is the whole reason the sink can be trusted; if this
-     test is vacuous, the streaming mart is quietly full of duplicates.
+These drive the real transformation through a real streaming query, using a file source so
+they run in CI with no broker. Watermarks and checkpoint state are properties of the query,
+not of the source.
 """
 
 from __future__ import annotations
@@ -83,7 +74,7 @@ def _run_once(spark, src: Path, sink: Path, checkpoint: Path,
     """Run the streaming query until it has drained the currently-available files, then stop.
 
     availableNow drains what exists and terminates, which is what makes these tests
-    deterministic — a processing-time trigger would race the assertions.
+    deterministic, a processing-time trigger would race the assertions.
     """
     stream = (
         spark.readStream.schema(JSON_SCHEMA)
@@ -131,21 +122,21 @@ def test_events_land_in_their_event_time_window(spark, tmp_path):
 
 def test_late_event_within_watermark_lands_in_its_own_window(spark, tmp_path):
     """An out-of-order event arriving in a later batch, but still inside the watermark, must
-    be folded into ITS window — not the current one."""
+    be folded into ITS window, not the current one."""
     src, sink, ckpt = tmp_path / "src", tmp_path / "sink", tmp_path / "ckpt"
 
     # Batch 1: two events in minute 3. Max event-time = 03:10, so watermark = 01:10.
     _write_batch(src, "b1", [_event(180), _event(190)])
     _run_once(spark, src, sink, ckpt)
 
-    # Batch 2: an event at 02:30 — EARLIER than what we already saw, but still ahead of the
+    # Batch 2: an event at 02:30, EARLIER than what we already saw, but still ahead of the
     # 01:10 watermark, so it is legally late and must count. Plus a far-future event to push
     # the watermark past minute 2 and force that window to emit.
     _write_batch(src, "b2", [_event(150), _event(900, user="U2@DOM1")])
     _run_once(spark, src, sink, ckpt)
 
     got = _windows(spark, sink)
-    # The late 02:30 event belongs to window [02:00, 03:00) — on its own.
+    # The late 02:30 event belongs to window [02:00, 03:00), on its own.
     assert got.get(("U1@DOM1", "2015-01-01 00:02:00")) == 1, (
         f"late-but-within-watermark event was lost or misfiled; got {got}"
     )
@@ -153,7 +144,7 @@ def test_late_event_within_watermark_lands_in_its_own_window(spark, tmp_path):
 
 def test_event_beyond_the_watermark_is_dropped(spark, tmp_path):
     """The watermark's actual job. An event so late that its window is already closed must be
-    DISCARDED — silently folding it into a new window would emit a duplicate window for a
+    DISCARDED, silently folding it into a new window would emit a duplicate window for a
     period the sink already reported, and every downstream count would drift."""
     src, sink, ckpt = tmp_path / "src", tmp_path / "sink", tmp_path / "ckpt"
 
@@ -183,7 +174,7 @@ def test_checkpoint_recovery_does_not_duplicate_windows(spark, tmp_path):
     _write_batch(src, "b1", [_event(0), _event(10), _event(600, user="U2@DOM1")])
     _run_once(spark, src, sink, ckpt)
     first = _windows(spark, sink)
-    assert first, "first run emitted nothing — the test would be vacuous"
+    assert first, "first run emitted nothing, the test would be vacuous"
 
     # Restart against the SAME checkpoint with no new input. A fresh query would replay the
     # files and re-emit; a recovered one must know it already did.

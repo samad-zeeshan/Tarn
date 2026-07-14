@@ -1,20 +1,8 @@
-"""Stage 4b — run the Cypher, measure it, and export what the demo renders.
+"""
+Run the Cypher, time it, and export what the demo renders.
 
-Produces three artifacts:
-
-  bench/graph_stats.json    node/edge counts, path-length distribution, query timings.
-                            Every graph number the site or the resume quotes comes from here.
-
-  site/data/graph.json      the red-team movement subgraph plus enough benign context to
-                            show the attacker's route *against* normal traffic. Bounded so
-                            the browser can force-lay it out at 60fps.
-
-  site/data/paths.json      precomputed shortest privilege paths between identity pairs.
-                            The browser cannot run Cypher, so the path explorer replays
-                            these. They are real query results, not hand-drawn — the site's
-                            provenance note says exactly that.
-
-    python graph/export_paths.py
+Writes bench/graph_stats.json, plus site/data/graph.json and site/data/paths.json. The browser
+cannot run Cypher, so the path explorer replays these real query results.
 """
 
 from __future__ import annotations
@@ -51,7 +39,6 @@ def main() -> int:
     timings: dict[str, float] = {}
 
     with driver.session() as s:
-        # ---- shape of the graph ---------------------------------------------------------
         counts, timings["counts"] = timed(
             s,
             """
@@ -70,8 +57,6 @@ def main() -> int:
         pivots, _ = timed(
             s, "MATCH (c:Computer {is_redteam_pivot: true}) RETURN collect(c.name) AS names"
         )
-
-        # ---- Q-G5 choke points ----------------------------------------------------------
         choke, timings["choke_points"] = timed(
             s,
             """
@@ -83,8 +68,6 @@ def main() -> int:
             ORDER BY identities DESC LIMIT 25
             """,
         )
-
-        # ---- Q-G4 attacker vs own baseline ----------------------------------------------
         attacker_baseline, timings["attacker_vs_baseline"] = timed(
             s,
             """
@@ -99,8 +82,6 @@ def main() -> int:
             ORDER BY redteam_hosts DESC LIMIT 25
             """,
         )
-
-        # ---- Q-G2 blast radius, for the most active attacker identities -----------------
         top_attackers, _ = timed(
             s,
             """
@@ -136,9 +117,8 @@ def main() -> int:
                 rows[0]["is_compromised"] = True
                 blast.append(rows[0])
 
-        # A benign control group: same query, on ordinary identities. Without this the
-        # blast-radius numbers are unanchored — "reaches 400 hosts at 3 hops" only means
-        # something next to what a normal account reaches.
+        # The control group. Without it a blast radius number is unanchored: "reaches 400
+        # hosts at 3 hops" only means something next to what a normal account reaches.
         benign, _ = timed(
             s,
             """
@@ -173,10 +153,8 @@ def main() -> int:
                 rows[0]["is_compromised"] = False
                 blast.append(rows[0])
         timings["blast_radius_all"] = round((time.perf_counter() - t0) * 1000, 1)
-
-        # ---- Q-G1 shortest privilege paths ----------------------------------------------
-        # Between compromised identities, and from compromised identities out to ordinary
-        # ones — the "how far can this spread" question.
+        # Compromised to compromised, and compromised out to ordinary. This is the "how far
+        # can it spread" question.
         attackers = [a["name"] for a in top_attackers[:6]]
         others, _ = timed(
             s,
@@ -220,8 +198,6 @@ def main() -> int:
                 paths.append(r)
                 lengths.append(int(r["hop_count"]))
         timings["shortest_paths_all"] = round((time.perf_counter() - t0) * 1000, 1)
-
-        # ---- the subgraph the demo draws ------------------------------------------------
         subgraph_rows, timings["subgraph_export"] = timed(
             s,
             """
@@ -236,8 +212,6 @@ def main() -> int:
         )
 
     driver.close()
-
-    # ---- assemble the demo graph --------------------------------------------------------
     nodes: dict[str, dict] = {}
     links: list[dict] = []
     for r in subgraph_rows:
@@ -300,8 +274,6 @@ def main() -> int:
         )
         + "\n"
     )
-
-    # ---- bench/graph_stats.json ---------------------------------------------------------
     length_hist: dict[str, int] = {}
     for n in lengths:
         length_hist[str(n)] = length_hist.get(str(n), 0) + 1
@@ -311,13 +283,10 @@ def main() -> int:
 
     def mean(rows: list[dict], key: str) -> float:
         return round(sum(r[key] for r in rows) / len(rows), 1) if rows else 0.0
-
-    # --- the saturation check: is blast radius even a signal at this hop count? ------------
     #
-    # It is very easy to write "a compromised identity can reach 14,256 hosts" and let a
-    # reader assume that is alarming. It is not alarming until you also say what an ORDINARY
-    # identity reaches. So compute the discrimination explicitly, and let the artifact
-    # disqualify its own metric when the metric does not discriminate.
+    # It is easy to write "this account can reach 14,256 hosts" and let a reader assume that is
+    # alarming. It is not alarming until you say what an ordinary account reaches. So the
+    # artifact computes the discrimination and disqualifies its own metric when it saturates.
     total_hosts = int(shape["computers"])
     c3 = mean(compromised_blast, "hosts_3_hops")
     b3 = mean(benign_blast, "hosts_3_hops")
@@ -340,7 +309,7 @@ def main() -> int:
                 if useful
                 else
                 f"NOT A SIGNAL at {hops}: both groups reach ~{coverage}% of every host in the "
-                f"graph (ratio {ratio}x). The metric has saturated — quoting the compromised "
+                f"graph (ratio {ratio}x). The metric has saturated, so quoting the compromised "
                 f"number alone would be true and completely meaningless."
             ),
         }
@@ -377,7 +346,7 @@ def main() -> int:
             "total_hosts_in_graph": total_hosts,
             "note": (
                 "The benign control group is what makes these numbers mean anything. Compare "
-                "compromised vs. control rather than reading either alone — see the verdicts."
+                "compromised vs. control rather than reading either alone. See the verdicts."
             ),
             "at_1_hop": verdict(c1, b1, "1 hop"),
             "at_3_hops": verdict(c3, b3, "3 hops"),
@@ -388,7 +357,7 @@ def main() -> int:
                 "cause is visible in choke_points_top: hub hosts here are authenticated to by "
                 "tens of thousands of distinct identities, which collapses the graph into a "
                 "small world where almost everyone is two hops from almost everyone. Only the "
-                "1-hop measure discriminates — and even that is confounded, because the "
+                "1-hop measure discriminates, and even that is confounded, because the "
                 "accounts the red team chose to compromise were higher-privilege to begin with. "
                 "The genuinely actionable output of this stage is therefore not blast radius "
                 "but the choke points: harden those hubs and you break the paths."

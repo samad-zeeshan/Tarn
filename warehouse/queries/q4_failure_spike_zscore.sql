@@ -1,20 +1,8 @@
--- Q4 — Failure-ratio spike detection: windowed z-score, in SQL.
+-- Q4: failure-ratio spikes, z-scored against each identity's own history.
 --
--- QUESTION: whose authentication failure rate today is anomalous *for them*?
---
--- Credential stuffing, password spraying, and a Kerberoasting attempt that guesses wrong
--- all look the same in the telemetry: a sudden burst of failures from an identity that
--- normally succeeds. A global threshold ("alert above 20% failures") is useless — some
--- service accounts fail 30% of the time forever and are fine.
---
--- So: z-score against the identity's own trailing 30-day mean and stddev, computed in the
--- mart with a window frame that EXCLUDES the current day (rows between 30 preceding and 1
--- preceding). Excluding today matters more than it sounds: if the spike is allowed into
--- its own baseline it inflates the mean and stddev and damps the very signal we want.
---
--- The z-score is NULL, not zero, when there are fewer than 3 baseline days or the baseline
--- has no variance. That is why this query can say "top 25 spikes" and mean it, rather than
--- ranking 500 identities whose entire history is one quiet day.
+-- A global threshold is useless here, since some service accounts fail 30% of the time forever
+-- and are fine. The baseline window excludes the current day, or the spike inflates the baseline
+-- it is being measured against.
 
 select
     r.src_user                                      as identity,

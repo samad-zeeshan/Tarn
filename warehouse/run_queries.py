@@ -1,15 +1,7 @@
-"""Stage 2 — run the five showcase queries and commit their results.
+"""
+Run the five showcase queries and commit their results.
 
-Each warehouse/queries/qN_*.sql runs against the built DuckDB warehouse. Results land in
-warehouse/queries/results/ as CSV (committed — a query with no committed result is an
-assertion, not evidence), alongside results/_summary.json with the row counts and timings.
-
-The {{ROLLUP}} / {{DIM_*}} placeholders in the .sql files are substituted here rather than
-hard-coding schema-qualified names into the queries, so the exact same SQL text runs
-against the full warehouse locally and the CI warehouse built from data/sample/. The demo
-site's SQL workbench ships the same files with the same substitution.
-
-    python warehouse/run_queries.py --db /data/work/tarn.duckdb
+A query with no committed result is an assertion, not evidence.
 """
 
 from __future__ import annotations
@@ -27,9 +19,9 @@ REPO = Path(__file__).resolve().parent.parent
 QUERY_DIR = REPO / "warehouse" / "queries"
 RESULT_DIR = QUERY_DIR / "results"
 
-# dbt-duckdb materializes into <target_schema>_<custom_schema>, so the marts land in
-# `main_marts`, not `marts`. Kept in one place because the demo site's SQL workbench
-# substitutes the same placeholders against a different schema layout entirely.
+# dbt-duckdb materializes into <target_schema>_<custom_schema>, so the marts land in main_marts
+# and not marts. Kept in one place because the demo site substitutes the same placeholders
+# against a completely different schema layout.
 MARTS_SCHEMA = "main_marts"
 
 TABLES = {
@@ -42,7 +34,7 @@ TABLES = {
 
 
 def render(sql: str, tables: dict[str, str] = TABLES) -> str:
-    """Substitute {{TABLE}} placeholders. Unknown placeholders are an error, not a no-op."""
+    """Substitute the {{TABLE}} placeholders. An unknown one is an error, not a no-op."""
     def sub(match: re.Match) -> str:
         name = match.group(1).strip()
         if name not in tables:
@@ -53,7 +45,6 @@ def render(sql: str, tables: dict[str, str] = TABLES) -> str:
 
 
 def title_of(sql: str) -> str:
-    """First comment line is the query's title."""
     for line in sql.splitlines():
         if line.startswith("--"):
             return line.lstrip("- ").strip()
@@ -61,10 +52,10 @@ def title_of(sql: str) -> str:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--db", default="/data/work/tarn.duckdb")
     ap.add_argument("--out", default=str(RESULT_DIR))
-    ap.add_argument("--max-rows", type=int, default=100, help="cap rows written to CSV")
+    ap.add_argument("--max-rows", type=int, default=100)
     args = ap.parse_args()
 
     out = Path(args.out)

@@ -1,16 +1,8 @@
--- Q1 — Lateral-movement precursor: destination fan-out, week over week.
+-- Q1: lateral-movement precursor. Destination fan-out, week over week.
 --
--- QUESTION: which identities are reaching many more distinct hosts this week than they did
---           last week? An account that touched 3 machines a week for a month and suddenly
---           touches 40 is the classic precursor to lateral movement.
---
--- WHY WEEK-OVER-WEEK AND NOT RAW FAN-OUT: raw fan-out just ranks service accounts. A
--- backup agent legitimately hits 500 hosts every single day and is the least interesting
--- row in the corpus. The signal is the CHANGE against the identity's own prior week, so
--- every identity is scored against itself.
---
--- Machine accounts are excluded here (not in the model — see dim_identity) because this
--- specific question is about human-shaped lateral movement.
+-- Week over week, not raw fan-out, because raw fan-out just ranks service accounts. A backup
+-- agent legitimately hits 500 hosts a day. The signal is the change against the identity's own
+-- prior week.
 
 with weekly as (
     select

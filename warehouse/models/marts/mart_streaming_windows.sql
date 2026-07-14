@@ -1,20 +1,7 @@
--- mart_streaming_windows — the Stage-3 streaming sink, conformed into the same star.
+-- The Stage 3 streaming sink, conformed into the same star. One row per identity per window.
 --
--- GRAIN: one row per (identity, 1-minute event-time window).
---
--- The point of this model is that there is no second warehouse. The Structured Streaming
--- job writes Parquet; dbt reads it with the same conformance rules, the same surrogate
--- keys, and the same dimension joins as the batch fact. A screener can join a streaming
--- window to dim_identity and it just works — which is the actual argument for a lakehouse
--- over a bolted-on "real-time database".
---
--- Absent until Stage 3 has run. Guarded so `dbt build` still succeeds on a fresh clone that
--- has only done Stages 1-2 (CI does exactly that).
---
--- distinct_dst_computers here is an APPROXIMATE count (approx_count_distinct / HyperLogLog).
--- That is a deliberate streaming-vs-batch tradeoff: exact distinct counts require holding
--- every seen value in state per window, and the batch layer already gives exact numbers.
--- The column name would be a lie if it did not say so — see the description in _marts.yml.
+-- The point is that there is no second warehouse. Structured Streaming writes Parquet and dbt
+-- reads it with the same keys and the same dimensions as the batch fact.
 
 {{ config(
     materialized='table',
@@ -53,7 +40,7 @@ select
          then failure_count * 1.0 / auth_count
          else 0 end                                                 as failure_ratio,
 
-    -- Approximate — HyperLogLog, not an exact distinct. See the model header.
+    -- Approximate, HyperLogLog, not an exact distinct. See the model header.
     distinct_dst_computers      as distinct_dst_computers_approx,
     distinct_src_computers      as distinct_src_computers_approx
 

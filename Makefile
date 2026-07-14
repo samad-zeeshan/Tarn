@@ -1,19 +1,19 @@
-# Tarn — every stage is one target. All heavy work runs inside the `tarn` container
-# (DIRECTIVE rule 8: Spark never runs on native Windows).
+# Every stage is one target. All heavy work runs inside the `tarn` container, because Spark
+# does not run on this host's Python 3.14 and Java 25.
 #
 #   make up          bring the stack up (builds the image on first run)
 #   make fetch       download + verify LANL auth/redteam into /data/raw (needs TARN_LANL_TOKEN)
 #   make sample      cut the deterministic committed CI slice into data/sample/
 #   make describe    count the full corpus -> bench/dataset.json
 #
-#   make lake        Stage 1a — raw .gz -> date-partitioned Parquet lake (+ diurnal measurement)
-#   make rollup      Stage 1b — per-identity daily rollups
-#   make bench       Stage 1c — the measured 2x2 optimization -> bench/spark_opt.json
+#   make lake        Stage 1a, raw .gz -> date-partitioned Parquet lake (+ diurnal measurement)
+#   make rollup      Stage 1b, per-identity daily rollups
+#   make bench       Stage 1c, the measured 2x2 optimization -> bench/spark_opt.json
 #
-#   make warehouse   Stage 2  — dbt star schema + tests + the 5 showcase queries
-#   make stream      Stage 3  — Redpanda replay + Structured Streaming + lag probe
-#   make graph       Stage 4  — load Neo4j, run Cypher, export paths
-#   make site        Stage 5  — build the demo payloads, then audit them
+#   make warehouse   Stage 2, dbt star schema + tests + the 5 showcase queries
+#   make stream      Stage 3, Redpanda replay + Structured Streaming + lag probe
+#   make graph       Stage 4, load Neo4j, run Cypher, export paths
+#   make site        Stage 5, build the demo payloads, then audit them
 #
 #   make all         stages 1-5 end to end (assumes `make fetch` has run)
 #   make test        pytest across every stage

@@ -1,10 +1,10 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Tarn — Stage 1 rollup on Databricks
+# MAGIC # Tarn, Stage 1 rollup on Databricks
 # MAGIC
 # MAGIC This is the **same job** as `pipeline/rollup.py`, running unchanged on a Databricks
 # MAGIC cluster instead of local Spark in Docker. The point of the exercise is to prove the
-# MAGIC pipeline is not secretly coupled to `local[*]` — the only things that change are the
+# MAGIC pipeline is not secretly coupled to `local[*]`, the only things that change are the
 # MAGIC paths and the session (Databricks supplies `spark`).
 # MAGIC
 # MAGIC **What to run:** upload `data/sample/auth_sample.csv.gz` and
@@ -12,7 +12,7 @@
 # MAGIC cell, and Run All.
 # MAGIC
 # MAGIC **Honesty note.** This ran ONCE, on the free Databricks edition, against the committed
-# MAGIC CI slice (~100k events) — not against the full 1.05B-row corpus, which would need a
+# MAGIC CI slice (~100k events), not against the full 1.05B-row corpus, which would need a
 # MAGIC cluster nobody is paying for. The claim it supports is *"executed on Databricks and
 # MAGIC validated"*, nothing more. The real scale numbers come from the local runs recorded in
 # MAGIC `bench/`. Do not let this notebook grow into a "we run on Databricks at scale" story.
@@ -30,7 +30,7 @@ OUTPUT_PATH = dbutils.widgets.get("output_path")
 print(f"auth    : {AUTH_PATH}")
 print(f"redteam : {REDTEAM_PATH}")
 print(f"output  : {OUTPUT_PATH}")
-print(f"spark   : {spark.version}")  # noqa: F821 — provided by Databricks
+print(f"spark   : {spark.version}")  # noqa: F821, provided by Databricks
 
 # COMMAND ----------
 
@@ -41,7 +41,7 @@ print(f"spark   : {spark.version}")  # noqa: F821 — provided by Databricks
 # MAGIC columns differently from the batch job is how two "identical" pipelines end up
 # MAGIC disagreeing, so this is a copy, not a rewrite.
 # MAGIC
-# MAGIC LANL ships `time` as **seconds since collection began** — there is no wall clock in the
+# MAGIC LANL ships `time` as **seconds since collection began**, there is no wall clock in the
 # MAGIC corpus. `event_date` is therefore anchored to an arbitrary epoch (2015-01-01) purely to
 # MAGIC give the lake a partition key.
 
@@ -107,7 +107,7 @@ display(events.limit(10))  # noqa: F821
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## The lake layer — date-partitioned Parquet
+# MAGIC ## The lake layer, date-partitioned Parquet
 
 # COMMAND ----------
 
@@ -121,7 +121,7 @@ print(f"lake written: {spark.read.parquet(f'{OUTPUT_PATH}/auth').count():,} rows
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Sessionization — the window-function workload
+# MAGIC ## Sessionization, the window-function workload
 # MAGIC
 # MAGIC LAG over `(src_user, src_computer)` ordered by time, flag a new session whenever the
 # MAGIC idle gap exceeds 30 minutes, then a running sum of that flag numbers the sessions.
@@ -162,7 +162,7 @@ display(sessions.orderBy(F.desc("event_count")).limit(10))  # noqa: F821
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Per-identity daily rollup — with the two-stage distinct aggregation
+# MAGIC ## Per-identity daily rollup, with the two-stage distinct aggregation
 # MAGIC
 # MAGIC This is the **optimized** form benchmarked in `bench/spark_opt.json`: aggregate to the
 # MAGIC distinct grain first, *then* count, instead of putting two `COUNT(DISTINCT ...)` in one
@@ -205,11 +205,11 @@ new_dst = first_seen.groupBy(
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Red-team enrichment — the broadcast join
+# MAGIC ## Red-team enrichment, the broadcast join
 # MAGIC
 # MAGIC The label table is ~749 rows (50 in the CI slice). Broadcasting it turns a SortMergeJoin
 # MAGIC into a map-side hash lookup. Join on the FULL (time, user, src, dst) tuple, not on the
-# MAGIC user alone — joining on user would smear "compromised" across that account's entire
+# MAGIC user alone, joining on user would smear "compromised" across that account's entire
 # MAGIC benign history and inflate every recall number downstream.
 
 # COMMAND ----------

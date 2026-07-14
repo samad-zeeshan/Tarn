@@ -1,12 +1,8 @@
-"""Stage 4 — loader idempotency and path-query correctness.
+"""
+Loader idempotency and path query correctness, against the real Neo4j.
 
-These run against the real Neo4j from docker-compose (skipped if it isn't up). They operate
-on nodes whose names are prefixed `TEST_`, and tear them down afterwards, so they can share
-the instance with the real graph without either one corrupting the other.
-
-Path correctness is asserted on a hand-built toy graph whose shortest paths are obvious by
-inspection — checking shortestPath() against the real 30-day graph would only tell us that
-Neo4j returns *something*, not that it returns the right thing.
+Everything is prefixed TEST_ and torn down afterwards, so these can share the instance with
+the real graph without either one corrupting the other.
 """
 
 from __future__ import annotations
@@ -22,7 +18,7 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(scope="module")
 def driver(neo4j_available):
     if not neo4j_available:
-        pytest.skip("Neo4j not reachable — `docker compose up -d neo4j`")
+        pytest.skip("Neo4j not reachable, `docker compose up -d neo4j`")
     d = GraphDatabase.driver(
         os.environ.get("NEO4J_URI", "bolt://neo4j:7687"),
         auth=(
@@ -124,8 +120,7 @@ def test_shortest_privilege_path_two_users_sharing_a_host(driver):
 
 def test_shortest_path_through_an_intermediate_identity(driver):
     """U1 and U3 share no host. The only route is via U2, so the path must be 4 hops and must
-    pass through both shared computers. This is the query the demo calls 'paths to privilege'
-    — if it silently returned a 2-hop path, the whole panel would be lying."""
+    pass through both shared computers. This is the query the demo calls 'paths to privilege', if it silently returned a 2-hop path, the whole panel would be lying."""
     _load_toy(driver)
     with driver.session() as s:
         rec = s.run(
@@ -146,7 +141,7 @@ def test_blast_radius_expands_with_hops(driver):
     On hop3 the answer is 1, not 2, and the reason is worth pinning down because it is what
     the number MEANS. Cypher enforces relationship uniqueness within a path: the edge
     U2->C1 cannot be traversed twice, so the path U1 -> C1 <- U2 -> C1 is not a path. C1 is
-    therefore excluded from the 3-hop set — which is the semantics we actually want, since
+    therefore excluded from the 3-hop set, which is the semantics we actually want, since
     C1 is already reachable at hop 1 and counting it again would inflate blast radius with
     hosts the identity could already touch. hop3 = "hosts reachable THROUGH a peer".
     """
@@ -170,7 +165,7 @@ def test_blast_radius_expands_with_hops(driver):
 
     assert rec["hop1"] == 2   # C1 and C9, touched directly
     assert rec["hop2"] == 1   # only U2 shares a host with U1
-    assert rec["hop3"] == 1   # U2 leads onward to C2 (C1 excluded — see docstring)
+    assert rec["hop3"] == 1   # U2 leads onward to C2 (C1 excluded, see docstring)
 
 
 def test_no_path_when_none_exists(driver):

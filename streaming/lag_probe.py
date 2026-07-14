@@ -1,25 +1,8 @@
-"""Stage 3c — turn the streaming run's raw lag log into bench/streaming_lag.json.
+"""
+Turn the streaming run's raw lag log into bench/streaming_lag.json.
 
-WHAT THE LAG NUMBER MEANS (and what it does not)
-------------------------------------------------
-Every message carries `produce_ts_ms`: the wall-clock instant replay_producer.py handed it
-to Kafka. Every emitted window carries the newest such timestamp among its records. When
-foreachBatch finishes writing a batch to Parquet it stamps the wall clock again. So:
-
-    lag = commit_wallclock - newest_produce_wallclock_in_that_window
-
-That interval genuinely contains everything the pipeline does: Kafka publish -> broker ->
-Spark fetch -> parse -> shuffle -> windowed aggregation -> WATERMARK HOLD -> Parquet write
--> batch commit. The watermark hold is the dominant term by design (a 1-minute window with
-a 2-minute watermark cannot legally emit before its window has closed and the watermark has
-advanced past it), and the artifact says so — a sub-second "lag" here would mean the
-watermark wasn't doing its job.
-
-WHAT IS NOT REPORTED: "event-time to now". The replay is accelerated, so a 58-day corpus is
-pushed through in minutes and event-time lag would be weeks by construction. Reporting it
-would be a meaningless (and flattering-sounding) number.
-
-    python streaming/lag_probe.py --lag-log /data/work/lag_log.jsonl
+Lag is measured from when the producer handed a record to Kafka to when the window containing
+it was committed to the sink.
 """
 
 from __future__ import annotations
@@ -34,7 +17,7 @@ from pathlib import Path
 
 
 def percentile(values: list[float], p: float) -> float:
-    """Nearest-rank percentile. Explicit so the p95 in the artifact has one definition."""
+    """Nearest rank percentile, written out so the p95 in the artifact has one definition."""
     if not values:
         return 0.0
     ordered = sorted(values)
@@ -53,15 +36,11 @@ def cpu_model() -> str:
 
 
 def event_time_acceleration(sink: str, run_seconds: float) -> dict:
-    """How much faster than real time did EVENT time advance?
-
-    This is the number that makes the lag figure interpretable, and leaving it out would be a
-    quiet lie. A 1-minute window under a 2-minute watermark cannot emit until 3 minutes of
-    EVENT time have elapsed — but the replay compresses the corpus, so those 3 minutes of event
-    time cost only (3 min / acceleration) of wall clock. Report a p50 lag without the
-    acceleration factor and a reader will reasonably assume the watermark hold was ~180s of
-    real waiting. It was not.
-    """
+    """How much faster than real time did event time advance during the replay?"""
+    # This is the number that makes the lag figure readable. A 1-minute window under a 2-minute
+    # watermark cannot emit until 3 minutes of event time have passed, but the replay compresses
+    # the corpus, so those 3 minutes cost only 3/acceleration of real waiting. Report a p50
+    # without this and a reader will assume the hold was 180 seconds. It was not.
     try:
         import duckdb
 
@@ -80,20 +59,19 @@ def event_time_acceleration(sink: str, run_seconds: float) -> dict:
             "wall_clock_seconds": round(run_seconds, 1),
             "acceleration_factor": factor,
             "note": (
-                f"Event time advanced ~{factor}x faster than wall clock during the replay. The "
-                f"1-minute window + 2-minute watermark means a window cannot emit until 3 minutes "
-                f"of EVENT time have passed, which at this acceleration is roughly "
-                f"{round(180 / factor, 1) if factor else '?'}s of real waiting — that is the floor "
-                "the measured lag sits on. Quoting the lag without this factor would invite the "
-                "reader to assume a 180s hold that never happened."
+                f"Event time advanced about {factor}x faster than wall clock. The 1-minute window "
+                f"plus 2-minute watermark means a window cannot emit until 3 minutes of event time "
+                f"have passed, which at this acceleration is roughly "
+                f"{round(180 / factor, 1) if factor else '?'}s of real waiting. That is the floor "
+                "the measured lag sits on."
             ),
         }
-    except Exception as exc:  # noqa: BLE001 — the artifact is still valid without this
+    except Exception as exc:  # noqa: BLE001
         return {"error": f"could not measure acceleration: {exc}"}
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--lag-log", default="/data/work/lag_log.jsonl")
     ap.add_argument("--progress", default="/data/work/stream_progress.json")
     ap.add_argument("--sink", default="/data/lake/streaming_windows")
@@ -106,12 +84,12 @@ def main() -> int:
 
     log_path = Path(args.lag_log)
     if not log_path.exists():
-        print(f"no lag log at {log_path} — did the stream job run?")
+        print(f"no lag log at {log_path}, did the stream job run?")
         return 2
 
     batches = [json.loads(line) for line in log_path.read_text().splitlines() if line.strip()]
     if not batches:
-        print("lag log is empty — the stream emitted no windows. Nothing to claim.")
+        print("lag log is empty, the stream emitted no windows. Nothing to claim.")
         return 2
 
     lags: list[int] = []
@@ -141,27 +119,25 @@ def main() -> int:
 
     payload = {
         "what": (
-            "End-to-end lag and throughput of the Stage-3 Spark Structured Streaming job "
-            "consuming replayed LANL auth events from Redpanda (Kafka API)."
+            "End to end lag and throughput of the Structured Streaming job consuming replayed "
+            "LANL auth events from Redpanda."
         ),
         "lag_definition": (
-            "commit_wallclock - newest_produce_wallclock_in_window. Spans Kafka publish, "
-            "broker, Spark fetch, parse, shuffle, windowed aggregation, WATERMARK HOLD, "
-            "Parquet write, and batch commit. The watermark hold dominates by design: a "
-            f"{args.window} window under a {args.watermark} watermark cannot legally emit "
-            "before its window closes and the watermark passes it. A sub-second figure here "
-            "would mean the watermark was not doing its job."
+            "commit wall clock minus the newest produce wall clock in the window. It spans the "
+            "Kafka publish, the broker, the Spark fetch, parse, shuffle, windowed aggregation, "
+            f"the watermark hold, the Parquet write and the batch commit. A {args.window} window "
+            f"under a {args.watermark} watermark cannot emit before its window closes and the "
+            "watermark passes it, so a sub-second figure here would mean the watermark was not "
+            "doing its job."
         ),
         "not_measured": (
-            "Event-time-to-now lag. The replay is accelerated, so the 58-day corpus is "
-            "pushed through in minutes; event-time lag would be weeks by construction and "
-            "reporting it would be meaningless."
+            "Event-time-to-now lag. The replay is accelerated, so the 58-day corpus is pushed "
+            "through in minutes and that number would be weeks by construction."
         ),
         "honesty": (
-            "This is an ACCELERATED LOCAL REPLAY from a file into a single-broker Redpanda "
-            "on the same laptop as the Spark driver — not a live production feed. No network "
-            "hop, no broker cluster, no competing load. Treat these figures as a measurement "
-            "of this pipeline's processing latency, not of a production system's."
+            "This is an accelerated local replay from a file into a single-broker Redpanda on the "
+            "same laptop as the Spark driver. No network hop, no broker cluster, no competing "
+            "load. It measures this pipeline's processing latency, not a production system's."
         ),
         "config": {
             "window": args.window,

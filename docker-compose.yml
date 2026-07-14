@@ -1,6 +1,6 @@
-# Tarn — local stack. Spark/dbt/tests all run in the `tarn` image; Redpanda and Neo4j
+# Tarn, local stack. Spark/dbt/tests all run in the `tarn` image; Redpanda and Neo4j
 # back Stages 3 and 4. Raw data is bind-mounted from OUTSIDE the OneDrive tree
-# (DIRECTIVE rule 7) — override with TARN_DATA if your raw dir lives elsewhere.
+# so sync never touches multi-GB files. Override with TARN_DATA if your raw dir is elsewhere.
 
 services:
   tarn:

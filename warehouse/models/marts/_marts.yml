@@ -1,27 +1,12 @@
 version: 2
 
 models:
-  # ---------------------------------------------------------------------------------
   - name: fact_auth_event
     description: |
-      **Grain: one row per authentication event.** The atomic fact of the warehouse — all
-      1,051,430,459 of them.
+      Grain: one row per authentication event. All 1,051,430,459 of them.
 
-      **Materialized as a VIEW over the Parquet lake, and joined on NATURAL keys.** Both
-      decisions were reversals, and the model header explains them at length. Short version:
-      materializing cost 35 GB and climbing to duplicate a 9.9 GB lake on the same disk, and
-      the four md5 surrogate keys cost ~40 billion hash computations across the test suite
-      while buying nothing — LANL's natural keys (`U292@DOM1`, `C1065`) are already short,
-      immutable, and dictionary-encoded by Parquet.
-
-      Referential integrity is enforced across every one of the 1.05e9 rows regardless: the
-      `relationships` tests below simply join on the natural key.
-
-      `is_off_hours` is derived from the MEASURED diurnal band (bench/diurnal.json), not an
-      assumed 9-to-5 — LANL has no wall-clock time, so an assumed business day would be
-      fiction. `is_redteam` is set by joining the full (time, user, src, dst) tuple against
-      the 749 labelled compromise events; joining on user alone would smear the label across
-      each compromised identity's entire benign history.
+      A view over the Parquet lake, joined on natural keys. The model header explains why.
+      Referential integrity is still enforced across every row by the relationships tests below.
     columns:
       - name: src_user
         description: "FK -> dim_identity.identity_name. The authenticating identity."
@@ -64,20 +49,12 @@ models:
                 # staging and are legitimately neither Success nor Fail.
                 where: "outcome is not null"
 
-  # ---------------------------------------------------------------------------------
   - name: dim_identity
     description: |
-      **Grain: one row per authenticating identity** (human user or machine account),
-      keyed on the raw `src_user` string as it appears in the corpus.
+      Grain: one row per authenticating identity, human or machine account. SCD type 1.
 
-      **SCD: Type 1.** Stated deliberately rather than left implicit. The corpus is a
-      58-day snapshot containing no identity-mutation events — a user is never renamed
-      mid-stream — so there is no history to slowly change. Attributes are corpus-wide
-      aggregates and a rebuild overwrites them in place.
-
-      Machine accounts (trailing `$`) are the majority of traffic and are KEPT. Whether to
-      exclude them is an analytical decision each query makes for itself; filtering them
-      here would silently change every downstream number.
+      Machine accounts are the majority of traffic and are kept. Excluding them is a decision
+      each query makes for itself, and filtering here would silently change every number.
     columns:
       - name: identity_key
         data_tests: [unique, not_null]
@@ -91,17 +68,12 @@ models:
       - name: total_auth_events
         data_tests: [not_null]
 
-  # ---------------------------------------------------------------------------------
   - name: dim_computer
     description: |
-      **Grain: one row per host**, whether it appeared as a source, a destination, or both.
-      The union matters: server-like hosts appear almost exclusively as destinations, and
-      without them the fact's `dst_computer_key` would fail its relationships test.
+      Grain: one row per host, whether it appeared as a source, a destination, or both.
 
-      **SCD: Type 1**, same reasoning as dim_identity.
-
-      `is_redteam_pivot` marks the four hosts the red team launched from — a tiny flag with
-      outsized analytical value: it is the entry point for the Stage-4 blast-radius queries.
+      is_redteam_pivot marks the four hosts the red team launched from. A tiny flag, but it is
+      the entry point for the graph queries.
     columns:
       - name: computer_key
         data_tests: [unique, not_null]
@@ -114,16 +86,12 @@ models:
       - name: is_redteam_pivot
         data_tests: [not_null]
 
-  # ---------------------------------------------------------------------------------
   - name: dim_time
     description: |
-      **Grain: one row per day of the corpus** (58 rows).
+      Grain: one row per day of the corpus. 58 rows.
 
-      `day_index` and `week_index` are REAL — they are just `t / 86400`. `calendar_date` is
-      a LABEL: LANL ships relative seconds and pipeline/common.py anchors t=0 to 2015-01-01
-      so the lake has a partition key. The anchor is arbitrary, which is exactly why this
-      dimension exposes **no day-of-week column** — it would be fiction, and no model in
-      the project uses one.
+      calendar_date is a label, not an observation. LANL ships relative seconds. That is why
+      there is no day-of-week column: it would be fiction.
     columns:
       - name: time_key
         data_tests: [unique, not_null]
@@ -134,19 +102,13 @@ models:
       - name: has_redteam_activity
         data_tests: [not_null]
 
-  # ---------------------------------------------------------------------------------
   - name: mart_daily_identity_rollup
     description: |
-      **Grain: one row per (identity, day).** The analytics-facing aggregate that Q1-Q5 and
-      the demo's SQL workbench read.
+      Grain: one row per identity per day. The aggregate Q1 to Q5 and the demo read.
 
-      Pass-through of Spark's Stage-1 rollup, conformed into the star and enriched with
-      each identity's OWN trailing 30-day baseline (excluding the current day, so a spike
-      cannot inflate the baseline it is measured against).
-
-      Z-scores are NULL — deliberately, not zero — when fewer than 3 baseline days exist or
-      the baseline has no variance. A z-score computed from one prior day is noise wearing a
-      lab coat; emitting it as a number would let it rank in Q1/Q4.
+      Z-scores are null, not zero, when there are fewer than 3 baseline days or the baseline has
+      no variance. A z-score from one prior day is noise, and emitting it as a number would let
+      it rank.
     columns:
       - name: identity_key
         data_tests:
@@ -168,4 +130,4 @@ models:
       - name: is_redteam_day
         data_tests: [not_null]
     # The (identity, day) grain claim is enforced by tests/assert_rollup_grain_is_unique.sql
-    # — a grain documented but unchecked is just a comment.
+    #, a grain documented but unchecked is just a comment.

@@ -18,7 +18,7 @@ jobs:
 
     services:
       # Stage 4's graph tests are marked `integration` and skip cleanly if Neo4j is absent,
-      # but there is no reason to skip them here — a service container is nearly free and it
+      # but there is no reason to skip them here, a service container is nearly free and it
       # means the privilege-path Cypher is actually verified on every push.
       neo4j:
         image: neo4j:5.26-community
@@ -33,7 +33,7 @@ jobs:
           --health-retries 20
 
     env:
-      # Everything runs against the committed CI slice — the 7.2 GB corpus is never in CI.
+      # Everything runs against the committed CI slice, the 7.2 GB corpus is never in CI.
       TARN_LAKE: /tmp/tarn/lake
       NEO4J_URI: bolt://localhost:7687
       NEO4J_USER: neo4j
@@ -81,11 +81,11 @@ jobs:
                 f"{m['counts']['redteam_rows_in_window']} red-team rows, seed {m['selection']['seed']}")
           PY
 
-      - name: Tests (pytest — pipeline, streaming, graph)
+      - name: Tests (pytest, pipeline, streaming, graph)
         run: python -m pytest tests/ -q
 
       # ---- the real pipeline, end to end, on the small slice -----------------------------
-      - name: Stage 1 — build the lake from data/sample/
+      - name: Stage 1, build the lake from data/sample/
         run: |
           python pipeline/sessionize.py \
             --input data/sample/auth_sample.csv.gz \
@@ -101,7 +101,7 @@ jobs:
       # Stage 3 does not run in CI (no broker), so the streaming sink will not exist and
       # warehouse/build.py disables mart_streaming_windows on its own rather than
       # materializing a silently-empty mart.
-      - name: Stage 2 — dbt build (models + every FK/grain test)
+      - name: Stage 2, dbt build (models + every FK/grain test)
         run: |
           python warehouse/build.py \
             --lake /tmp/tarn/lake \
@@ -109,7 +109,7 @@ jobs:
             --target ci \
             --fact-materialization table
 
-      - name: Stage 2 — run the five showcase queries
+      - name: Stage 2, run the five showcase queries
         run: python warehouse/run_queries.py --db /tmp/tarn_ci.duckdb --out /tmp/tarn/results
 
       - name: Show Q5 (would the analytics have caught the attacker?)

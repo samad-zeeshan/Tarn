@@ -1,17 +1,8 @@
--- Q2 — Off-hours authentication share, each identity against its OWN baseline.
+-- Q2: off-hours authentication, each identity against its own baseline.
 --
--- QUESTION: who is suddenly working at hours they never worked before?
---
--- READ THE CAVEAT. LANL has no wall-clock time — only seconds since collection started.
--- "3am" is not a fact in this corpus. What IS a fact is the diurnal cycle: pipeline/
--- diurnal.py measures the volume-by-hour curve, finds the trough, and that measured band
--- is what `is_off_hours` means here. So this query does not ask "who worked at 3am"; it
--- asks "who worked during the hours when this network is measurably asleep", which is the
--- question that actually survives a screening interview.
---
--- Scoring each identity against its own baseline (rather than a global threshold) is what
--- separates "the night-shift admin, as always" from "the day-shift user who has never once
--- logged in during the trough and just did it forty times".
+-- "3am" is not a fact in this corpus. The band comes from the measured diurnal trough in
+-- bench/diurnal.json, so this asks who worked while the network is measurably asleep, not who
+-- worked at a clock hour we guessed.
 
 with daily as (
     select

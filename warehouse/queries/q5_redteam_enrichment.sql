@@ -1,24 +1,8 @@
--- Q5 — Red-team enrichment: would Q1-Q4 actually have surfaced the attacker?
+-- Q5: would Q1 to Q4 actually have surfaced the attacker?
 --
--- This is the query the whole warehouse exists to answer, and the only honest way to
--- answer it is as a DETECTION EVALUATION, not a highlight reel. So each of the four
--- signals is treated as a detector, run over every identity-day in the corpus, and scored
--- against LANL's ground truth:
---
---   recall     of the identity-days that really were compromised, what fraction did this
---              detector flag?  (the misses are the part everyone leaves out)
---   precision  of the identity-days this detector flagged, what fraction really were
---              compromised?
---   alerts     how many identity-days a human would have to triage. A detector with
---              perfect recall and 40,000 alerts a day is not a detector, it is a denial of
---              service against your SOC.
---   lift       precision / base_rate. How much better than picking an identity-day at
---              random. This is the number that says whether the signal is real at all.
---
--- Expect unflattering numbers. Precision on a corpus where compromised identity-days are
--- ~0.001% of all identity-days is going to be brutal for every single-signal detector, and
--- saying so is the point. A portfolio project that reports 100% recall and hides the alert
--- volume is lying by omission.
+-- Scored as a detection evaluation, not a highlight reel: recall, precision, the alert volume a
+-- human would have to triage, and lift over random. Expect unflattering numbers. A detector with
+-- good recall and sixty thousand alerts is not a detector, it is a denial of service on a SOC.
 
 with scored as (
     select

@@ -1,24 +1,7 @@
-"""Stage 4a — load the identity->computer authentication graph into Neo4j.
+"""
+Load the identity to computer authentication graph into Neo4j.
 
-The graph is the access surface: every distinct (identity, destination host) pair that ever
-authenticated in the loaded window becomes an edge. Two identities are connected when they
-share a host, and THAT is what makes privilege paths computable — an attacker who owns U1
-and finds that U1 and U2 both touch C7 has a route from U1 to whatever U2 can reach.
-
-    (:User {name, is_machine, is_compromised})
-        -[:AUTH {count, first_seen, last_seen, success_ratio, is_redteam}]->
-    (:Computer {name, is_redteam_pivot, is_redteam_target})
-
-Edges are AGGREGATED, not one-per-event: a billion events collapse to the distinct pairs,
-which is the only way this fits in a laptop Neo4j and also the only shape the path queries
-want (an edge means "this identity can reach this host", and repeating it a million times
-adds nothing).
-
-The window is bounded on purpose — default days 0-30, which contains the entire red-team
-campaign (its labelled events run from day 1.7 to day 29.6). Loading all 58 days would add
-edges that no query in queries.cypher asks about.
-
-    python graph/load_neo4j.py --lake /data/lake/auth --start-day 0 --end-day 30
+(:User)-[:AUTH {count, first_seen, last_seen, success_ratio, is_redteam}]->(:Computer)
 """
 
 from __future__ import annotations
@@ -54,8 +37,6 @@ def build_edges(spark, lake: str, redteam_path: str, start_day: int, end_day: in
         (F.col("day_index") >= start_day) & (F.col("day_index") < end_day)
     )
 
-    # Which (user, host) pairs are labelled compromises? Mark the EDGE, so the demo can
-    # overlay the attacker's real route on top of the benign graph.
     rt_edges = (
         redteam.select(
             F.col("user").alias("src_user"),
@@ -65,6 +46,10 @@ def build_edges(spark, lake: str, redteam_path: str, start_day: int, end_day: in
         .withColumn("is_redteam", F.lit(True))
     )
 
+    # Edges are aggregated, not one per event. A billion events collapse to the distinct pairs,
+    # which is the only shape that fits in a laptop Neo4j and also the only shape the path
+    # queries want. An edge means "this identity can reach this host", and repeating it a
+    # million times adds nothing.
     edges = (
         events.groupBy("src_user", "dst_computer")
         .agg(
@@ -108,8 +93,9 @@ def build_edges(spark, lake: str, redteam_path: str, start_day: int, end_day: in
 
 
 def load(driver, users, computers, edges) -> dict:
-    """Write nodes then edges in batches. Idempotent: MERGE everywhere, so re-running
-    converges rather than duplicating (tests/test_graph.py asserts this)."""
+    """Write nodes then edges in batches."""
+    # MERGE everywhere, so a re-run after a crash converges instead of duplicating. If this ever
+    # regressed to CREATE, the edge counts in bench/graph_stats.json would silently double.
     stats = {}
 
     with driver.session() as session:
@@ -212,15 +198,17 @@ def load(driver, users, computers, edges) -> dict:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--lake", default="/data/lake/auth")
     ap.add_argument("--redteam", default="/data/lake/redteam")
     ap.add_argument("--start-day", type=int, default=0)
+    # Days 0 to 30 contain the entire red-team campaign, whose labelled events run from day 1.7
+    # to day 29.6. Loading all 58 days would add edges no query asks about.
     ap.add_argument("--end-day", type=int, default=30)
     ap.add_argument("--uri", default=os.environ.get("NEO4J_URI", "bolt://neo4j:7687"))
     ap.add_argument("--user", default=os.environ.get("NEO4J_USER", "neo4j"))
     ap.add_argument("--password", default=os.environ.get("NEO4J_PASSWORD", "tarnlocal1"))
-    ap.add_argument("--wipe", action="store_true", help="delete all nodes first")
+    ap.add_argument("--wipe", action="store_true")
     args = ap.parse_args()
 
     spark = spark_session("graph-load")
@@ -228,7 +216,6 @@ def main() -> int:
         spark, args.lake, args.redteam, args.start_day, args.end_day
     )
 
-    # Materialize once — these are read three times each by toLocalIterator otherwise.
     users = users.cache()
     computers = computers.cache()
     edges = edges.cache()

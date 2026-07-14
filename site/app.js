@@ -1,9 +1,8 @@
-/* Tarn — demo site.
+/*
+ * The demo page.
  *
- * THE ONE RULE IN THIS FILE: no metric is ever typed into the page. Every number the visitor
- * sees is read out of data/bench.json, which site/build_payloads.py bundles from the committed
- * bench/*.json artifacts. If a figure is on screen and not in an artifact, that is a bug — and
- * `data-bench` attributes in index.html are how it is enforced rather than merely intended.
+ * No metric is ever typed into this page. Every number a visitor sees is read out of
+ * data/bench.json, and site/audit.py fails the build if the HTML hard-codes one.
  */
 
 import * as duckdb from './vendor/duckdb/duckdb-browser.mjs';
@@ -13,7 +12,7 @@ import { PathExplorer } from './graph.js';
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
-/* ------------------------------------------------------------------ theme */
+// theme
 const savedTheme = localStorage.getItem('tarn-theme');
 if (savedTheme) document.documentElement.dataset.theme = savedTheme;
 else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
@@ -24,12 +23,12 @@ $('#theme-toggle').addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
   localStorage.setItem('tarn-theme', next);
-  // Charts read CSS custom properties for color, but the SVG text/grid colors are baked at
-  // draw time — so re-render rather than leave a half-themed chart behind.
+  // Charts read CSS variables for colour, but the SVG text and grid colours are baked at draw
+  // time, so re-render rather than leave a half-themed chart behind.
   if (window.__tarnRedraw) window.__tarnRedraw();
 });
 
-/* ------------------------------------------------------------------ bench binding */
+// bench binding
 function dig(obj, path) {
   return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
 }
@@ -44,17 +43,17 @@ const FORMATTERS = {
   raw: (v) => String(v),
 };
 
-/** Fill every [data-bench="path|format"] in the DOM straight from the artifacts. */
+/** Fill every [data-bench="path|format"] straight from the artifacts. */
 function bindBench(bench) {
   $$('[data-bench]').forEach((node) => {
     const [path, f = 'raw'] = node.dataset.bench.split('|');
     const value = dig(bench, path);
     node.textContent =
-      value === undefined || value === null ? '—' : (FORMATTERS[f] || FORMATTERS.raw)(value);
+      value === undefined || value === null ? '-' : (FORMATTERS[f] || FORMATTERS.raw)(value);
   });
 }
 
-/* ------------------------------------------------------------------ pipeline diagram */
+// pipeline diagram
 function pipelineDiagram(mount) {
   const stages = [
     ['LANL auth', 'raw .gz'],
@@ -131,15 +130,15 @@ function pipelineDiagram(mount) {
   mount.append(svg);
 }
 
-/* ------------------------------------------------------------------ DuckDB-WASM */
+// DuckDB-WASM
 let db = null;
 let conn = null;
 
 async function initDuckDB(bench, status) {
   status.textContent = 'Loading DuckDB (WebAssembly)…';
 
-  // Vendored bundle — no CDN. The worker is loaded from a blob so the module URL resolves
-  // correctly under a GitHub Pages sub-path (/tarn/) rather than assuming the domain root.
+  // The worker is loaded from a blob so its URL resolves under a GitHub Pages sub-path rather
+  // than assuming the domain root.
   const workerUrl = new URL('./vendor/duckdb/duckdb-browser-eh.worker.js', import.meta.url);
   const wasmUrl = new URL('./vendor/duckdb/duckdb-eh.wasm', import.meta.url);
 
@@ -156,7 +155,7 @@ async function initDuckDB(bench, status) {
 
   status.textContent = 'Loading warehouse extracts…';
 
-  // Register each Parquet extract as a view. The browser reads the same marts dbt built.
+  // Registered over HTTP, so DuckDB range-requests only the column chunks a query touches.
   const extracts = bench.extracts || {};
   const names = [];
   for (const [name, meta] of Object.entries(extracts)) {
@@ -172,7 +171,7 @@ async function initDuckDB(bench, status) {
     'Views registered in your browser\'s DuckDB:\n\n' +
     names.map((n) => `  ${n}`).join('\n') +
     '\n\nThese are the real dbt marts, exported to Parquet. `rollup` is the full ' +
-    'mart_daily_identity_rollup — every identity-day, machine accounts included — because ' +
+    'mart_daily_identity_rollup: every identity-day, machine accounts included, because ' +
     'Q5\'s precision and lift are ratios against that whole population, and quietly dropping ' +
     'the machine accounts would make the browser compute a flatteringly better Q5 than the ' +
     'one committed in warehouse/queries/results/.';
@@ -180,7 +179,7 @@ async function initDuckDB(bench, status) {
   return conn;
 }
 
-/* ------------------------------------------------------------------ workbench */
+// workbench
 const PRESETS = [
   {
     id: 'q1_fanout_week_over_week',
@@ -188,7 +187,7 @@ const PRESETS = [
     finding:
       'Ranks identities whose peak daily fan-out jumped hardest against <strong>their own prior ' +
       'week</strong>. Raw fan-out would just rank backup agents; the change is the signal.',
-    sql: `-- Q1 — destination fan-out, week over week (lateral-movement precursor)
+    sql: `-- Q1: destination fan-out, week over week (lateral-movement precursor)
 with weekly as (
   select r.src_user, t.week_index,
          max(r.distinct_dst_computers) as peak_fanout,
@@ -215,8 +214,8 @@ limit 25;`,
     label: 'Q2 · off-hours vs own baseline',
     finding:
       'Identities active during the <strong>measured</strong> overnight trough who essentially ' +
-      'never are. The band comes from bench/diurnal.json — not an assumed 9-to-5.',
-    sql: `-- Q2 — off-hours share vs the identity's OWN baseline
+      'never are. The band comes from bench/diurnal.json, not an assumed 9-to-5.',
+    sql: `-- Q2: off-hours share vs the identity's own baseline
 select r.src_user as identity, r.event_date, r.auth_count, r.off_hours_events,
        round(r.off_hours_share, 4)                as off_hours_today,
        round(r.off_hours_share_baseline_mean, 4)  as their_baseline,
@@ -237,8 +236,8 @@ limit 25;`,
     label: 'Q3 · new access paths',
     finding:
       'Every first-time identity→host edge is a path that did not exist yesterday. This is the ' +
-      'access graph <em>growing</em> — the most direct read on "paths to privilege".',
-    sql: `-- Q3 — first-time (identity -> computer) edges per day
+      'access graph <em>growing</em>, the most direct read on "paths to privilege".',
+    sql: `-- Q3: first-time (identity -> computer) edges per day
 select event_date,
        sum(new_dst_computers)     as new_edges,
        count(distinct src_user)   as active_identities,
@@ -252,8 +251,8 @@ order by event_date;`,
     label: 'Q4 · failure-ratio spikes',
     finding:
       'Z-score against each identity\'s own trailing 30-day baseline, <strong>excluding the ' +
-      'current day</strong> — otherwise the spike inflates the baseline it is measured against.',
-    sql: `-- Q4 — failure-ratio spike, z-score vs the identity's own history
+      'current day</strong>, otherwise the spike inflates the baseline it is measured against.',
+    sql: `-- Q4: failure-ratio spike, z-score vs the identity's own history
 select src_user as identity, event_date, auth_count, failure_count,
        round(failure_ratio, 4)          as failure_ratio_today,
        round(failure_ratio_zscore, 2)   as z_score,
@@ -270,8 +269,8 @@ limit 25;`,
     label: 'Q5 · would it have caught the attacker?',
     finding:
       'The honest one. Each query scored as a <strong>detector</strong> against ground truth: ' +
-      'recall, precision, alert volume, and lift. Expect unflattering numbers — that is the point.',
-    sql: `-- Q5 — the four analytics scored as detectors against LANL's ground truth.
+      'recall, precision, alert volume, and lift. Expect unflattering numbers, that is the point.',
+    sql: `-- Q5: the four analytics scored as detectors against LANL's ground truth.
 -- recall = of the identity-days that really were compromised, how many did we flag?
 -- alerts = how many identity-days a human would have to triage.
 with scored as (
@@ -338,7 +337,7 @@ function renderResult(mount, result) {
       if (typeof v === 'bigint') v = Number(v);
       if (v instanceof Date) v = v.toISOString().slice(0, 10);
       if (typeof v === 'number' && !Number.isInteger(v)) v = Number(v.toFixed(4));
-      out[c] = v === null || v === undefined ? '—' : v;
+      out[c] = v === null || v === undefined ? '-' : v;
     }
     return out;
   });
@@ -351,8 +350,8 @@ function renderResult(mount, result) {
     columns: cols,
     rows,
     numeric,
-    // Ground truth gets a visual channel of its own — the attacker's rows should be findable
-    // without reading every cell.
+    // Ground truth gets a channel of its own, so the attacker's rows are findable without
+    // reading every cell.
     rowClass: (r) =>
       r.is_redteam_day === true || r.had_redteam === true || r.is_compromised === true
         ? 'is-redteam'
@@ -372,7 +371,7 @@ async function runQuery(sql, statusEl, resultEl) {
     const n = renderResult(resultEl, res);
     resultEl.hidden = false;
     statusEl.className = 'wb-status ok';
-    statusEl.textContent = `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'} in ${ms.toFixed(0)} ms — executed in your browser`;
+    statusEl.textContent = `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'} in ${ms.toFixed(0)} ms, executed in your browser`;
   } catch (err) {
     statusEl.className = 'wb-status error';
     statusEl.textContent = String(err.message || err);
@@ -380,14 +379,14 @@ async function runQuery(sql, statusEl, resultEl) {
   }
 }
 
-/* ------------------------------------------------------------------ charts */
+// charts
 function drawCharts(bench) {
   const opt = bench.spark_opt;
   const lag = bench.streaming_lag;
   const diurnal = bench.diurnal;
   const graph = bench.graph_stats;
 
-  /* --- Spark optimization ------------------------------------------------ */
+  // Spark optimization
   if (opt) {
     const order = ['baseline', 'broadcast_only', 'dedup_only', 'both'];
     const nice = {
@@ -396,8 +395,8 @@ function drawCharts(bench) {
       dedup_only: '+ two-stage distinct',
       both: 'Both',
     };
-    // Color follows the ENTITY, not the rank: baseline is always slot 1, the winner always
-    // slot 2. Re-running the benchmark must not repaint the bars.
+    // Colour follows the entity, not the rank. Re-running the benchmark must not repaint the
+    // bars just because the order changed.
     const color = {
       baseline: 'var(--series-1)',
       broadcast_only: 'var(--series-3)',
@@ -449,8 +448,8 @@ function drawCharts(bench) {
         })),
     });
 
-    $('#plan-baseline').textContent = opt.variants?.baseline?.physical_plan ?? '—';
-    $('#plan-optimized').textContent = opt.variants?.both?.physical_plan ?? '—';
+    $('#plan-baseline').textContent = opt.variants?.baseline?.physical_plan ?? '-';
+    $('#plan-optimized').textContent = opt.variants?.both?.physical_plan ?? '-';
 
     const e = opt.environment;
     $('#prov-opt').innerHTML =
@@ -464,7 +463,7 @@ function drawCharts(bench) {
       `<code>bench/spark_opt.json</code>. Measured ${opt.measured_at}.`;
   }
 
-  /* --- streaming lag ------------------------------------------------------ */
+  // streaming lag
   if (lag) {
     const rows = [
       { label: 'p50', ms: lag.lag_ms.p50, color: 'var(--series-2)' },
@@ -509,7 +508,7 @@ function drawCharts(bench) {
       `Measured ${lag.measured_at}.`;
   }
 
-  /* --- diurnal ------------------------------------------------------------ */
+  // diurnal
   if (diurnal) {
     const mount = $('#chart-diurnal');
     mount.dataset.band = JSON.stringify(diurnal.off_hours.band ?? []);
@@ -536,65 +535,67 @@ function drawCharts(bench) {
     const r = diurnal.peak_to_trough_ratio;
     $('#diurnal-sub').innerHTML =
       `<span class="legend" style="margin:0">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>human accounts — peak:trough ${r.human_accounts}×</span>
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machine accounts — peak:trough ${r.machine_accounts}×</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>human accounts, peak:trough ${r.human_accounts}×</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machine accounts, peak:trough ${r.machine_accounts}×</span>
         <span class="legend-item"><span class="legend-swatch" style="background:var(--fg);opacity:.18"></span>derived off-hours band</span>
       </span>`;
 
     const band = diurnal.off_hours.band ?? [];
     $('#chart-diurnal-cap').innerHTML = band.length
-      ? `Off-hours band = hours ${band.join(', ')} — derived by the rule: <em>${diurnal.off_hours.rule}</em>. ` +
+      ? `Off-hours band = hours ${band.join(', ')}, derived by the rule: <em>${diurnal.off_hours.rule}</em>. ` +
         `Aggregated over all accounts the curve is only ${r.all_accounts}× peak-to-trough and the cycle ` +
         `is invisible; that is why the band comes from the human curve alone.`
-      : 'No off-hours band could be derived — the curve is too flat, so Q2 must not be claimed.';
+      : 'No off-hours band could be derived. The curve is too flat, so Q2 must not be claimed.';
   }
 
-  /* --- blast radius + Q5 -------------------------------------------------- */
+  // blast radius + Q5
   if (graph?.blast_radius) {
     const b = graph.blast_radius;
+
+    // TWO charts, not one. 1-hop is ~100 hosts and 3-hop is ~14,000, so on a shared axis the
+    // 1-hop bars collapse into invisible slivers, which hides the only measure that actually
+    // discriminates. Different scales get different axes.
     barChart($('#chart-blast'), {
       rows: [
         {
-          label: 'compromised · 1 hop', v: b.compromised_mean_hosts_1_hop,
-          color: 'var(--series-4)',
+          label: 'compromised', v: b.compromised_mean_hosts_1_hop, color: 'var(--series-4)',
           tip: b.at_1_hop?.verdict,
         },
         {
-          label: 'ordinary · 1 hop', v: b.benign_control_mean_hosts_1_hop,
-          color: 'var(--series-1)',
+          label: 'ordinary', v: b.benign_control_mean_hosts_1_hop, color: 'var(--series-1)',
           tip: 'The control. Without it the number above means nothing.',
         },
+      ],
+      valueKey: 'v', labelKey: 'label', colorKey: 'color',
+      format: (v) => Number(v).toLocaleString('en-US'),
+      note: 'Hosts reachable at 1 hop',
+    });
+
+    barChart($('#chart-blast3'), {
+      rows: [
         {
-          label: 'compromised · 3 hops', v: b.compromised_mean_hosts_3_hops,
-          color: 'var(--series-4)',
+          label: 'compromised', v: b.compromised_mean_hosts_3_hops, color: 'var(--series-4)',
           tip: b.at_3_hops?.verdict,
         },
         {
-          label: 'ordinary · 3 hops', v: b.benign_control_mean_hosts_3_hops,
-          color: 'var(--series-1)',
+          label: 'ordinary', v: b.benign_control_mean_hosts_3_hops, color: 'var(--series-1)',
           tip: b.at_3_hops?.verdict,
         },
       ],
-      valueKey: 'v',
-      labelKey: 'label',
-      colorKey: 'color',
+      valueKey: 'v', labelKey: 'label', colorKey: 'color',
       format: (v) => Number(v).toLocaleString('en-US'),
-      note: 'Mean hosts reachable, compromised identities vs. a benign control group',
+      note: 'Hosts reachable at 3 hops',
+      max: b.total_hosts_in_graph,
     });
 
-    // The saturation finding is the whole point of this chart, so it gets said in words and
-    // not left for the reader to notice that two of the bars are the same length.
     $('#chart-blast-cap').innerHTML =
-      `<strong>Read the two 3-hop bars.</strong> They are the same length. Both compromised and ` +
-      `ordinary identities reach essentially every host in the network ` +
-      `(${Number(b.compromised_mean_hosts_3_hops).toLocaleString('en-US')} vs ` +
-      `${Number(b.benign_control_mean_hosts_3_hops).toLocaleString('en-US')} of ` +
-      `${Number(b.total_hosts_in_graph).toLocaleString('en-US')} hosts), so <em>3-hop blast radius ` +
-      `carries no information here</em> — quoting the compromised figure on its own would be true ` +
-      `and meaningless. Only the 1-hop measure discriminates ` +
-      `(${b.at_1_hop?.ratio}×), and even that is confounded: the red team picked ` +
-      `higher-privilege accounts to begin with. The actionable output of this stage is the choke ` +
-      `points below, not the blast radius.`;
+      `<strong>Look at the two charts.</strong> At 1 hop a compromised account reaches ` +
+      `${b.at_1_hop?.ratio}× what an ordinary one does, and it is still only ` +
+      `${b.at_1_hop?.pct_of_all_hosts_covered}% of the network. At 3 hops both of them reach ` +
+      `<em>essentially every host there is</em>, so the measure carries no information at that ` +
+      `depth. Quoting the compromised figure on its own would be true and meaningless. And even ` +
+      `the 1-hop gap is confounded: the red team picked higher-privilege accounts to begin with. ` +
+      `The useful output of this stage is the choke points below, not the blast radius.`;
   }
 
   if (graph?.choke_points_top) {
@@ -603,8 +604,8 @@ function drawCharts(bench) {
         { key: 'host', label: 'host' },
         { key: 'identities', label: 'distinct identities authenticating here',
           format: (v) => Number(v).toLocaleString('en-US') },
-        { key: 'was_pivot', label: 'red-team pivot', format: (v) => (v ? 'yes' : '—') },
-        { key: 'was_target', label: 'red-team target', format: (v) => (v ? 'yes' : '—') },
+        { key: 'was_pivot', label: 'red-team pivot', format: (v) => (v ? 'yes' : ',') },
+        { key: 'was_target', label: 'red-team target', format: (v) => (v ? 'yes' : ',') },
       ],
       numeric: ['identities'],
       rows: graph.choke_points_top,
@@ -622,7 +623,7 @@ function drawCharts(bench) {
         color: r.detector.startsWith('ANY') ? 'var(--series-2)' : 'var(--series-1)',
         tip: `${r.redteam_days_caught} of ${r.redteam_days_total} compromised identity-days caught<br>` +
           `${Number(r.alerts_raised).toLocaleString('en-US')} alerts to triage · ` +
-          `${r.lift_over_random || '—'}× lift over random`,
+          `${r.lift_over_random || ','}× lift over random`,
       })),
       valueKey: 'recall',
       labelKey: 'label',
@@ -632,13 +633,13 @@ function drawCharts(bench) {
       max: 100,
     });
     $('#chart-q5-cap').textContent =
-      'Recall alone flatters. The table below carries the alert volume and precision — a detector ' +
+      'Recall alone flatters. The table below carries the alert volume and precision, a detector ' +
       'with good recall and tens of thousands of alerts is not a detector, it is a denial of ' +
       'service against a SOC.';
 
-    // The CSV gives everything back as strings ("62.0"). Render counts as counts.
-    const asInt = (v) => (v === '' || v == null ? '—' : Number(v).toLocaleString('en-US'));
-    const asNum = (v, dp) => (v === '' || v == null ? '—' : Number(v).toFixed(dp));
+    // The CSV hands everything back as strings, so "62.0" needs rendering as a count.
+    const asInt = (v) => (v === '' || v == null ? '-' : Number(v).toLocaleString('en-US'));
+    const asNum = (v, dp) => (v === '' || v == null ? '-' : Number(v).toFixed(dp));
 
     table($('#q5-table'), {
       columns: [
@@ -649,7 +650,7 @@ function drawCharts(bench) {
         { key: 'alerts_raised', label: 'alerts to triage', format: asInt },
         { key: 'precision_pct', label: 'precision %', format: (v) => asNum(v, 3) },
         { key: 'lift_over_random', label: 'lift vs random',
-          format: (v) => (v === '' || v == null ? '—' : `${Number(v).toFixed(1)}×`) },
+          format: (v) => (v === '' || v == null ? '-' : `${Number(v).toFixed(1)}×`) },
       ],
       numeric: [
         'redteam_days_caught', 'redteam_days_MISSED', 'recall_pct',
@@ -662,7 +663,7 @@ function drawCharts(bench) {
   }
 }
 
-/* ------------------------------------------------------------------ boot */
+// boot
 async function main() {
   const status = $('#wb-status');
 
@@ -683,7 +684,7 @@ async function main() {
   $('#prov-recorded').innerHTML =
     `The Spark benchmark, the streaming lag, and the graph timings were measured on ` +
     `<b>${e?.cpu ?? 'a laptop'}</b> (${e?.cpu_count ?? '?'} vCPU, ${e?.memory_total_gb ?? '?'} GB) ` +
-    `under ${e?.host ?? 'Docker'} on <b>${when ?? '—'}</b>, and are replayed here from the ` +
+    `under ${e?.host ?? 'Docker'} on <b>${when ?? '-'}</b>, and are replayed here from the ` +
     `committed artifacts in <code>/bench</code>. The graph paths are real Neo4j ` +
     `<code>shortestPath()</code> results, precomputed because a browser cannot run Cypher.`;
 
@@ -701,8 +702,7 @@ async function main() {
       fetch('data/paths.json').then((r) => r.json()),
     ]);
 
-    // paths.json is {what, cypher, paths: [...], blast_radius: [...]} — hand the explorer the
-    // ARRAY, not the envelope.
+    // paths.json is an envelope. The explorer wants the array inside it.
     const explorer = new PathExplorer($('#graph-canvas'), graph, paths.paths);
     const users = [...new Set(paths.paths.flatMap((p) => [p.from_user, p.to_user]))].sort();
     const from = $('#g-from');
@@ -734,9 +734,9 @@ async function main() {
         `<div class="path-hops">${hops}</div>`;
     };
 
-    // Default to a pair that HAS a path. Defaulting alphabetically lands on two identities the
-    // exporter never queried, so the panel opens on "no path found" — which reads like the
-    // feature is broken rather than like the graph is sparse.
+    // Default to a pair that has a path. Alphabetical order lands on two identities the
+    // exporter never queried, so the panel opens on "no path found", which reads like the
+    // feature is broken.
     if (paths.paths.length) {
       from.value = paths.paths[0].from_user;
       to.value = paths.paths[0].to_user;
@@ -748,7 +748,7 @@ async function main() {
     $('#g-labels').addEventListener('change', (ev) => explorer.setLabels(ev.target.checked));
   } catch (err) {
     $('#graph-canvas').innerHTML =
-      `<p style="padding:var(--s5);color:var(--fg-dim)">Graph export not found — run ` +
+      `<p style="padding:var(--s5);color:var(--fg-dim)">Graph export not found, run ` +
       `<code>make graph</code>.</p>`;
     console.warn('graph export missing', err);
   }
@@ -791,12 +791,12 @@ async function main() {
     }
   });
 
-  /* DuckDB last — the page is fully readable before the 35 MB wasm lands. */
+  // DuckDB last. The page is fully readable before the wasm lands.
   try {
     await initDuckDB(bench, status);
     $('#wb-run').disabled = false;
     status.className = 'wb-status ok';
-    status.textContent = 'DuckDB ready — press Run (or ⌘/Ctrl + Enter)';
+    status.textContent = 'DuckDB ready, press Run (or ⌘/Ctrl + Enter)';
     await runQuery(editor.value, status, result);
   } catch (err) {
     status.className = 'wb-status error';

@@ -14,7 +14,7 @@ select = [
 ]
 ignore = [
     "E501",  # line length is handled by the formatter, and the long docstrings here are
-             # deliberate — they carry the provenance notes.
+             # deliberate, they carry the provenance notes.
 ]
 
 [tool.ruff.lint.per-file-ignores]

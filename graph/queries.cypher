@@ -1,4 +1,4 @@
-// Tarn — Stage 4. Privilege-path queries over the identity->computer authentication graph.
+// Tarn, Stage 4. Privilege-path queries over the identity->computer authentication graph.
 //
 // The graph:  (:User)-[:AUTH {count, first_seen, last_seen, success_ratio, is_redteam}]->(:Computer)
 //
@@ -11,12 +11,12 @@
 
 
 // ---------------------------------------------------------------------------------------
-// Q-G1 — THE PATHS-TO-PRIVILEGE QUERY.
+// Q-G1, THE PATHS-TO-PRIVILEGE QUERY.
 // "Given a compromised identity, what is the shortest authentication path from it to a
 //  high-value identity, and which hosts does that path pivot through?"
 //
 // Undirected traversal is correct here even though AUTH is a directed edge: an attacker on
-// a shared host does not care which direction the original authentication went — the host
+// a shared host does not care which direction the original authentication went, the host
 // is a meeting point either way. Bounding at 6 hops (3 user-to-user hops) keeps it from
 // exploring the whole graph; anything longer is not an attack path, it is a rumour.
 // ---------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ RETURN
 
 
 // ---------------------------------------------------------------------------------------
-// Q-G2 — BLAST RADIUS.
+// Q-G2, BLAST RADIUS.
 // "If this identity is compromised, what can be reached from it within k hops, and how does
 //  that compare to a normal user?"
 //
@@ -41,7 +41,7 @@ RETURN
 //
 // NOTE ON WHAT hop3_hosts COUNTS. Cypher enforces relationship uniqueness within a path, so
 // an edge cannot be traversed twice: the walk start -> C -> peer -> C is not a path, and C
-// is therefore excluded from the 3-hop set. That is the semantics we want — hop3 means
+// is therefore excluded from the 3-hop set. That is the semantics we want, hop3 means
 // "hosts reachable THROUGH a peer", not "every host seen along the way". Hosts the identity
 // already touches directly are counted at hop 1 and would otherwise be double-counted here,
 // silently inflating the blast radius.
@@ -71,7 +71,7 @@ RETURN
 
 
 // ---------------------------------------------------------------------------------------
-// Q-G3 — THE RED TEAM'S ACTUAL MOVEMENT SUBGRAPH.
+// Q-G3, THE RED TEAM'S ACTUAL MOVEMENT SUBGRAPH.
 // "What did the attacker really touch, and how much of it was new?"
 //
 // This is the query the whole dataset exists for. It returns only the edges LANL labelled
@@ -88,14 +88,14 @@ ORDER BY a.first_seen;
 
 
 // ---------------------------------------------------------------------------------------
-// Q-G4 — THE ATTACKER vs. ITS OWN BASELINE.
+// Q-G4, THE ATTACKER vs. ITS OWN BASELINE.
 // "Did the compromised accounts behave differently from how they normally behave, and from
 //  how everyone else behaves?"
 //
 // The honest comparison. For each compromised identity: how many hosts it reached on
 // red-team edges vs. how many it reaches in total (its benign footprint). An account whose
 // red-team fan-out is a small fraction of its normal fan-out is one a fan-out detector was
-// never going to catch — and saying so is the point of Q5 in the warehouse.
+// never going to catch, and saying so is the point of Q5 in the warehouse.
 // ---------------------------------------------------------------------------------------
 MATCH (u:User {is_compromised: true})
 OPTIONAL MATCH (u)-[rt:AUTH {is_redteam: true}]->(rtc:Computer)
@@ -112,7 +112,7 @@ LIMIT 25;
 
 
 // ---------------------------------------------------------------------------------------
-// Q-G5 — CHOKE POINTS.
+// Q-G5, CHOKE POINTS.
 // "Which hosts, if hardened, would break the most privilege paths?"
 //
 // Degree centrality as a defensive prioritisation: hosts touched by many distinct
