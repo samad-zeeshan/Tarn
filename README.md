@@ -24,6 +24,31 @@ Mostly, the answer is no. That is written down below, and on the site.
 
 ---
 
+## How it works
+
+Spark turns the LANL login log into a Parquet lake, dbt and DuckDB build a star schema on top of it, a replay through Redpanda feeds a streaming job, Neo4j holds who can reach whom, and the demo site runs the SQL in your browser.
+
+![System overview](docs/diagrams/overview.png)
+Every stage and what it reads and writes. Only the SQL and the lookalike search run live on the site.
+
+![One SQL query in the browser](docs/diagrams/main-flow.png)
+A query on the demo, step by step: DuckDB-WASM reads only the Parquet column chunks it needs from GitHub Pages.
+
+![Batch pipeline into the star schema](docs/diagrams/pipeline.png)
+Raw CSV to a date-partitioned lake, a per-person-day rollup, and a dbt star schema whose fact table is a view over the Parquet.
+
+![Streaming rollup replay](docs/diagrams/streaming.png)
+Events replayed from the lake into Redpanda, windowed per user by Spark Structured Streaming, and read back by dbt.
+
+![Data model](docs/diagrams/data-model.png)
+The DuckDB star schema and the User to Computer graph in Neo4j.
+
+![Where each piece runs](docs/diagrams/deployment.png)
+One Docker image runs every stage next to Redpanda and Neo4j; GitHub Actions tests a small committed slice and deploys the site.
+
+Interactive versions with pan, zoom and theme switch (data-model.html has the theme switch only): `docs/diagrams/overview.html`, `docs/diagrams/main-flow.html`, `docs/diagrams/pipeline.html`, `docs/diagrams/streaming.html`, `docs/diagrams/data-model.html`, `docs/diagrams/deployment.html`
+
+
 ## The pipeline
 
 ```
