@@ -2,6 +2,7 @@
 Spark Structured Streaming: 1-minute tumbling windows per identity, watermarked.
 
 Consumes replayed auth events from Redpanda and appends to Parquet that dbt reads as a mart.
+With --graph-model it also scores every candidate login with the v2 graph detector.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from pyspark.sql.types import (
     TimestampType,
 )
 
+from eval import protocol
 from pipeline.common import spark_session
 
 KAFKA_PACKAGE = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3"
@@ -78,6 +80,30 @@ def windowed_aggregate(events, window: str, watermark: str):
     )
 
 
+def candidate_events(events):
+    """The protocol's candidate filter, so the stream scores exactly what the batch run scores."""
+    return (
+        events.withColumn("src_is_machine", F.col("src_user").rlike(r"\$@"))
+        .filter(F.expr(protocol.CANDIDATE_FILTER))
+        .select("time", "src_user", "src_computer", "dst_computer",
+                (F.col("outcome") == "Fail").alias("fail"))
+    )
+
+
+def graph_sink(scorer, sink: Path):
+    """foreachBatch body. The scorer keeps its graph state on the driver between batches."""
+    sink.mkdir(parents=True, exist_ok=True)
+
+    def commit(batch_df, batch_id: int) -> None:
+        # The detector's state is sequential by nature, one login after another in time order,
+        # so the micro-batch comes to the driver. Candidates are a tenth of the traffic.
+        scored = scorer.process(batch_df.toPandas())
+        if len(scored):
+            scored.to_parquet(sink / f"batch-{batch_id:06d}.parquet", index=False)
+
+    return commit
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     ap.add_argument("--topic", default="tarn.auth")
@@ -90,6 +116,9 @@ def main() -> int:
     ap.add_argument("--trigger", default="5 seconds")
     ap.add_argument("--duration", type=int, default=300)
     ap.add_argument("--starting-offsets", default="earliest", choices=["earliest", "latest"])
+    ap.add_argument("--graph-work", default=None, help="detect/graph/extract.py output")
+    ap.add_argument("--graph-model", default=None, help="detect/graph/run.py output")
+    ap.add_argument("--graph-sink", default="/data/lake/graph_scores")
     args = ap.parse_args()
 
     spark = spark_session(
@@ -172,6 +201,19 @@ def main() -> int:
         .start()
     )
 
+    graph_query = None
+    if args.graph_model:
+        from detect.graph.stream import GraphScorer
+
+        scorer = GraphScorer.load(Path(args.graph_work), Path(args.graph_model))
+        graph_query = (
+            candidate_events(events).writeStream
+            .foreachBatch(graph_sink(scorer, Path(args.graph_sink)))
+            .option("checkpointLocation", args.checkpoint + "-graph")
+            .trigger(processingTime=args.trigger)
+            .start()
+        )
+
     print(f"[stream] running for {args.duration}s "
           f"(window={args.window}, watermark={args.watermark}, trigger={args.trigger})")
 
@@ -190,6 +232,13 @@ def main() -> int:
     Path("/data/work/stream_progress.json").write_text(json.dumps(progress, indent=2) + "\n")
 
     query.stop()
+    if graph_query is not None:
+        graph_query.stop()
+        tail = scorer.close()
+        if len(tail):
+            tail.to_parquet(Path(args.graph_sink) / "batch-final.parquet", index=False)
+        print(f"[stream] graph detector scored {scorer.scored:,} logins, "
+              f"dropped {scorer.engine.late} late ones")
     spark.stop()
     print(f"[stream] stopped, {len(progress)} progress records captured")
     return 0
