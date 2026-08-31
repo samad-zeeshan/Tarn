@@ -148,9 +148,10 @@ def main() -> int:
     ap.add_argument("--work", required=True, help="detect/graph/extract.py output")
     ap.add_argument("--scores", required=True, help="detect/graph/run.py output")
     ap.add_argument("--budget", type=int, default=protocol.BUDGET_PER_DAY)
+    ap.add_argument("--name", default="alerts.jsonl")
     args = ap.parse_args()
     alerts = build_alerts(Path(args.work), Path(args.scores), args.budget)
-    path = Path(args.scores) / "alerts.jsonl"
+    path = Path(args.scores) / args.name
     with path.open("w") as fh:
         for a in alerts:
             fh.write(json.dumps(a) + "\n")

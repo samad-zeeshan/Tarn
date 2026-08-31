@@ -13,7 +13,7 @@ import pytest
 
 from detect.graph.features import FEATURES, FeatureEngine, FitContext
 from detect.graph.model import GROUPS, HistogramModel
-from detect.graph.verify import verify_point_in_time
+from detect.graph.verify import LeakyControl, verify_point_in_time
 from eval import protocol
 
 H = 3600
@@ -92,27 +92,8 @@ def test_verifier_passes_the_real_engine(seed):
     assert report["passed"], report
 
 
-class LeakyEngine(FeatureEngine):
-    """Counts the user's new hosts for the whole day, including ones that have not happened."""
-
-    def __init__(self, ctx, future=None):
-        super().__init__(ctx)
-        self._future = future
-
-    def prepare(self, t, u, s, d, f):
-        seen, per_day = set(), {}
-        for ti, ui, di in zip(t, u, d, strict=True):
-            if (ui, di) not in seen:
-                seen.add((ui, di))
-                per_day[(ui, ti // 86_400)] = per_day.get((ui, ti // 86_400), 0) + 1
-        self._future = per_day
-
-    def _today_new(self, u, t):
-        return self._future.get((u, t // 86_400), 0)
-
-
 def test_verifier_catches_a_feature_that_reads_the_future():
-    report = verify_point_in_time(_random_stream(4), LeakyEngine, FitContext.empty(),
+    report = verify_point_in_time(_random_stream(4), LeakyControl, FitContext.empty(),
                                   cuts=12, seed=4)
     assert not report["passed"]
     assert report["mismatches"] > 0
