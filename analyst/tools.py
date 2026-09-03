@@ -24,6 +24,12 @@ class ToolStore:
         self.users = users
         self.hosts = hosts
         self.user_ids = {v: k for k, v in users.items()}
+        # Small models often drop the domain ("U12" for "U12@DOM1"). A bare name that maps to
+        # exactly one account is resolved, an ambiguous one is not.
+        bare: dict[str, list] = {}
+        for name, uid in self.user_ids.items():
+            bare.setdefault(name.split("@")[0], []).append(uid)
+        self.bare_ids = {k: v[0] for k, v in bare.items() if len(v) == 1}
         self.host_ids = {v: k for k, v in hosts.items()}
         self.alerts = sorted(alerts, key=lambda a: a["time"])
         self.edge_src, self.edge_dst, self.edge_first = edge_src, edge_dst, edge_first
@@ -62,8 +68,12 @@ class ToolStore:
         return cls(ev["time"], ev["uid"], ev["sid"], ev["did"], users, hosts, alerts,
                    g["sid"], g["did"], g["first"])
 
-    def _logins(self, account: str, as_of: int, since: int | None = None):
+    def resolve(self, account: str) -> int | None:
         uid = self.user_ids.get(account)
+        return uid if uid is not None else self.bare_ids.get(account.split("@")[0])
+
+    def _logins(self, account: str, as_of: int, since: int | None = None):
+        uid = self.resolve(account)
         if uid is None or uid not in self.span:
             return None
         a, b = self.span[uid]

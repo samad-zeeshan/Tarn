@@ -44,6 +44,12 @@ def test_tools_never_see_past_the_alert(store):
     assert "C14" not in [h["host"] for h in reached["result"]["hosts"]]
 
 
+def test_account_without_its_domain_still_resolves(store):
+    got = Registry(store, as_of=500).call("who_is", {"account": "U1"})
+    assert got["result"]["known"] is True
+    assert got["result"]["logins"] == 2
+
+
 def test_path_to_uses_only_edges_that_existed(store):
     early = Registry(store, as_of=150).call("path_to", {"source": "C10", "destination": "C12"})
     assert early["result"]["path"] is None
