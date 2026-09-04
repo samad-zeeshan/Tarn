@@ -176,7 +176,7 @@ def build(alerts_path: Path, work: Path, out: Path) -> dict:
         "size": len(chosen),
         "seed": SEED,
         "stream": {"attack": stream_attacks, "benign": len(alerts) - stream_attacks},
-        "items": [{"alert_id": a["alert_id"], "truth": t} for a, t in chosen],
+        "items": [{"alert_id": a["alert_id"], "truth": t, "alert": a} for a, t in chosen],
     }
     out.mkdir(parents=True, exist_ok=True)
     (out / "benchmark.json").write_text(json.dumps(bench, indent=1) + "\n")
