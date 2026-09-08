@@ -128,6 +128,27 @@ jobs:
             --scores-out /tmp/tarn/vector_scores \
             --out /tmp/tarn/results/vector_eval.json
 
+      # v2 on the slice: extract, point-in-time features, both models, explanations, the fair
+      # scorer, and the leakage replay. The committed numbers come from the full lake, these
+      # prove the same code path runs end to end.
+      - name: v2, graph detector on the slice
+        run: |
+          python detect/graph/extract.py --out /tmp/tarn/v2
+          python detect/graph/run.py --work /tmp/tarn/v2 --out /tmp/tarn/v2/out
+          python detect/graph/gnn.py --work /tmp/tarn/v2 \
+            --scores /tmp/tarn/v2/out/scores.parquet --out /tmp/tarn/v2/gnn
+          python detect/graph/explain.py --work /tmp/tarn/v2 --scores /tmp/tarn/v2/out
+          python eval/score.py --work /tmp/tarn/v2 --scores /tmp/tarn/v2/out \
+            --warehouse /tmp/tarn_ci.duckdb --lake /tmp/tarn/lake \
+            --extra gnn=/tmp/tarn/v2/gnn/scores.parquet \
+            --data-label "committed CI slice" --out /tmp/tarn/results/detectors.json
+          python detect/graph/verify.py --work /tmp/tarn/v2 --scores /tmp/tarn/v2/out \
+            --accounts 100000 --days 8 --data-label "committed CI slice" \
+            --out /tmp/tarn/results/verifier.json
+
+      - name: README numbers match eval/results
+        run: python eval/readme.py --check
+
       - name: Show Q5 (would the analytics have caught the attacker?)
         run: cat /tmp/tarn/results/q5_redteam_enrichment.csv
 

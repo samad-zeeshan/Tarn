@@ -54,22 +54,24 @@ def verify_point_in_time(events, engine_cls, ctx, cuts: int = 20, seed: int = 0)
 
 
 class LeakyControl(FeatureEngine):
-    """A negative control. Its Q3 rule counts the whole day's new hosts, future ones included.
+    """A negative control. Its burst feature counts new hosts in the next hour as well as the last.
 
     The verifier must fail on this engine, on the same data it passes the real one on, or the
     pass means nothing.
     """
 
     def prepare(self, t, u, s, d, f):
-        seen, per_day = set(), {}
+        seen, firsts = set(), {}
         for ti, ui, di in zip(t, u, d, strict=True):
             if (ui, di) not in seen:
                 seen.add((ui, di))
-                per_day[(ui, ti // 86_400)] = per_day.get((ui, ti // 86_400), 0) + 1
-        self._future = per_day
+                firsts.setdefault(ui, []).append(ti)
+        self._firsts = firsts
 
-    def _today_new(self, u, t):
-        return self._future.get((u, t // 86_400), 0)
+    def _window(self, store, key, t, width):
+        if store is not self.user_new_edges:
+            return super()._window(store, key, t, width)
+        return sum(1 for x in self._firsts.get(key, ()) if t - width < x <= t + width)
 
 
 def main() -> int:
