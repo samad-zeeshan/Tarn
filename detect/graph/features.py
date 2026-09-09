@@ -11,17 +11,19 @@ from dataclasses import dataclass, field
 
 from eval import protocol
 
+# What each value means in plain words is in detect/graph/explain.py, next to the alert text
+# that uses it. The r_ features are v1's rules restated so they only look backwards.
 FEATURES = (
-    "edge_new",            # user has never logged into this destination before
-    "src_new",             # user has never logged in from this source before
-    "gap",                 # log2 seconds since the user last reached this destination
-    "burst_1h",            # new destinations for the user in the past hour
-    "src_new_users_24h",   # accounts that used this source host for the first time today
-    "dst_hub",             # how many accounts used the destination during the fit window
-    "hv_delta",            # hops the login saves on the way to a high-value host
-    "r_new_hosts_today",   # v1 Q3 as a point-in-time rule: five or more new hosts so far today
-    "r_fail_1h",           # v1 Q4 as a point-in-time rule: five or more failures in the hour
-    "r_off_hours",         # v1 Q2: inside the quiet band measured on the fit window
+    "edge_new",
+    "src_new",
+    "gap",
+    "burst_1h",
+    "src_new_users_24h",
+    "dst_hub",
+    "hv_delta",
+    "r_new_hosts_today",
+    "r_fail_1h",
+    "r_off_hours",
 )
 BINS = (2, 2, 24, 16, 16, 20, 7, 2, 2, 2)
 

@@ -7,6 +7,7 @@ under test, and a file source produces them the same way.
 from __future__ import annotations
 
 import json
+import os
 import random
 
 import numpy as np
@@ -78,6 +79,10 @@ def test_streamed_scores_match_the_batch_run(spark, tmp_path):
     # One event from long ago, arriving last. It must be dropped, never scored.
     late = {**events[10], "dst_computer": "C99"}
     (src / "part-9.json").write_text(json.dumps(late) + "\n")
+    # The file source reads in modification-time order, and files written in the same instant
+    # come out in any order. Spaced times make the arrival order the one written above.
+    for k, path in enumerate(sorted(src.glob("part-*.json"))):
+        os.utime(path, (1_700_000_000 + k * 10, 1_700_000_000 + k * 10))
 
     scorer = GraphScorer(ctx, model, threshold=0.0)
     stream = spark.readStream.schema(SCHEMA).option("maxFilesPerTrigger", 1).json(str(src))

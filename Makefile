@@ -16,6 +16,9 @@
 #   make vectors     Stage 4b, embed each person-day, index it, score the search honestly
 #   make site        Stage 5, build the demo payloads, then audit them
 #
+#   make v2          graph detector, explanations, fair scoring and the verifier on the lake
+#   make analyst     run the analyst benchmark against a local LM Studio model, then score it
+#
 #   make all         stages 1-5 end to end (assumes `make fetch` has run)
 #   make test        pytest across every stage
 #   make lint        ruff
@@ -97,6 +100,26 @@ graph:
 vectors:
 	$(EXEC) python pipeline/embed.py --lake $(LAKE)/auth --rollup $(LAKE)/rollup --output $(LAKE)/vectors --stats-out bench/embedding.json
 	$(EXEC) python vector/search.py --vectors $(LAKE)/vectors --rollup $(LAKE)/rollup --scores-out $(LAKE)/vector_scores --out bench/vector_eval.json
+
+# ---- v2 ------------------------------------------------------------------------
+V2 ?= /data/work/v2
+
+v2:
+	$(EXEC) python detect/graph/extract.py --lake $(LAKE) --out $(V2)
+	$(EXEC) python detect/graph/run.py --work $(V2) --out $(V2)/out
+	$(EXEC) python detect/graph/gnn.py --work $(V2) --scores $(V2)/out/scores.parquet --out $(V2)/gnn
+	$(EXEC) python detect/graph/explain.py --work $(V2) --scores $(V2)/out
+	$(EXEC) python detect/graph/explain.py --work $(V2) --scores $(V2)/out --budget 1000 --name alerts_wide.jsonl
+	$(EXEC) python eval/score.py --work $(V2) --scores $(V2)/out --warehouse $(DUCKDB) --lake $(LAKE) 		--extra gnn=$(V2)/gnn/scores.parquet --data-label "full LANL auth log"
+	$(EXEC) python detect/graph/verify.py --work $(V2) --scores $(V2)/out 		--data-label "full LANL auth log" --out eval/results/verifier.json
+
+# The model runs on the host in LM Studio, so these run on the host too.
+analyst:
+	python analyst/benchmark.py build --alerts $(V2)/out/alerts_wide.jsonl --work $(V2)
+	python analyst/benchmark.py run --alerts $(V2)/out/alerts_wide.jsonl --work $(V2)
+	python analyst/benchmark.py run --no-graph-tools --alerts $(V2)/out/alerts_wide.jsonl --work $(V2)
+	python analyst/benchmark.py score --data-label "full LANL auth log"
+	python eval/readme.py
 
 # ---- Stage 5 -----------------------------------------------------------------
 site:
