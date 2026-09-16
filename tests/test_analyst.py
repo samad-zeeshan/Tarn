@@ -106,6 +106,14 @@ def test_agent_loop_runs_tools_then_returns_a_verdict(store):
     assert run["executed_calls"] == 1
 
 
+def test_agent_gets_a_last_turn_after_its_tools_run_out(store):
+    calls = ['{"tool": "who_is", "args": {"account": "U2@D"}}'] * 4
+    final = json.dumps({"verdict": "false_positive", "confidence": 0.7})
+    run = Agent(ScriptedLLM(calls + [final]), max_steps=3).triage(ALERTS[0], store)
+    assert run["tool_calls"] == 3
+    assert run["verdict"]["verdict"] == "false_positive"
+
+
 def test_agent_that_never_answers_escalates(store):
     run = Agent(ScriptedLLM(['{"tool": "who_is", "args": {"account": "U2@D"}}'] * 20),
                 max_steps=3).triage(ALERTS[0], store)

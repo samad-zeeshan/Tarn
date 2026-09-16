@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import time
+import urllib.error
 import urllib.request
 
 from analyst.registry import Registry
@@ -85,8 +86,18 @@ class LMStudioLLM:
         }
         req = urllib.request.Request(self.url, data=json.dumps(body).encode(),
                                      headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=300) as r:
-            out = json.load(r)
+        # LM Studio answers 500 while it swaps models in and out of memory. Waiting it out is
+        # fine for a benchmark that already takes hours, and a run that never recovers still
+        # fails loudly after twenty minutes.
+        for attempt in range(40):
+            try:
+                with urllib.request.urlopen(req, timeout=300) as r:
+                    out = json.load(r)
+                break
+            except (urllib.error.URLError, TimeoutError):
+                if attempt == 39:
+                    raise
+                time.sleep(30)
         return out["choices"][0]["message"].get("content") or "", out["usage"]["total_tokens"]
 
 
@@ -134,7 +145,9 @@ class Agent:
         tokens, calls, transcript = 0, 0, []
         verdict = None
         t0 = time.perf_counter()
-        for _ in range(self.max_steps + 1):
+        # max_steps tool turns, one turn to answer, and one more after being told the tools
+        # are spent. Without that last turn a model that asks for a seventh tool never answers.
+        for _ in range(self.max_steps + 2):
             reply, used = self.llm.chat(messages)
             tokens += used
             obj = parse_reply(reply)
