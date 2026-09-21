@@ -1,74 +1,16 @@
 /*
- * The demo page.
+ * The demo page: wires the replay, the detector views, the charts and the in-browser database.
  *
- * No metric is ever typed into this page. Every number a visitor sees is read out of
- * data/bench.json, and site/audit.py fails the build if the HTML hard-codes one.
+ * No metric is typed into the page. Every number is read from data/*.json, and site/audit.py
+ * fails the build if the HTML hard-codes one.
  */
 
-import * as duckdb from './vendor/duckdb/duckdb-browser.mjs';
 import { barChart, lineChart, table, fmt } from './charts.js';
-import { PathExplorer } from './graph.js';
 import { setupTriage } from './triage.js';
+import { setupNight } from './night.js';
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
-// theme
-const savedTheme = localStorage.getItem('tarn-theme');
-if (savedTheme) document.documentElement.dataset.theme = savedTheme;
-else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-  document.documentElement.dataset.theme = 'light';
-}
-
-$('#theme-toggle').addEventListener('click', () => {
-  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = next;
-  localStorage.setItem('tarn-theme', next);
-  // Charts read CSS variables for colour, but the SVG text and grid colours are baked at draw
-  // time, so re-render rather than leave a half-themed chart behind.
-  if (window.__tarnRedraw) window.__tarnRedraw();
-});
-
-// cursor light
-// One rAF-throttled listener for the whole page. Writing the pointer position into CSS custom
-// properties lets the gradients do the work on the compositor instead of in JS.
-(() => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  const glow = $('#glow');
-  const root = document.documentElement;
-  let x = 0;
-  let y = 0;
-  let queued = false;
-
-  const paint = () => {
-    queued = false;
-    root.style.setProperty('--mx', `${x}px`);
-    root.style.setProperty('--my', `${y}px`);
-  };
-
-  window.addEventListener('pointermove', (e) => {
-    x = e.clientX;
-    y = e.clientY;
-    if (glow) glow.classList.add('on');
-
-    // The card under the pointer gets the position in its OWN coordinates, so its highlight
-    // tracks the cursor rather than the page.
-    const card = e.target.closest?.('.card');
-    if (card) {
-      const r = card.getBoundingClientRect();
-      card.style.setProperty('--cx', `${e.clientX - r.left}px`);
-      card.style.setProperty('--cy', `${e.clientY - r.top}px`);
-    }
-
-    if (!queued) {
-      queued = true;
-      requestAnimationFrame(paint);
-    }
-  }, { passive: true });
-
-  window.addEventListener('pointerleave', () => glow?.classList.remove('on'));
-})();
 
 // bench binding
 function dig(obj, path) {
@@ -95,119 +37,49 @@ function bindBench(bench) {
   });
 }
 
-// pipeline diagram
-function pipelineDiagram(mount) {
-  const stages = [
-    ['The raw logs', 'a billion lines'],
-    ['Spark', 'clean and summarise'],
-    ['The warehouse', 'ready to query'],
-    ['Streaming', 'count as they arrive'],
-    ['The graph', 'who reaches what'],
-    ['This page', 'live in your browser'],
-  ];
-  const W = 1100;
-  const H = 84;
-  const boxW = 158;
-  const gap = (W - stages.length * boxW) / (stages.length - 1);
-
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.setAttribute('role', 'img');
-  svg.setAttribute(
-    'aria-label',
-    'The pipeline: raw logs, then Spark, then a warehouse, then a streaming job, then a graph ' +
-      'database, and finally this page.',
-  );
-
-  stages.forEach(([name, sub], i) => {
-    const x = i * (boxW + gap);
-    const g = document.createElementNS(ns, 'g');
-
-    const rect = document.createElementNS(ns, 'rect');
-    rect.setAttribute('x', x);
-    rect.setAttribute('y', 16);
-    rect.setAttribute('width', boxW);
-    rect.setAttribute('height', 52);
-    rect.setAttribute('rx', 8);
-    rect.setAttribute('fill', 'var(--surface)');
-    rect.setAttribute('stroke', i === stages.length - 1 ? 'var(--accent)' : 'var(--border)');
-    g.append(rect);
-
-    const t1 = document.createElementNS(ns, 'text');
-    t1.setAttribute('x', x + boxW / 2);
-    t1.setAttribute('y', 38);
-    t1.setAttribute('text-anchor', 'middle');
-    t1.setAttribute('font-size', 12);
-    t1.setAttribute('font-family', 'var(--sans)');
-    t1.setAttribute('font-weight', 500);
-    t1.setAttribute('fill', i === stages.length - 1 ? 'var(--accent)' : 'var(--fg)');
-    t1.textContent = name;
-    g.append(t1);
-
-    const t2 = document.createElementNS(ns, 'text');
-    t2.setAttribute('x', x + boxW / 2);
-    t2.setAttribute('y', 55);
-    t2.setAttribute('text-anchor', 'middle');
-    t2.setAttribute('font-size', 10);
-    t2.setAttribute('font-family', 'var(--mono)');
-    t2.setAttribute('fill', 'var(--fg-dim)');
-    t2.textContent = sub;
-    g.append(t2);
-
-    if (i < stages.length - 1) {
-      const line = document.createElementNS(ns, 'path');
-      const x0 = x + boxW + 6;
-      const x1 = x + boxW + gap - 6;
-      line.setAttribute('d', `M${x0},42 L${x1},42 M${x1 - 5},38 L${x1},42 L${x1 - 5},46`);
-      line.setAttribute('stroke', 'var(--axis)');
-      line.setAttribute('stroke-width', 1.4);
-      line.setAttribute('fill', 'none');
-      g.append(line);
-    }
-    svg.append(g);
-  });
-
-  mount.innerHTML = '';
-  mount.append(svg);
-}
-
 // DuckDB-WASM
 let db = null;
 let conn = null;
+let dbPromise = null;
 
+// The wasm is most of the page's weight, so nothing about DuckDB is fetched until the reader
+// reaches the SQL or lookalike section, or presses the button. The first screen never waits on it.
 async function initDuckDB(bench, status) {
-  status.textContent = 'Starting the database…';
+  const t0 = performance.now();
+  const bar = $('#wb-load-bar');
+  $('#wb-load').hidden = false;
+  status.className = 'status';
+  status.textContent = 'Downloading the database…';
 
+  const duckdb = await import('./vendor/duckdb/duckdb-browser.mjs');
   // The worker is loaded from a blob so its URL resolves under a GitHub Pages sub-path rather
   // than assuming the domain root.
   const workerUrl = new URL('./vendor/duckdb/duckdb-browser-eh.worker.js', import.meta.url);
   const wasmUrl = new URL('./vendor/duckdb/duckdb-eh.wasm', import.meta.url);
-
   const worker = new Worker(
-    URL.createObjectURL(
-      new Blob([`importScripts("${workerUrl}");`], { type: 'text/javascript' }),
-    ),
+    URL.createObjectURL(new Blob([`importScripts("${workerUrl}");`], { type: 'text/javascript' })),
   );
-  const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
-  db = new duckdb.AsyncDuckDB(logger, worker);
-  await db.instantiate(wasmUrl.toString());
-
+  db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING), worker);
+  await db.instantiate(wasmUrl.toString(), null, (p) => {
+    if (!p?.bytesTotal) return;
+    const f = p.bytesLoaded / p.bytesTotal;
+    bar.style.transform = `scaleX(${f})`;
+    status.textContent = `Downloading the database, ${Math.round(f * 100)}%…`;
+  });
+  bar.style.transform = 'scaleX(1)';
   conn = await db.connect();
 
-  status.textContent = 'Downloading the results…';
-
+  status.textContent = 'Linking the results…';
   // Registered over HTTP, so DuckDB range-requests only the column chunks a query touches.
-  const extracts = bench.extracts || {};
   const names = [];
-  for (const [name, meta] of Object.entries(extracts)) {
+  for (const [name, meta] of Object.entries(bench.extracts || {})) {
     const url = new URL(`./${meta.file}`, import.meta.url).toString();
     await db.registerFileURL(`${name}.parquet`, url, duckdb.DuckDBDataProtocol.HTTP, false);
-    await conn.query(
-      `create or replace view ${name} as select * from read_parquet('${name}.parquet')`,
-    );
+    await conn.query(`create or replace view ${name} as select * from read_parquet('${name}.parquet')`);
     names.push(`${name} (${(meta.rows ?? 0).toLocaleString('en-US')} rows, ${meta.mb} MB)`);
   }
+  window.__duckdbReadyMs = Math.round(performance.now() - t0);
+  $('#wb-load').hidden = true;
 
   $('#wb-schema').textContent =
     'Tables your browser now holds, and can query:\n\n' +
@@ -217,7 +89,6 @@ async function initDuckDB(bench, status) {
     '\nwould be smaller and quicker to leave the machine accounts out, but the scores in the' +
     '\nlast question are fractions of that whole group. Dropping them would quietly flatter the' +
     '\nresults, and this page would be lying in the one place it claims to be live.';
-
   return conn;
 }
 
@@ -360,7 +231,7 @@ order by recall_pct desc nulls last;`,
   },
   {
     id: 'free',
-    label: '✎ ask your own',
+    label: 'Ask your own',
     finding:
       'Over to you. The tables are <code>rollup</code> (a row per person per day), ' +
       '<code>dim_identity</code> (people), <code>dim_computer</code> (machines), ' +
@@ -412,7 +283,7 @@ function renderResult(mount, result) {
 
 async function runQuery(sql, statusEl, resultEl) {
   if (!conn) return;
-  statusEl.className = 'wb-status';
+  statusEl.className = 'status';
   statusEl.textContent = 'Working…';
   const t0 = performance.now();
   try {
@@ -420,11 +291,11 @@ async function runQuery(sql, statusEl, resultEl) {
     const ms = performance.now() - t0;
     const n = renderResult(resultEl, res);
     resultEl.hidden = false;
-    statusEl.className = 'wb-status ok';
+    statusEl.className = 'status ok';
     statusEl.textContent =
       `${n.toLocaleString('en-US')} row${n === 1 ? '' : 's'} in ${ms.toFixed(0)} ms, on your machine`;
   } catch (err) {
-    statusEl.className = 'wb-status error';
+    statusEl.className = 'status error';
     statusEl.textContent = String(err.message || err);
     resultEl.hidden = true;
   }
@@ -449,8 +320,8 @@ function drawCharts(bench) {
     // Colour follows the entity, not the rank. Re-running the benchmark must not repaint the
     // bars just because the order changed.
     const color = {
-      baseline: 'var(--series-1)',
-      broadcast_only: 'var(--series-3)',
+      baseline: 'var(--series-3)',
+      broadcast_only: 'var(--series-1)',
       dedup_only: 'var(--series-2)',
       both: 'var(--series-2)',
     };
@@ -518,9 +389,9 @@ function drawCharts(bench) {
     const rows = [
       { label: 'p50', ms: lag.lag_ms.p50, color: 'var(--series-2)' },
       { label: 'p90', ms: lag.lag_ms.p90, color: 'var(--series-1)' },
-      { label: 'p95', ms: lag.lag_ms.p95, color: 'var(--series-3)' },
-      { label: 'p99', ms: lag.lag_ms.p99, color: 'var(--series-4)' },
-      { label: 'max', ms: lag.lag_ms.max, color: 'var(--series-4)' },
+      { label: 'p95', ms: lag.lag_ms.p95, color: 'var(--series-1)' },
+      { label: 'p99', ms: lag.lag_ms.p99, color: 'var(--series-3)' },
+      { label: 'max', ms: lag.lag_ms.max, color: 'var(--series-3)' },
     ];
     barChart($('#chart-lag'), {
       rows,
@@ -567,7 +438,7 @@ function drawCharts(bench) {
       series: [
         {
           name: 'human accounts',
-          color: 'var(--series-1)',
+          color: 'var(--series-2)',
           points: diurnal.histogram.map((h) => ({ hour: h.hour, events: h.human_events })),
         },
         {
@@ -586,7 +457,7 @@ function drawCharts(bench) {
     const r = diurnal.peak_to_trough_ratio;
     $('#diurnal-sub').innerHTML =
       `<span class="legend" style="margin:0">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>people, busiest hour is ${r.human_accounts}× the quietest</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--series-2)"></span>people, busiest hour is ${r.human_accounts}× the quietest</span>
         <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machines, almost flat at ${r.machine_accounts}×</span>
         <span class="legend-item"><span class="legend-swatch" style="background:var(--fg);opacity:.18"></span>the quiet hours, worked out from this</span>
       </span>`;
@@ -654,7 +525,7 @@ function drawCharts(bench) {
       `${b.at_1_hop?.pct_of_all_hosts_covered}% of the network. But give them three steps and they ` +
       `reach <em>nearly every machine there is</em>. So does everybody else. The second chart looks ` +
       `alarming and means nothing, because an ordinary employee scores the same. Even the first ` +
-      `chart is not clean, because the attacker deliberately picked powerful accounts to steal. The ` +
+      `chart is not clean, because the attacker deliberately picked privileged accounts to steal. The ` +
       `finding that survives is the table below, not this one.`;
   }
 
@@ -671,7 +542,7 @@ function drawCharts(bench) {
         tip: `Spent ${Number(d.alerts).toLocaleString('en-US')} accusations`,
       });
       bars.push({
-        label: `${label} · vectors`, v: d.vector_search_caught, color: 'var(--series-3)',
+        label: `${label} · vectors`, v: d.vector_search_caught, color: 'var(--series-2)',
         tip: `Same budget of ${Number(d.alerts).toLocaleString('en-US')} accusations`,
       });
     });
@@ -682,8 +553,8 @@ function drawCharts(bench) {
       note: 'Attack days caught, simple rules against vector search, at matched budgets',
     });
     $('#chart-vec-cap').textContent =
-      'Each pair gets the exact same number of people to accuse. Blue is the simple rule, orange ' +
-      'is the vector search. The blue bar is longer almost every time.';
+      'Each pair gets the exact same number of people to accuse. Grey is the simple rule, amber ' +
+      'is the vector search. The grey bar is longer almost every time.';
 
     table($('#vec-table'), {
       columns: [
@@ -819,7 +690,7 @@ async function setupLookalike(bench) {
 
   const run = async () => {
     const [user, date] = sel.value.split('|');
-    status.className = 'wb-status';
+    status.className = 'status';
     status.textContent = 'Searching…';
 
     const t0 = performance.now();
@@ -870,7 +741,7 @@ async function setupLookalike(bench) {
     result.hidden = false;
 
     const hits = rows.filter((r) => r.also_the_attack).length;
-    status.className = 'wb-status ok';
+    status.className = 'status ok';
     status.textContent =
       `${hits} of the 10 closest days were also part of the attack. Searched ` +
       `${Number(shipped).toLocaleString('en-US')} days in ${ms.toFixed(0)} ms, on your machine.`;
@@ -884,41 +755,24 @@ async function setupLookalike(bench) {
 }
 
 // boot
-async function main() {
-  const status = $('#wb-status');
+const whenNear = (el, fn, margin = '400px') => {
+  if (!el) return;
+  const io = new IntersectionObserver((entries) => {
+    if (!entries.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    fn();
+  }, { rootMargin: margin });
+  io.observe(el);
+};
 
-  const bench = await (await fetch('data/bench.json')).json();
-  window.__bench = bench;
-
-  bindBench(bench);
-  pipelineDiagram($('#pipeline'));
-  drawCharts(bench);
-  window.__tarnRedraw = () => {
-    pipelineDiagram($('#pipeline'));
-    drawCharts(bench);
-  };
-
-  /* footer provenance, from the artifacts */
-  const e = bench.spark_opt?.environment;
-  const when = bench.spark_opt?.measured_at?.slice(0, 10);
-  $('#prov-recorded').innerHTML =
-    `Everything else on this page. The speed test, the streaming delays and the graph were measured ` +
-    `on <b>${e?.cpu ?? 'a laptop'}</b> on <b>${when ?? '-'}</b>, and what you see is played back from ` +
-    `those recordings. The routes through the graph are genuine answers from a graph database, worked ` +
-    `out ahead of time, because a browser cannot run that kind of query.`;
-
-  $('#foot-note').innerHTML =
-    `Tarn · built by <a href="https://github.com/samad-zeeshan">samad-zeeshan</a> · ` +
-    `<a href="https://github.com/samad-zeeshan/Tarn">the code</a> · ` +
-    `data from A. D. Kent, <em>Comprehensive, Multi-Source Cyber-Security Events</em>, ` +
-    `Los Alamos National Laboratory, 2015, free for anyone to use.`;
-
-  /* graph explorer */
+async function setupGraphExplorer() {
   try {
-    const [graph, paths] = await Promise.all([
+    const [{ PathExplorer }, graph, paths] = await Promise.all([
+      import('./graph.js'),
       fetch('data/graph.json').then((r) => r.json()),
       fetch('data/paths.json').then((r) => r.json()),
     ]);
+    $('#graph-canvas').innerHTML = '';
 
     // paths.json is an envelope. The explorer wants the array inside it.
     const explorer = new PathExplorer($('#graph-canvas'), graph, paths.paths);
@@ -934,9 +788,7 @@ async function main() {
     const trace = () => {
       const p = explorer.setPath(from.value, to.value);
       if (!p) {
-        readout.innerHTML =
-          '<span style="color:var(--fg-dim)">These two are not connected within six steps of ' +
-          'each other.</span>';
+        readout.textContent = 'These two are not connected within six steps of each other.';
         return;
       }
       // hop_count counts every node change, and the chain alternates person, machine, person.
@@ -948,14 +800,13 @@ async function main() {
           const what = kind === 'comp' ? 'machine' : 'person';
           return `<span class="hop ${kind}" title="${what} ${h}">${h}</span>`;
         })
-        .join('<span class="hop-arrow">→</span>');
+        .join('<span class="hop-arrow">to</span>');
       readout.innerHTML =
-        `<div style="color:var(--fg-muted)">${steps} step${steps === 1 ? '' : 's'} apart. ` +
+        `<div>${steps} step${steps === 1 ? '' : 's'} apart. ` +
         `${p.traverses_redteam
-            ? '<span style="color:var(--critical)">This route uses a link the attacker actually used.</span>'
-            : 'The attacker did not use this particular route.'}` +
-        `</div>` +
-        `<div class="path-hops">${hops}</div>`;
+          ? '<span class="signal">This route uses a link the attacker actually used.</span>'
+          : 'The attacker did not use this particular route.'}` +
+        `</div><div class="path-hops">${hops}</div>`;
     };
 
     // Default to a pair that has a path. Alphabetical order lands on two identities the
@@ -972,16 +823,18 @@ async function main() {
     $('#g-labels').addEventListener('change', (ev) => explorer.setLabels(ev.target.checked));
   } catch (err) {
     $('#graph-canvas').innerHTML =
-      `<p style="padding:var(--s5);color:var(--fg-dim)">Graph export not found, run ` +
-      `<code>make graph</code>.</p>`;
+      '<p class="small">Graph export not found, run <code>make graph</code>.</p>';
     console.warn('graph export missing', err);
   }
+}
 
-  /* workbench presets */
+function setupWorkbench(bench) {
+  const status = $('#wb-status');
   const presetBar = $('#wb-presets');
   const editor = $('#wb-editor');
   const finding = $('#wb-finding');
   const result = $('#wb-result');
+  const startBtn = $('#wb-start');
   let active = PRESETS[0];
 
   const select = (p) => {
@@ -992,44 +845,107 @@ async function main() {
     $$('.preset').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === p.id)));
   };
 
+  function start() {
+    if (dbPromise) return dbPromise;
+    startBtn.classList.add('loading');
+    startBtn.disabled = true;
+    $('#lk-status').textContent = 'Starting the database…';
+    dbPromise = (async () => {
+      try {
+        await initDuckDB(bench, status);
+        $('#wb-run').disabled = false;
+        startBtn.hidden = true;
+        status.className = 'status ok';
+        status.textContent =
+          `Ready in ${(window.__duckdbReadyMs / 1000).toFixed(1)} s. Press Run, or Ctrl and Enter.`;
+        await runQuery(editor.value, status, result);
+        await setupLookalike(bench);
+      } catch (err) {
+        status.className = 'status error';
+        status.textContent = `DuckDB failed to load: ${err.message ?? err}. Reload the page to try again.`;
+        startBtn.classList.remove('loading');
+        startBtn.disabled = false;
+        dbPromise = null;
+        console.error(err);
+      }
+    })();
+    return dbPromise;
+  }
+
   PRESETS.forEach((p) => {
     const b = document.createElement('button');
     b.className = 'preset';
+    b.type = 'button';
     b.dataset.id = p.id;
     b.textContent = p.label;
     b.setAttribute('aria-pressed', 'false');
     b.addEventListener('click', () => {
       select(p);
       if (conn) runQuery(editor.value, status, result);
+      else start();
     });
     presetBar.append(b);
   });
   select(PRESETS[0]);
 
+  const run = () => (conn ? runQuery(editor.value, status, result) : start());
   $('#wb-reset').addEventListener('click', () => select(active));
-  $('#wb-run').addEventListener('click', () => runQuery(editor.value, status, result));
+  $('#wb-run').addEventListener('click', run);
   editor.addEventListener('keydown', (ev) => {
     if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') {
       ev.preventDefault();
-      runQuery(editor.value, status, result);
+      run();
     }
   });
 
-  setupTriage().catch((err) => console.error(err));
+  startBtn.addEventListener('click', start);
+  whenNear($('#workbench'), start, '200px');
+  whenNear($('#lookalike'), start, '200px');
+}
 
-  // DuckDB last. The page is fully readable before the wasm lands.
-  try {
-    await initDuckDB(bench, status);
-    $('#wb-run').disabled = false;
-    status.className = 'wb-status ok';
-    status.textContent = 'Ready. Press Run, or Ctrl and Enter.';
-    await runQuery(editor.value, status, result);
-    await setupLookalike(bench);
-  } catch (err) {
-    status.className = 'wb-status error';
-    status.textContent = `DuckDB failed to load: ${err.message ?? err}`;
-    console.error(err);
-  }
+async function main() {
+  const [bench, night, triage] = await Promise.all([
+    fetch('data/bench.json').then((r) => r.json()),
+    fetch('data/night.json').then((r) => r.json()),
+    fetch('data/triage.json').then((r) => r.json()),
+  ]);
+  window.__bench = bench;
+  bindBench(bench);
+
+  // The replay first, since it is the first screen. Everything below it waits for idle time.
+  setupNight(night, triage).catch((err) => console.error(err));
+  setupTriage(triage);
+  setupWorkbench(bench);
+
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));
+  idle(() => {
+    drawCharts(bench);
+    const e = bench.spark_opt?.environment;
+    const when = bench.spark_opt?.measured_at?.slice(0, 10);
+    $('#prov-recorded').innerHTML =
+      `Everything else. The replay of day 1, the detector results and the agent's verdicts are read ` +
+      `from files the project committed. The speed test, the streaming delays and the graph were ` +
+      `measured on <b>${e?.cpu ?? 'a laptop'}</b> on <b>${when ?? '-'}</b>. The routes through the ` +
+      `graph are real answers from a graph database, worked out ahead of time.`;
+    $('#foot-note').innerHTML =
+      `Tarn, by <a href="https://github.com/samad-zeeshan">samad-zeeshan</a>. ` +
+      `<a href="https://github.com/samad-zeeshan/Tarn">The code</a>. ` +
+      `Data from A. D. Kent, <em>Comprehensive, Multi-Source Cyber-Security Events</em>, ` +
+      `Los Alamos National Laboratory, 2015, free for anyone to use.`;
+  }, { timeout: 1500 });
+
+  whenNear($('#graph'), setupGraphExplorer, '600px');
+
+  // Mark the section in view in the top bar, so the reader knows where they are.
+  const links = $$('.bar-nav a[href^="#"]');
+  const sections = links.map((a) => $(a.getAttribute('href'))).filter(Boolean);
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      links.forEach((a) => a.setAttribute('aria-current', String(a.getAttribute('href') === `#${en.target.id}`)));
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  sections.forEach((s) => spy.observe(s));
 }
 
 main();

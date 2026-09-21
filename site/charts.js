@@ -1,9 +1,8 @@
 /*
  * Hand rolled SVG charts. No chart library, no CDN.
  *
- * Every chart carries a direct value label and a table view. That is not decoration: the
- * palette validator warns that two light-mode slots fall under 3:1 contrast against white,
- * which obliges a non-colour channel for the value.
+ * Every chart carries a direct value label and a table view, so no reading depends on telling
+ * two colours apart on a dark screen.
  */
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -82,34 +81,19 @@ function svgRoot(w, h, title) {
 
 let gradSeq = 0;
 
-/** A left-to-right gradient of one colour, so a flat bar gets some depth. */
-function gradientFor(svg, color) {
-  let defs = svg.querySelector('defs');
-  if (!defs) {
-    defs = el('defs');
-    svg.append(defs);
-  }
-  const id = `g${gradSeq++}`;
-  const lg = el('linearGradient', { id, x1: '0', y1: '0', x2: '1', y2: '0' });
-  lg.append(el('stop', { offset: '0%', 'stop-color': color, 'stop-opacity': 0.72 }));
-  lg.append(el('stop', { offset: '100%', 'stop-color': color, 'stop-opacity': 1 }));
-  defs.append(lg);
-  return `url(#${id})`;
-}
-
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** Grow a bar out from the baseline the first time it is drawn. */
+/** Grow a bar out from the baseline the first time it is drawn. Scale, not width, so it stays on the compositor. */
 function growIn(rect, width) {
-  if (REDUCED) {
-    rect.setAttribute('width', width);
-    return;
-  }
-  rect.setAttribute('width', 0);
-  requestAnimationFrame(() => {
-    rect.style.transition = 'width 720ms cubic-bezier(0.16, 1, 0.3, 1)';
-    rect.setAttribute('width', width);
-  });
+  rect.setAttribute('width', width);
+  if (REDUCED) return;
+  rect.style.transformBox = 'fill-box';
+  rect.style.transformOrigin = 'left center';
+  rect.style.transform = 'scaleX(0)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    rect.style.transition = 'transform 640ms cubic-bezier(0.23, 1, 0.32, 1)';
+    rect.style.transform = 'scaleX(1)';
+  }));
 }
 
 /** Round the axis top up so it reads in human numbers. */
@@ -166,21 +150,14 @@ export function barChart(mount, { rows, valueKey, labelKey, colorKey, format, no
     );
 
     const barH = rowH - 20;
-    svg.append(
-      el('rect', {
-        x: padL, y: y + 10, width: plot, height: barH,
-        rx: 5, fill: 'var(--track)',
-      }),
-    );
-
     const bar = el('rect', {
       x: padL, y: y + 10, height: barH,
-      rx: 5, fill: gradientFor(svg, color),
+      rx: 1.5, fill: color,
     });
     interactive(
       bar,
       `<div><b>${r[labelKey]}</b></div><div><span class="tip-k">value</span> ${format(v)}</div>` +
-        (r.tip ? `<div style="margin-top:4px;color:var(--fg-muted)">${r.tip}</div>` : ''),
+        (r.tip ? `<div class="tip-note">${r.tip}</div>` : ''),
       `${r[labelKey]}: ${format(v)}`,
     );
     svg.append(bar);
@@ -281,20 +258,20 @@ export function lineChart(mount, { series, xKey, yKey, xLabel, yLabel, xTicks })
     const defs = svg.querySelector('defs') || svg.insertBefore(el('defs'), svg.firstChild);
     const areaId = `a${gradSeq++}`;
     const ag = el('linearGradient', { id: areaId, x1: '0', y1: '0', x2: '0', y2: '1' });
-    ag.append(el('stop', { offset: '0%', 'stop-color': s.color, 'stop-opacity': 0.22 }));
+    ag.append(el('stop', { offset: '0%', 'stop-color': s.color, 'stop-opacity': 0.14 }));
     ag.append(el('stop', { offset: '100%', 'stop-color': s.color, 'stop-opacity': 0 }));
     defs.append(ag);
 
     const area = `${d} L${sx(s.points[s.points.length - 1][xKey])},${H - padB} L${sx(s.points[0][xKey])},${H - padB} Z`;
     svg.append(el('path', { d: area, fill: `url(#${areaId})`, stroke: 'none' }));
 
-    svg.append(el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    svg.append(el('path', { d, fill: 'none', stroke: s.color, 'stroke-width': 1.75, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
 
     s.points.forEach((p) => {
       // The 2px surface ring keeps overlapping series separable where they cross.
       const c = el('circle', {
-        cx: sx(p[xKey]), cy: sy(p[yKey]), r: 4.5,
-        fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2,
+        cx: sx(p[xKey]), cy: sy(p[yKey]), r: 3.5,
+        fill: s.color, stroke: 'var(--bg)', 'stroke-width': 2,
       });
       interactive(
         c,
@@ -310,8 +287,10 @@ export function lineChart(mount, { series, xKey, yKey, xLabel, yLabel, xTicks })
 }
 
 // The table view. An accessibility fallback, and honestly the thing a data person reads first.
-export function table(mountTable, { columns, rows, numeric = [], rowClass }) {
-  mountTable.innerHTML = '';
+export function table(mount, { columns, rows, numeric = [], rowClass }) {
+  mount.innerHTML = '';
+  // Result panels are divs, so give them a real table rather than rows floating in a div.
+  const mountTable = mount.tagName === 'TABLE' ? mount : mount.appendChild(document.createElement('table'));
   const thead = document.createElement('thead');
   const htr = document.createElement('tr');
   columns.forEach((c) => {
@@ -333,7 +312,7 @@ export function table(mountTable, { columns, rows, numeric = [], rowClass }) {
       const key = c.key ?? c;
       const td = document.createElement('td');
       const raw = r[key];
-      td.textContent = c.format ? c.format(raw, r) : raw ?? ', ';
+      td.textContent = c.format ? c.format(raw, r) : raw ?? '-';
       if (numeric.includes(key)) td.className = 'n';
       tr.append(td);
     });

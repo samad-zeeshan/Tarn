@@ -4,8 +4,8 @@ Tarn takes a billion real login records from a US national lab, where 749 are a 
 
 ### [Open the demo](https://samad-zeeshan.github.io/Tarn/)
 
-![The demo: a normal day, an attack day, one alert explained, the analyst's verdict](docs/demo.gif)
-A 90-second walkthrough is in [docs/demo.webm](docs/demo.webm). The page replays recorded runs, and its SQL box runs live in your browser.
+![The demo: one day of logins drawn as a graph, alerts arriving with the analyst's verdicts, then the agent reading first](docs/demo.gif)
+A 90-second walkthrough is in [docs/demo.webm](docs/demo.webm). The page replays recorded runs, and its SQL box runs live in your browser once you scroll to it.
 
 ## How it works
 

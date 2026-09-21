@@ -1,18 +1,22 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tarn: finding an attacker in a billion login records</title>
-<meta name="description" content="A billion real login records from a national lab, run through Spark, a DuckDB warehouse, a streaming job and a graph database. The attack is in there, and you can query for it in your browser.">
+<title>Tarn: one day on a real network, and the alerts it raised</title>
+<meta name="description" content="Real login records from a national lab, a graph detector scored against the lab's answer key, and an AI analyst that sorts the alerts. Replayed in your browser, with a live SQL box.">
+<meta name="theme-color" content="#0b0d10">
+<meta property="og:title" content="Tarn: one day on a real network">
+<meta property="og:description" content="A graph detector and an AI analyst, checked against a national lab's answer key.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preload" href="vendor/fonts/FiraSans-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="vendor/fonts/FiraCode-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/BigShouldersDisplay.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/IBMPlexSans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/JetBrainsMono.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="data/night.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="styles.css">
 
 <!-- DuckDB's browser build imports Arrow by bare name, which a browser cannot resolve on its
-     own. Without this map the module throws and the whole SQL panel silently never starts.
-     Arrow is vendored next to it, so nothing is fetched from a CDN. -->
+     own. Without this map the module throws and the SQL panel never starts. -->
 <script type="importmap">
 {
   "imports": {
@@ -20,483 +24,419 @@
   }
 }
 </script>
+<script src="vendor/gsap/gsap.min.js" defer></script>
 </head>
 <body>
-<div id="glow" aria-hidden="true"></div>
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header class="top">
-  <div class="wrap top-inner">
-    <div class="brand">
+<header class="bar">
+  <div class="bar-inner">
+    <a class="brand" href="#night" aria-label="Tarn, back to the top">
       <!-- A tarn is a small mountain lake. Also, a small data lake. -->
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
         <ellipse cx="12" cy="12" rx="9.5" ry="6"/>
         <ellipse cx="12" cy="12" rx="5.5" ry="3.2"/>
         <circle cx="12" cy="12" r="1.2" fill="currentColor"/>
       </svg>
       <span>Tarn</span>
-      <span class="brand-sub">a data platform for identity security</span>
-    </div>
-    <nav class="top-nav" aria-label="Sections">
-      <a href="#workbench">Query it</a>
-      <a href="#optimization">Speed</a>
-      <a href="#streaming">Streaming</a>
-      <a href="#graph">The graph</a>
+    </a>
+    <nav class="bar-nav" aria-label="Sections">
+      <a href="#night">The day</a>
+      <a href="#triage">Detectors</a>
+      <a href="#workbench">Ask the data</a>
       <a href="#lookalike">Lookalikes</a>
-      <a href="#provenance">Honesty</a>
+      <a href="#platform">Under the hood</a>
+      <a href="https://github.com/samad-zeeshan/Tarn">Code</a>
     </nav>
-    <button class="theme-toggle" id="theme-toggle" aria-label="Switch between light and dark">
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
-      </svg>
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
-      </svg>
-    </button>
+    <div class="bar-clock" aria-hidden="true">
+      <span class="clock-day" id="clock-day">day 1</span>
+      <span class="clock-t" id="clock-t">t+ 00:00:00</span>
+    </div>
   </div>
 </header>
 
 <main id="main">
 
-<!-- ============================================================ HERO -->
-<section class="hero wrap">
-  <p class="eyebrow">Spark · Warehouse · Streaming · Graph</p>
-  <h1>A billion logins,<br>and an attacker hiding in them.</h1>
+<!-- ============================================================ THE DAY -->
+<section id="night" class="night" aria-labelledby="night-title">
+  <div class="stage" id="stage">
+    <canvas id="night-canvas" aria-hidden="true"></canvas>
+    <div class="stage-tip" id="stage-tip" hidden></div>
 
-  <p class="hero-lede">
-    Los Alamos National Laboratory recorded every login on its network for 58 days. That comes to
-    <strong data-bench="dataset.auth.rows|int">-</strong> events. During those same 58 days a red
-    team ran a real attack, and the lab published the exact list of which logins were the attack.
-  </p>
-  <p class="hero-lede">
-    So there is an answer key. That is what makes this worth building. Every part of the project
-    can ask a better question than <em>how many rows are there</em>. It can ask:
-    <strong>would this have caught them?</strong>
-  </p>
-  <p class="hero-lede">
-    Mostly the answer is no, and that is all written down below. The SQL box further down is real.
-    Your browser is running a database and querying the actual results.
-  </p>
+    <div class="night-copy">
+      <h1 id="night-title">One day on a real network.<br>Find the attacker.</h1>
+      <p class="lede">
+        Each point is a person or a computer from a national lab's login records. Red lines are a
+        real attack. As the day plays, the alerts an AI analyst was handed arrive with its answers.
+      </p>
+      <p class="facts mono">
+        <span data-bench="dataset.auth.rows|int">-</span> logins over
+        <span data-bench="dataset.auth.span_days|round">-</span> days.
+        <span data-bench="dataset.redteam.rows|int">-</span> rows in the answer key.
+      </p>
+    </div>
 
-  <div class="scale-line">
-    <div class="stat">
-      <span class="stat-value" data-bench="dataset.auth.rows|int">-</span>
-      <div class="stat-label">logins</div>
-      <div class="stat-note">counted, not quoted</div>
-    </div>
-    <div class="stat">
-      <span class="stat-value" data-bench="dataset.auth.span_days|round">-</span>
-      <div class="stat-label">days recorded</div>
-      <div class="stat-note">a real network, 2015</div>
-    </div>
-    <div class="stat">
-      <span class="stat-value" data-bench="dataset.redteam.rows|int">-</span>
-      <div class="stat-label">attack logins</div>
-      <div class="stat-note">the answer key</div>
-    </div>
-    <div class="stat">
-      <span class="stat-value" data-bench="graph_stats.graph.auth_edges|int">-</span>
-      <div class="stat-label">who reaches what</div>
-      <div class="stat-note">person to machine</div>
-    </div>
-    <div class="stat">
-      <span class="stat-value" data-bench="spark_opt.headline.speedup|x">-</span>
-      <div class="stat-label">faster after tuning</div>
-      <div class="stat-note">same answer, checked</div>
+    <div class="stage-legend" aria-hidden="true">
+      <span><i class="k k-user"></i>person</span>
+      <span><i class="k k-comp"></i>computer</span>
+      <span><i class="k k-login"></i>a login, as it happens</span>
+      <span><i class="k k-alert"></i>alert</span>
+      <span><i class="k k-attack"></i>attack</span>
     </div>
   </div>
 
-  <div class="pipeline" id="pipeline"></div>
+  <div class="transport" role="group" aria-label="Replay controls">
+    <button class="btn icon" id="play" type="button" aria-label="Pause the replay">
+      <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="0.5"/><rect x="9.5" y="2.5" width="3" height="11" rx="0.5"/></svg>
+      <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.6v10.8a.5.5 0 0 0 .77.42l8.3-5.4a.5.5 0 0 0 0-.84l-8.3-5.4A.5.5 0 0 0 4 2.6z"/></svg>
+      <svg class="i-replay" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.2 2.2v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Time in day 1"
+         aria-valuemin="0" aria-valuemax="86399" aria-valuenow="0" aria-valuetext="start of day 1">
+      <div class="scrub-rail"></div>
+      <div class="scrub-ticks" id="scrub-ticks"></div>
+      <div class="scrub-fill" id="scrub-fill"></div>
+      <div class="scrub-head" id="scrub-head"></div>
+    </div>
+    <p class="transport-note" id="stage-note">-</p>
+  </div>
+
+  <aside class="feed" aria-labelledby="feed-title">
+    <div class="feed-head">
+      <h2 id="feed-title">On the analyst's desk</h2>
+      <p class="feed-count"><span class="mono" id="feed-count">0</span> <span id="feed-count-label">alerts so far</span></p>
+      <button class="switch" id="tri-agent" type="button" role="switch" aria-checked="false">
+        <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+        <span>Let the agent read first</span>
+      </button>
+    </div>
+    <ol class="alerts" id="alerts" aria-live="polite"></ol>
+    <p class="feed-empty" id="feed-empty">Quiet so far. The first alert lands a little after the day starts.</p>
+    <p class="feed-note" id="feed-note">-</p>
+  </aside>
+
+  <div class="work" id="tri-work" aria-live="polite"></div>
 </section>
 
-<!-- ============================================================ TRIAGE -->
-<section id="triage" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">Version 2 · <span class="badge recorded"><span class="dot"></span>recorded runs</span></p>
-    <h2>Would the new detector have caught them?</h2>
-    <p>
-      Version 2 draws a map of who logged into which machine and scores each login as it
-      arrives, using only what happened before it. Each day, the highest scores become alerts.
-      Then an AI analyst, a small model running on a laptop, reads each alert and asks the map
-      questions before it decides. Every run below was recorded and is replayed here.
-    </p>
-    <p>
-      Every detector gets the same daily number of alerts, since that is what a person can read.
-      This is how many compromised account-days each one put in front of that person.
-    </p>
-  </div>
-
-  <div class="scale-line" id="tri-compare"></div>
-
-  <div class="card" style="margin-top:var(--s4)">
-    <div class="wb-presets" id="tri-buttons" role="group" aria-label="What to show">
-      <button class="preset" data-view="normal" aria-pressed="false">A normal day</button>
-      <button class="preset" data-view="attack" aria-pressed="false">An attack day</button>
-      <button class="preset" data-view="explain" aria-pressed="false">One alert, explained</button>
-      <button class="preset" data-view="verdict" aria-pressed="false">The analyst's verdict</button>
+<!-- ============================================================ DETECTORS -->
+<section id="triage" class="band" aria-labelledby="triage-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="triage-title">Would the detector have caught them?</h2>
+      <p>
+        Version 2 draws a map of who logged into which computer and scores each login as it arrives,
+        using only what happened before it. Each day the highest scores become alerts. Every detector
+        gets the same number of alerts a day, since that is what one person can read.
+      </p>
     </div>
-    <div id="tri-view" aria-live="polite"></div>
-  </div>
 
-  <div class="card" style="margin-top:var(--s4)">
-    <div class="chart-title">Who has to read the alerts</div>
-    <label class="tri-toggle"><input type="checkbox" id="tri-agent"> Let the analyst agent read first</label>
-    <div id="tri-work"></div>
+    <div class="ledger" id="tri-compare"></div>
+    <p class="ledger-note">Compromised account-days each detector put in front of that person, out of every one in the test days.</p>
+
+    <div class="viewer">
+      <div class="tabs" id="tri-buttons" role="group" aria-label="What to show">
+        <button class="tab" type="button" data-view="normal" aria-pressed="false">A normal day</button>
+        <button class="tab" type="button" data-view="attack" aria-pressed="false">An attack day</button>
+        <button class="tab" type="button" data-view="explain" aria-pressed="false">One alert, explained</button>
+        <button class="tab tab-signal" type="button" data-view="verdict" aria-pressed="false">The analyst's verdict</button>
+      </div>
+      <div id="tri-view" aria-live="polite"></div>
+    </div>
   </div>
 </section>
 
 <!-- ============================================================ SQL WORKBENCH -->
-<section id="workbench" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">01 · this part is live <span class="badge live"><span class="dot"></span>running in your browser</span></p>
-    <h2>Ask the data something</h2>
-    <p>
-      A database called DuckDB has been compiled to run inside a web page, and it is running right
-      now, on your machine. The files it reads are the real results from the pipeline. Nothing here
-      is a screenshot. Pick a question below, or change the query and run your own.
-    </p>
-  </div>
-
-  <div class="card">
-    <div class="wb-presets" id="wb-presets" role="group" aria-label="Example questions"></div>
-
-    <label class="visually-hidden" for="wb-editor">SQL query</label>
-    <textarea class="wb-editor" id="wb-editor" spellcheck="false" aria-describedby="wb-status"></textarea>
-
-    <div class="wb-bar">
-      <button class="btn" id="wb-run" disabled>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        Run it
-      </button>
-      <button class="btn secondary" id="wb-reset">Reset</button>
-      <span class="wb-status" id="wb-status" role="status" aria-live="polite">Starting the database…</span>
-    </div>
-
-    <div class="wb-finding" id="wb-finding" hidden></div>
-    <div class="table-scroll" id="wb-result" hidden></div>
-  </div>
-
-  <details class="panel">
-    <summary>What your browser just downloaded</summary>
-    <pre id="wb-schema">-</pre>
-  </details>
-</section>
-
-<!-- ============================================================ OPTIMIZATION -->
-<section id="optimization" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">02 · making it faster <span class="badge recorded"><span class="dot"></span>measured on a laptop</span></p>
-    <h2>Getting it to run faster, without cheating</h2>
-    <p>
-      The job that summarises a billion logins was slow. The fix was to stop reading the same data
-      twice. It used to go through every event once to count what each person did, then go through
-      them all over again to work out which machines they had never used before. Now it builds one
-      shared summary and both steps read that.
-    </p>
-    <p>
-      The easy way to fake a speed-up is to quietly do less work. So all four versions were run and
-      their answers were compared against each other. They match exactly.
-    </p>
-  </div>
-
-  <div class="grid-2">
-    <figure class="card chart">
-      <div class="chart-title">How long each version took</div>
-      <div class="chart-sub">Shorter is better. Each version ran five times, and this is the middle result.</div>
-      <div id="chart-opt"></div>
-      <figcaption id="chart-opt-cap"></figcaption>
-    </figure>
-
-    <div class="card">
-      <div class="chart-title">Proof it is not just doing less work</div>
-      <div class="chart-sub">A faster wrong answer is not an improvement</div>
-      <p style="font-size:0.92rem;color:var(--fg-muted)">
-        Every version produced the same number of rows, and the same fingerprint of the data inside
-        them. If any version had skipped work, that fingerprint would have changed. It did not.
-      </p>
-      <div class="table-scroll"><table id="opt-table"></table></div>
-      <p style="font-size:0.86rem;color:var(--fg-dim);margin:var(--s5) 0 0">
-        One honest note on the second row. Spark would normally pick that trick by itself, so that
-        row shows what the slower approach costs, rather than a bug that got fixed. Saying so is the
-        difference between a measurement and a boast.
+<section id="workbench" class="band" aria-labelledby="wb-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="wb-title">Ask the data yourself <span class="tag live">live in your browser</span></h2>
+      <p>
+        DuckDB, a database compiled to run inside a web page, answers your SQL on your own machine,
+        against the real results from the pipeline. It is a 35 MB download, so it starts when you
+        reach this part of the page, not before.
       </p>
     </div>
-  </div>
 
-  <div class="grid-2" style="margin-top:var(--s4)">
-    <details class="panel" style="margin-top:0">
-      <summary>The slow version, as the engine planned it</summary>
-      <pre id="plan-baseline">-</pre>
-    </details>
-    <details class="panel" style="margin-top:0">
-      <summary>The fast version, as the engine planned it</summary>
-      <pre id="plan-optimized">-</pre>
+    <div class="console">
+      <div class="presets" id="wb-presets" role="group" aria-label="Example questions"></div>
+
+      <label class="visually-hidden" for="wb-editor">SQL query</label>
+      <textarea class="editor" id="wb-editor" name="sql" autocomplete="off" spellcheck="false" aria-describedby="wb-status"></textarea>
+
+      <div class="console-bar">
+        <button class="btn primary" id="wb-run" type="button" disabled>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.6v10.8a.5.5 0 0 0 .77.42l8.3-5.4a.5.5 0 0 0 0-.84l-8.3-5.4A.5.5 0 0 0 4 2.6z"/></svg>
+          <span>Run it</span>
+        </button>
+        <button class="btn" id="wb-reset" type="button">Reset</button>
+        <button class="btn" id="wb-start" type="button">Start the database</button>
+        <span class="status" id="wb-status" role="status" aria-live="polite">Waiting. It starts when you scroll here.</span>
+      </div>
+      <div class="load" id="wb-load" hidden><span id="wb-load-bar"></span></div>
+
+      <div class="finding" id="wb-finding" hidden></div>
+      <div class="table-scroll" id="wb-result" hidden></div>
+    </div>
+
+    <details class="panel">
+      <summary>What your browser downloaded</summary>
+      <pre id="wb-schema">Nothing yet.</pre>
     </details>
   </div>
-
-  <div class="provenance" id="prov-opt">-</div>
 </section>
-
-<!-- ============================================================ STREAMING -->
-<section id="streaming" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">03 · as it happens <span class="badge recorded"><span class="dot"></span>replayed on a laptop</span></p>
-    <h2>Counting logins as they arrive</h2>
-    <p>
-      Same data, but pushed through a live pipe instead of read from a file. Events go into a
-      message queue, a streaming job picks them up, and every minute of activity gets counted per
-      person. Events that turn up late still land in the right minute, and if the job is killed and
-      restarted it carries on from where it stopped without counting anything twice.
-    </p>
-    <p>
-      The delay below is mostly the job waiting to see whether any stragglers turn up before it
-      closes a minute off. That waiting is the point. If the number were near zero it would mean the
-      job was not waiting at all, and late events were being thrown away.
-    </p>
-  </div>
-
-  <div class="grid-2">
-    <figure class="card chart">
-      <div class="chart-title">Time from arriving to being counted</div>
-      <div class="chart-sub">Half finish faster than the first bar. Nearly all of them beat the last one.</div>
-      <div id="chart-lag"></div>
-      <figcaption id="chart-lag-cap"></figcaption>
-    </figure>
-    <div class="card">
-      <div class="chart-title">What the run actually did</div>
-      <div class="chart-sub">The settings and the throughput, exactly as they were configured</div>
-      <div class="table-scroll"><table id="stream-table"></table></div>
-      <p style="font-size:0.86rem;color:var(--fg-dim);margin:var(--s5) 0 0">
-        This is a replay from a file into a message queue on the same laptop as the thing reading
-        it. No network, no cluster, nothing else competing for the machine. It measures this
-        pipeline, not a real production system.
-      </p>
-    </div>
-  </div>
-
-  <div class="provenance" id="prov-stream">-</div>
-</section>
-
-<!-- ============================================================ GRAPH -->
-<section id="graph" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">04 · where an attacker can go <span class="badge recorded"><span class="dot"></span>real results, replayed</span></p>
-    <h2>Two people who use the same machine are connected</h2>
-    <p>
-      That is the whole idea. If someone steals my account, and I log into a server that a colleague
-      also logs into, they now have a route towards that colleague. Chain those steps together and
-      you have a path through the company.
-    </p>
-    <p>
-      Pick any two people below and the shortest route between them lights up. These routes are real
-      answers from a graph database, worked out in advance, because your browser cannot run that
-      kind of query. Turn on the overlay to see the route the attacker actually took.
-    </p>
-  </div>
-
-  <div class="card">
-    <div class="graph-layout">
-      <div class="graph-controls">
-        <div class="field">
-          <label for="g-from">Start from</label>
-          <select id="g-from"></select>
-        </div>
-        <div class="field">
-          <label for="g-to">Get to</label>
-          <select id="g-to"></select>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="g-redteam" checked>
-          <span>Show the attack</span>
-        </label>
-        <label class="switch">
-          <input type="checkbox" id="g-labels">
-          <span>Show every name</span>
-        </label>
-        <div class="legend" style="flex-direction:column;gap:var(--s2)">
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-1)"></span>a person</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--fg-dim)"></span>a machine</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-3)"></span>machine the attack came from</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--series-4)"></span>machine the attack reached</span>
-          <span class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>route between your two picks</span>
-        </div>
-      </div>
-
-      <div>
-        <div class="graph-canvas" id="graph-canvas"></div>
-        <div class="path-readout" id="path-readout">Pick two people to trace a route.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-2" style="margin-top:var(--s4)">
-    <figure class="card chart">
-      <div class="chart-title">How far can a stolen account reach?</div>
-      <div class="chart-sub">Two very different scales, so two separate charts</div>
-      <div class="small-multiples">
-        <div>
-          <div class="sm-title">machines they log into themselves</div>
-          <div id="chart-blast"></div>
-        </div>
-        <div>
-          <div class="sm-title">machines they can get to in three steps, out of every machine there is</div>
-          <div id="chart-blast3"></div>
-        </div>
-      </div>
-      <figcaption id="chart-blast-cap"></figcaption>
-    </figure>
-    <figure class="card chart">
-      <div class="chart-title">Would any of this have caught them?</div>
-      <div class="chart-sub">Each warning sign, scored against the answer key</div>
-      <div id="chart-q5"></div>
-      <figcaption id="chart-q5-cap"></figcaption>
-    </figure>
-  </div>
-  <div class="table-scroll" style="margin-top:var(--s4)"><table id="q5-table"></table></div>
-
-  <div class="card" style="margin-top:var(--s4)">
-    <div class="chart-title">The machines everybody uses</div>
-    <div class="chart-sub">
-      This is the finding that held up. A few machines are used by tens of thousands of people each.
-      That is what makes the network so small. Almost everyone is two steps from almost everyone
-      else, through one of these. Lock these few down and you break most of the routes. That is
-      something you can act on. "The attacker can reach nearly every machine" is not.
-    </div>
-    <div class="table-scroll"><table id="choke-table"></table></div>
-  </div>
-</section>
-
-<!-- ============================================================ DIURNAL -->
-<section id="diurnal" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">05 · the part that failed</p>
-    <h2>Logging in at odd hours had to be measured, not guessed</h2>
-    <p>
-      The data does not come with clock times. It only says how many seconds had passed since the
-      recording began. So "this person logged in at 3am" is not something you can read off it.
-    </p>
-    <p>
-      The first attempt to find the quiet hours found nothing. The line was almost flat. That turned
-      out to be correct. Most logins are not people at all, they are machines checking in with each
-      other around the clock, and they were drowning out the humans. Separate them out and the human
-      rhythm is obvious. A dip overnight, a peak mid-morning.
-    </p>
-    <p style="color:var(--fg-muted)">
-      <strong style="color:var(--fg)">And then it caught nothing.</strong>
-      This is the most careful piece of work in the project, and as a way of spotting the attacker
-      it scored <strong style="color:var(--critical)">zero out of 181</strong>. Being careful does
-      not entitle you to a result. It is in the table above, at the bottom, with a zero next to it.
-    </p>
-  </div>
-  <figure class="card chart">
-    <div class="chart-title">Logins by hour of the day</div>
-    <div class="chart-sub" id="diurnal-sub">-</div>
-    <div id="chart-diurnal"></div>
-    <figcaption id="chart-diurnal-cap"></figcaption>
-  </figure>
-</section>
-
 
 <!-- ============================================================ VECTOR SEARCH -->
-<section id="lookalike" class="wrap">
-  <div class="section-head">
-    <p class="eyebrow">06 &middot; find more like this one <span class="badge live"><span class="dot"></span>running in your browser</span></p>
-    <h2>Describe a day as 52 numbers, then look for days that rhyme</h2>
-    <p>
-      Every person-day is turned into a list of 52 numbers describing how that person behaved:
-      how much they did, how often they failed, what hours they were active, and what kinds of
-      login they used. Similar behaviour ends up with similar numbers. Then you can ask the
-      computer for the nearest matches, the same way an image search finds similar photos.
-    </p>
-    <p>
-      Nothing from the answer key goes into those numbers. If it did, the search would just be
-      finding the answers, and every result below would be worthless.
-    </p>
-  </div>
+<section id="lookalike" class="band" aria-labelledby="lk-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="lk-title">Describe a day as 52 numbers, then look for days that rhyme <span class="tag live">live in your browser</span></h2>
+      <p>
+        Every person-day becomes a list of 52 numbers: how much they did, how often they failed,
+        what hours they were active, what kinds of login they used. Similar behaviour gives similar
+        numbers, so the computer can fetch the nearest matches. Nothing from the answer key goes into
+        those numbers, or the search would just be finding the answers.
+      </p>
+    </div>
 
-  <div class="card">
-    <div class="lookalike-controls">
-      <div class="field">
-        <label for="lk-query">Start from a day we know was the attack</label>
-        <select id="lk-query"></select>
+    <div class="console">
+      <div class="lookalike-controls">
+        <div class="field">
+          <label for="lk-query">Start from a day we know was the attack</label>
+          <select id="lk-query" name="lookalike-day" translate="no"></select>
+        </div>
+        <button class="btn primary" id="lk-run" type="button" disabled>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.4 10.4 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>Find lookalikes</span>
+        </button>
+        <span class="status" id="lk-status">Waiting for the database.</span>
       </div>
-      <button class="btn" id="lk-run" disabled>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7 14 5 12 5 9.5S7 5 9.5 5 14 7 14 9.5 12 14 9.5 14"/></svg>
-        Find lookalikes
-      </button>
-      <span class="wb-status" id="lk-status">Waiting for the database…</span>
+      <div class="table-scroll" id="lk-result" hidden></div>
+      <p class="small" id="lk-note"></p>
     </div>
 
-    <div class="table-scroll" id="lk-result" hidden></div>
-
-    <p style="font-size:0.86rem;color:var(--fg-dim);margin:var(--s5) 0 0" id="lk-note"></p>
+    <div class="split">
+      <figure class="chart">
+        <figcaption class="chart-title">Simple rules against vector search, same budget</figcaption>
+        <p class="chart-sub">Each gets the same number of people to accuse. Who finds more of the attack?</p>
+        <div id="chart-vec"></div>
+        <p class="caption" id="chart-vec-cap"></p>
+      </figure>
+      <div>
+        <p class="plain">
+          <strong>As a way of spotting the attack on its own, this lost.</strong>
+          Told to find unusual behaviour with no other help, it does worse than the simple rules at
+          every budget but one, and the one it wins is the rule that caught nothing at all. Being
+          unusual and being an attacker are not the same thing.
+        </p>
+        <p class="plain">
+          <strong>As a way of finding more of an attack you already found, it is very good.</strong>
+          Hand it one confirmed bad day and
+          <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.precision_at_k_pct|pct">-</strong>
+          of what comes back is also the attack, which is
+          <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.lift_over_random|x">-</strong>
+          better than picking days at random. It cannot find the first one for you. It can find the rest.
+        </p>
+        <div class="table-scroll"><table id="vec-table"></table></div>
+      </div>
+    </div>
   </div>
+</section>
 
-  <div class="grid-2" style="margin-top:var(--s4)">
-    <figure class="card chart">
-      <div class="chart-title">Simple rules against vector search, same budget</div>
-      <div class="chart-sub">Give each of them the same number of people to accuse, and see who finds more of the attack</div>
-      <div id="chart-vec"></div>
-      <figcaption id="chart-vec-cap"></figcaption>
-    </figure>
-    <div class="card">
-      <div class="chart-title">The result, plainly</div>
-      <div class="chart-sub">One of these is a good idea and the other is not</div>
-      <p style="font-size:0.92rem;color:var(--fg-muted)">
-        <strong style="color:var(--fg)">As a way of spotting the attack on its own, this lost.</strong>
-        Told to go and find unusual behaviour with no other help, it does worse than the simple
-        rules at every budget but one, and the one it wins is the rule that caught nothing at all.
-        Being unusual and being an attacker are not the same thing. Most unusual days are just
-        somebody having an unusual day.
+<!-- ============================================================ PLATFORM -->
+<section id="platform" class="band" aria-labelledby="platform-title">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="platform-title">Under the hood: the version 1 platform</h2>
+      <p>
+        Before the graph detector there was a data platform: Spark to clean and summarise the raw
+        logs, a DuckDB warehouse to query them, a streaming job to count logins as they arrive, and a
+        Neo4j graph of who can reach what. Everything below was measured on one laptop and is
+        replayed from those recordings.
       </p>
-      <p style="font-size:0.92rem;color:var(--fg-muted)">
-        <strong style="color:var(--fg)">As a way of finding more of an attack you already
-        found, it is very good.</strong>
-        Hand it a single confirmed bad day and ask for lookalikes, and
-        <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.precision_at_k_pct|pct">-</strong>
-        of what it hands back is also part of the attack. That is
-        <strong data-bench="vector_eval.retrieval_from_one_known_attack_day.lift_over_random|x">-</strong>
-        better than picking days at random. It cannot find the first one for you. It can find the
-        rest.
-      </p>
-      <div class="table-scroll"><table id="vec-table"></table></div>
     </div>
+
+    <article id="optimization" class="sub" aria-labelledby="opt-title">
+      <h3 id="opt-title">Getting it to run faster, without cheating</h3>
+      <p>
+        The job that summarises the logins used to read every event twice: once to count what each
+        person did, and again to find machines they had never used before. Now it builds one shared
+        summary and both steps read that. The easy way to fake a speed-up is to quietly do less work,
+        so all four versions were run and their answers compared. They match exactly.
+      </p>
+      <div class="split">
+        <figure class="chart">
+          <figcaption class="chart-title">How long each version took</figcaption>
+          <p class="chart-sub">Shorter is better. Five runs each, the middle one shown.</p>
+          <div id="chart-opt"></div>
+          <p class="caption" id="chart-opt-cap"></p>
+        </figure>
+        <div>
+          <p class="chart-title">Proof it is not just doing less work</p>
+          <p class="chart-sub">Same row count and the same fingerprint of the data, every version.</p>
+          <div class="table-scroll"><table id="opt-table"></table></div>
+          <p class="small">
+            Spark would normally pick the second row's trick by itself, so that row shows what the
+            slower approach costs rather than a bug that got fixed.
+          </p>
+        </div>
+      </div>
+      <div class="split tight">
+        <details class="panel">
+          <summary>The slow version, as the engine planned it</summary>
+          <pre id="plan-baseline">-</pre>
+        </details>
+        <details class="panel">
+          <summary>The fast version, as the engine planned it</summary>
+          <pre id="plan-optimized">-</pre>
+        </details>
+      </div>
+      <p class="provenance" id="prov-opt">-</p>
+    </article>
+
+    <article id="streaming" class="sub" aria-labelledby="stream-title">
+      <h3 id="stream-title">Counting logins as they arrive</h3>
+      <p>
+        The same data pushed through a message queue instead of read from a file. A streaming job
+        counts every minute of activity per person. Late events still land in the right minute, and a
+        killed job restarts where it stopped without counting twice. Most of the delay is the job
+        waiting for stragglers before it closes a minute. If it were near zero, late events would be
+        getting thrown away.
+      </p>
+      <div class="split">
+        <figure class="chart">
+          <figcaption class="chart-title">Time from arriving to being counted</figcaption>
+          <p class="chart-sub">Half finish faster than the first bar. Nearly all beat the last one.</p>
+          <div id="chart-lag"></div>
+          <p class="caption" id="chart-lag-cap"></p>
+        </figure>
+        <div>
+          <p class="chart-title">What the run did</p>
+          <p class="chart-sub">Settings and throughput, as configured</p>
+          <div class="table-scroll"><table id="stream-table"></table></div>
+          <p class="small">
+            A replay from a file into a queue on the same laptop as the reader. No network, no
+            cluster. It measures this pipeline, not a production system.
+          </p>
+        </div>
+      </div>
+      <p class="provenance" id="prov-stream">-</p>
+    </article>
+
+    <article id="graph" class="sub" aria-labelledby="graph-title">
+      <h3 id="graph-title">Two people who use the same machine are connected</h3>
+      <p>
+        If someone steals my account, and I log into a server a colleague also uses, they now have a
+        route towards that colleague. Chain those steps and you have a path through the company. Pick
+        two people and the shortest route lights up. These are real answers from the graph database,
+        worked out in advance, because a browser cannot run that kind of query.
+      </p>
+      <div class="graph-layout">
+        <div class="graph-controls">
+          <div class="field">
+            <label for="g-from">Start from</label>
+            <select id="g-from" name="from" translate="no"></select>
+          </div>
+          <div class="field">
+            <label for="g-to">Get to</label>
+            <select id="g-to" name="to" translate="no"></select>
+          </div>
+          <label class="check"><input type="checkbox" id="g-redteam" checked><span>Show the attack</span></label>
+          <label class="check"><input type="checkbox" id="g-labels"><span>Show every name</span></label>
+          <ul class="legend">
+            <li><i class="k k-user"></i>a person</li>
+            <li><i class="k k-comp"></i>a machine</li>
+            <li><i class="k k-pivot"></i>machine the attack came from</li>
+            <li><i class="k k-attack"></i>machine the attack reached</li>
+            <li><i class="k k-route"></i>route between your two picks</li>
+          </ul>
+        </div>
+        <div>
+          <div class="graph-canvas" id="graph-canvas"><p class="small">Loading the graph when you get here.</p></div>
+          <div class="path-readout" id="path-readout">Pick two people to trace a route.</div>
+        </div>
+      </div>
+
+      <div class="split">
+        <figure class="chart">
+          <figcaption class="chart-title">How far can a stolen account reach?</figcaption>
+          <p class="chart-sub">Two very different scales, so two separate charts</p>
+          <p class="sm-title">machines they log into themselves</p>
+          <div id="chart-blast"></div>
+          <p class="sm-title">machines they can get to in three steps, out of every machine there is</p>
+          <div id="chart-blast3"></div>
+          <p class="caption" id="chart-blast-cap"></p>
+        </figure>
+        <figure class="chart">
+          <figcaption class="chart-title">Would any of the version 1 rules have caught them?</figcaption>
+          <p class="chart-sub">Each warning sign, scored against the answer key</p>
+          <div id="chart-q5"></div>
+          <p class="caption" id="chart-q5-cap"></p>
+        </figure>
+      </div>
+      <div class="table-scroll"><table id="q5-table"></table></div>
+
+      <p class="chart-title spaced">The machines everybody uses</p>
+      <p class="chart-sub">
+        The finding that held up. A few machines are used by tens of thousands of people each, which
+        puts almost everyone two steps from almost everyone else. Lock these down and most routes
+        break. That is something you can act on.
+      </p>
+      <div class="table-scroll"><table id="choke-table"></table></div>
+    </article>
+
+    <article id="diurnal" class="sub" aria-labelledby="diurnal-title">
+      <h3 id="diurnal-title">Odd hours had to be measured, not guessed</h3>
+      <p>
+        The log has no clock times, only seconds since recording began, so "logged in at 3am" cannot
+        be read off it. The first attempt found a flat line, and that was correct: most logins are
+        machines checking in with each other around the clock. Separate out the people and their
+        rhythm is plain, a dip overnight and a peak mid-morning.
+      </p>
+      <p>
+        <strong>Then it caught nothing.</strong> As a way of spotting the attacker this careful piece of
+        work scored <strong class="signal">zero out of 181</strong>. It sits at the bottom of the rules
+        table above.
+      </p>
+      <figure class="chart">
+        <figcaption class="chart-title">Logins by hour of the day</figcaption>
+        <div class="chart-sub" id="diurnal-sub">-</div>
+        <div id="chart-diurnal"></div>
+        <p class="caption" id="chart-diurnal-cap"></p>
+      </figure>
+    </article>
   </div>
 </section>
 
 </main>
 
-<!-- ============================================================ PROVENANCE -->
 <footer id="provenance">
   <div class="wrap">
-    <p class="eyebrow">What is real here, and what is a recording</p>
+    <h2 class="foot-title">What is real here, and what is a recording</h2>
     <div class="prov-grid">
-      <div class="prov-block">
-        <h3><span class="badge live"><span class="dot"></span>Really live</span></h3>
+      <div>
+        <h3>Live</h3>
         <p>
-          The SQL box near the top. Your browser downloaded a database and the real results, and it
-          runs your queries on your own machine. Break it, change it, ask it something else. It is a
-          real database.
+          The SQL box and the lookalike search. Your browser downloads a database and the real
+          results, and runs your queries on your own machine.
         </p>
       </div>
-      <div class="prov-block">
-        <h3><span class="badge recorded"><span class="dot"></span>A recording</span></h3>
+      <div>
+        <h3>Recorded</h3>
         <p id="prov-recorded">-</p>
       </div>
-      <div class="prov-block">
+      <div>
         <h3>Where the data came from</h3>
         <p>
-          Los Alamos National Laboratory, 2015. Real logins from a real network with the names taken
-          out, so a person is just <code>U292</code> and a machine is just <code>C1065</code>. Free
-          for anyone to use. The list of attack logins is published alongside it.
+          Los Alamos National Laboratory, 2015. Real logins from a real network with the names
+          removed, so a person is <code>U292</code> and a machine is <code>C1065</code>. Free for anyone
+          to use, with the list of attack logins published alongside.
         </p>
       </div>
-      <div class="prov-block">
+      <div>
         <h3>What this is not</h3>
         <p>
-          It is not a production system. It runs on one laptop. It has never handled a billion events
-          a day. It handled a billion events once. Every number on this page comes from a file in the
-          project, so if something was not measured, it is not here.
+          A production system. It ran on one laptop and processed the full log once. Every number on
+          this page is read from a file in the project, so if something was not measured, it is not here.
         </p>
       </div>
     </div>

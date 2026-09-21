@@ -115,7 +115,8 @@ def check_no_external_calls(errors: list[str]) -> None:
         re.I,
     )
     for path in [SITE / "index.html", SITE / "styles.css", SITE / "app.js",
-                 SITE / "charts.js", SITE / "graph.js", SITE / "triage.js", SITE / "fonts.css"]:
+                 SITE / "charts.js", SITE / "graph.js", SITE / "triage.js", SITE / "night.js",
+                 SITE / "fonts.css"]:
         if not path.exists():
             continue
         try:
