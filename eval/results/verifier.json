@@ -1,0 +1,20 @@
+{
+  "data": "full LANL auth log, 300 seeded accounts, days 0-9",
+  "stream": {
+    "accounts": 300,
+    "days": 10,
+    "events": 360125
+  },
+  "detector": {
+    "passed": true,
+    "cuts": 25,
+    "features_checked": 5079642,
+    "mismatches": 0
+  },
+  "leaky_control": {
+    "passed": false,
+    "cuts": 25,
+    "features_checked": 5079642,
+    "mismatches": 478
+  }
+}

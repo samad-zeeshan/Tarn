@@ -1,0 +1,109 @@
+{
+  "data": "full LANL auth log, detector feed of 1,000 alerts a day",
+  "model": "qwen/qwen3.5-9b",
+  "benchmark_size": 600,
+  "alert_stream": {
+    "attack": 51,
+    "benign": 56949
+  },
+  "accept_at": 0.8,
+  "alerts_scored": 49,
+  "complete": false,
+  "with_graph_tools": {
+    "alerts": 49,
+    "attack_alerts": 5,
+    "benign_alerts": 44,
+    "decided": 49,
+    "accuracy_on_decided": 0.9183673469387755,
+    "attack_recall_on_decided": 0.4,
+    "escalation_rate": 0.0,
+    "attacks_closed_as_benign": 3,
+    "path_correct_on_attacks": 0.4,
+    "linked_account_recall": 0.0,
+    "calibration": {
+      "ece": 0.038163265306122865,
+      "curve": [
+        {
+          "bin": [
+            0.8,
+            0.9
+          ],
+          "n": 2,
+          "confidence": 0.85,
+          "accuracy": 1.0
+        },
+        {
+          "bin": [
+            0.9,
+            1.0
+          ],
+          "n": 47,
+          "confidence": 0.948297872340426,
+          "accuracy": 0.9148936170212766
+        }
+      ]
+    },
+    "tool_calls_per_alert": 5.244897959183674,
+    "hallucinated_calls": 0,
+    "tokens_per_alert": 6851.897959183673,
+    "cascade": {
+      "accept_at": 0.8,
+      "accepted": 49,
+      "escalated": 0,
+      "escalated_attack_share": 0.0,
+      "escalated_benign_share": 0.0,
+      "attack_recall": 0.4
+    },
+    "workload": {
+      "alerts_read_without_agent": 57000,
+      "alerts_read_with_agent": 0.0,
+      "triage_minutes_per_alert": 5,
+      "analyst_hours_without_agent": 4750.0,
+      "analyst_hours_with_agent": 0.0
+    }
+  },
+  "without_graph_tools": {
+    "alerts": 49,
+    "attack_alerts": 5,
+    "benign_alerts": 44,
+    "decided": 49,
+    "accuracy_on_decided": 0.8979591836734694,
+    "attack_recall_on_decided": 0.0,
+    "escalation_rate": 0.0,
+    "attacks_closed_as_benign": 5,
+    "path_correct_on_attacks": 0.0,
+    "linked_account_recall": 0.0,
+    "calibration": {
+      "ece": 0.05102040816326536,
+      "curve": [
+        {
+          "bin": [
+            0.9,
+            1.0
+          ],
+          "n": 49,
+          "confidence": 0.9489795918367347,
+          "accuracy": 0.8979591836734694
+        }
+      ]
+    },
+    "tool_calls_per_alert": 2.6122448979591835,
+    "hallucinated_calls": 0,
+    "tokens_per_alert": 2877.4489795918366,
+    "cascade": {
+      "accept_at": 0.8,
+      "accepted": 49,
+      "escalated": 0,
+      "escalated_attack_share": 0.0,
+      "escalated_benign_share": 0.0,
+      "attack_recall": 0.0
+    },
+    "workload": {
+      "alerts_read_without_agent": 57000,
+      "alerts_read_with_agent": 0.0,
+      "triage_minutes_per_alert": 5,
+      "analyst_hours_without_agent": 4750.0,
+      "analyst_hours_with_agent": 0.0
+    }
+  }
+}

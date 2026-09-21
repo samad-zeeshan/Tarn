@@ -1,0 +1,1212 @@
+{
+  "data": "full LANL auth log, 1,051,430,459 events, local lake built from auth.txt.gz and redteam.txt.gz",
+  "protocol": {
+    "fit_window_seconds": [
+      0,
+      86400
+    ],
+    "histogram_fit_seconds": [
+      43200,
+      86400
+    ],
+    "test_window_days": [
+      1,
+      57
+    ],
+    "test_days": 57,
+    "triage_minutes_per_alert": 5,
+    "budget_per_day": 100,
+    "headline_detector": "graph_plus_rules"
+  },
+  "labels": {
+    "rows": 749,
+    "distinct": 715,
+    "in_log": 701,
+    "not_in_log": 14,
+    "in_candidates": 701,
+    "in_log_test_window": 701,
+    "redteam_identity_days_test_window": 181
+  },
+  "candidates": 99066895,
+  "events_scored": 97663519,
+  "detector_run": {
+    "events_in": 99066895,
+    "events_scored": 97663519,
+    "late_dropped": 0,
+    "fit_rows": 800630,
+    "fit_max_time": 86399,
+    "off_hours_band": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "high_value_hosts": 13,
+    "alert_threshold": 29.84623481038435,
+    "feature_seconds": 474.2,
+    "events_per_second": 208928
+  },
+  "v1_published": {
+    "any_of_four": {
+      "caught": 62,
+      "total": 181,
+      "recall": 0.34299999999999997,
+      "alerts": 63891,
+      "precision": 0.00097
+    },
+    "q3_new_paths": {
+      "caught": 56,
+      "total": 181,
+      "recall": 0.309,
+      "alerts": 33319,
+      "precision": 0.00168
+    },
+    "two_or_more": {
+      "caught": 22,
+      "total": 181,
+      "recall": 0.122,
+      "alerts": 2599,
+      "precision": 0.00846
+    },
+    "q1_fanout": {
+      "caught": 20,
+      "total": 181,
+      "recall": 0.11,
+      "alerts": 21136,
+      "precision": 0.00095
+    },
+    "q4_failures": {
+      "caught": 11,
+      "total": 181,
+      "recall": 0.061,
+      "alerts": 5752,
+      "precision": 0.00191
+    },
+    "q2_off_hours": {
+      "caught": 0,
+      "total": 181,
+      "recall": 0.0,
+      "alerts": 6379,
+      "precision": 0.0
+    }
+  },
+  "v1_protocol": {
+    "off_hours_band_fit_window": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "identity_days_in_test": 1570907,
+    "redteam_identity_days_in_test": 181,
+    "detectors": {
+      "q3_new_paths": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 17537,
+            "caught": 56,
+            "recall": 0.30939226519337015,
+            "precision": 0.003193248560187033,
+            "lift": 27.71434539192117
+          },
+          "events_covered": 448,
+          "event_recall": 0.6390870185449358,
+          "workload": {
+            "alerts_per_day": 307.6666666666667,
+            "analyst_hours_per_day": 25.63888888888889,
+            "attack_events_per_analyst_hour": 0.3065518617779552
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.09944751381215469,
+          "identity_days_caught": 18,
+          "events_covered": 216,
+          "event_recall": 0.30813124108416545,
+          "alerts": 5700,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.45473684210526316
+          }
+        }
+      },
+      "q1_fanout": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 21136,
+            "caught": 20,
+            "recall": 0.11049723756906077,
+            "precision": 0.0009462528387585163,
+            "lift": 8.212570210915052
+          },
+          "events_covered": 245,
+          "event_recall": 0.34950071326676174,
+          "workload": {
+            "alerts_per_day": 370.8070175438597,
+            "analyst_hours_per_day": 30.900584795321635,
+            "attack_events_per_analyst_hour": 0.1390991672975019
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.03314917127071823,
+          "identity_days_caught": 6,
+          "events_covered": 125,
+          "event_recall": 0.1783166904422254,
+          "alerts": 5500,
+          "workload": {
+            "alerts_per_day": 96.49122807017544,
+            "analyst_hours_per_day": 8.04093567251462,
+            "attack_events_per_analyst_hour": 0.27272727272727276
+          }
+        }
+      },
+      "q4_failures": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 5752,
+            "caught": 11,
+            "recall": 0.06077348066298342,
+            "precision": 0.0019123783031988874,
+            "lift": 16.59761581847102
+          },
+          "events_covered": 146,
+          "event_recall": 0.20827389443651925,
+          "workload": {
+            "alerts_per_day": 100.91228070175438,
+            "analyst_hours_per_day": 8.409356725146198,
+            "attack_events_per_analyst_hour": 0.30458970792767737
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.06629834254143646,
+          "identity_days_caught": 12,
+          "events_covered": 156,
+          "event_recall": 0.2225392296718973,
+          "alerts": 5026,
+          "workload": {
+            "alerts_per_day": 88.17543859649123,
+            "analyst_hours_per_day": 7.347953216374268,
+            "attack_events_per_analyst_hour": 0.3724631914046956
+          }
+        }
+      },
+      "q2_off_hours": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 6852,
+            "caught": 1,
+            "recall": 0.0055248618784530384,
+            "precision": 0.00014594279042615295,
+            "lift": 1.2666439286186555
+          },
+          "events_covered": 8,
+          "event_recall": 0.011412268188302425,
+          "workload": {
+            "alerts_per_day": 120.21052631578948,
+            "analyst_hours_per_day": 10.017543859649123,
+            "attack_events_per_analyst_hour": 0.014010507880910683
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.0,
+          "identity_days_caught": 0,
+          "events_covered": 0,
+          "event_recall": 0.0,
+          "alerts": 4617,
+          "workload": {
+            "alerts_per_day": 81.0,
+            "analyst_hours_per_day": 6.75,
+            "attack_events_per_analyst_hour": 0.0
+          }
+        }
+      },
+      "any_of_four": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 48813,
+            "caught": 62,
+            "recall": 0.3425414364640884,
+            "precision": 0.0012701534427304202,
+            "lift": 11.023717868836002
+          },
+          "events_covered": 472,
+          "event_recall": 0.6733238231098431,
+          "workload": {
+            "alerts_per_day": 856.3684210526316,
+            "analyst_hours_per_day": 71.3640350877193,
+            "attack_events_per_analyst_hour": 0.11603466289717904
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.11602209944751381,
+          "identity_days_caught": 21,
+          "events_covered": 256,
+          "event_recall": 0.3651925820256776,
+          "alerts": 5631,
+          "workload": {
+            "alerts_per_day": 98.78947368421052,
+            "analyst_hours_per_day": 8.232456140350877,
+            "attack_events_per_analyst_hour": 0.5455514118273841
+          }
+        }
+      },
+      "two_or_more": {
+        "threshold": {
+          "identity_day": {
+            "alerts": 2414,
+            "caught": 23,
+            "recall": 0.1270718232044199,
+            "precision": 0.009527754763877383,
+            "lift": 82.69180471192446
+          },
+          "events_covered": 267,
+          "event_recall": 0.38088445078459343,
+          "workload": {
+            "alerts_per_day": 42.35087719298246,
+            "analyst_hours_per_day": 3.5292397660818713,
+            "attack_events_per_analyst_hour": 1.3272576636288318
+          }
+        },
+        "budget": {
+          "identity_day_recall": 0.11602209944751381,
+          "identity_days_caught": 21,
+          "events_covered": 256,
+          "event_recall": 0.3651925820256776,
+          "alerts": 5631,
+          "workload": {
+            "alerts_per_day": 98.78947368421052,
+            "analyst_hours_per_day": 8.232456140350877,
+            "attack_events_per_analyst_hour": 0.5455514118273841
+          }
+        }
+      }
+    },
+    "reproduced_all_days_v1_band": {
+      "any_of_four": {
+        "caught": 62,
+        "alerts": 63891
+      },
+      "q2_off_hours": {
+        "caught": 0,
+        "alerts": 6379
+      },
+      "q3_new_paths": {
+        "caught": 56,
+        "alerts": 33319
+      }
+    }
+  },
+  "graph": {
+    "graph": {
+      "event": {
+        "average_precision": 0.0016198331279254844,
+        "pr_curve": [
+          {
+            "alerts": 1,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 2,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 6,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 10,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 16,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 27,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 43,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 69,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 111,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 179,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 287,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 460,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 738,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1182,
+            "recall": 0.0014265335235378032,
+            "precision": 0.0008460236886632825
+          },
+          {
+            "alerts": 1896,
+            "recall": 0.007132667617689016,
+            "precision": 0.0026371308016877636
+          },
+          {
+            "alerts": 3038,
+            "recall": 0.008559201141226819,
+            "precision": 0.0019749835418038184
+          },
+          {
+            "alerts": 4870,
+            "recall": 0.015691868758915834,
+            "precision": 0.0022587268993839835
+          },
+          {
+            "alerts": 7806,
+            "recall": 0.03566333808844508,
+            "precision": 0.003202664616961312
+          },
+          {
+            "alerts": 12511,
+            "recall": 0.06562054208273894,
+            "precision": 0.003676764447286388
+          },
+          {
+            "alerts": 20052,
+            "recall": 0.15977175463623394,
+            "precision": 0.005585477757829643
+          },
+          {
+            "alerts": 32138,
+            "recall": 0.23252496433666192,
+            "precision": 0.005071877528159811
+          },
+          {
+            "alerts": 51510,
+            "recall": 0.268188302425107,
+            "precision": 0.0036497767423801205
+          },
+          {
+            "alerts": 82557,
+            "recall": 0.275320970042796,
+            "precision": 0.0023377787468052374
+          },
+          {
+            "alerts": 132319,
+            "recall": 0.28530670470756064,
+            "precision": 0.001511498726562323
+          },
+          {
+            "alerts": 212074,
+            "recall": 0.30385164051355207,
+            "precision": 0.001004366400407405
+          },
+          {
+            "alerts": 339901,
+            "recall": 0.42796005706134094,
+            "precision": 0.0008826099364226643
+          },
+          {
+            "alerts": 544776,
+            "recall": 0.572039942938659,
+            "precision": 0.0007360823531139404
+          },
+          {
+            "alerts": 873138,
+            "recall": 0.7475035663338089,
+            "precision": 0.000600134228495381
+          },
+          {
+            "alerts": 1399419,
+            "recall": 0.7874465049928673,
+            "precision": 0.0003944494107911926
+          },
+          {
+            "alerts": 2242915,
+            "recall": 0.8102710413694721,
+            "precision": 0.0002532418749707412
+          },
+          {
+            "alerts": 3594825,
+            "recall": 0.8659058487874465,
+            "precision": 0.00016885383850396055
+          },
+          {
+            "alerts": 5761595,
+            "recall": 0.9044222539229672,
+            "precision": 0.000110038973582836
+          },
+          {
+            "alerts": 9234379,
+            "recall": 0.9243937232524965,
+            "precision": 7.017255843625219e-05
+          },
+          {
+            "alerts": 14800372,
+            "recall": 0.9400855920114123,
+            "precision": 4.4525907862315894e-05
+          },
+          {
+            "alerts": 23721250,
+            "recall": 0.9686162624821684,
+            "precision": 2.8624123939505718e-05
+          },
+          {
+            "alerts": 38019158,
+            "recall": 1.0,
+            "precision": 1.8438072721126544e-05
+          },
+          {
+            "alerts": 60935087,
+            "recall": 1.0,
+            "precision": 1.1504045280184797e-05
+          },
+          {
+            "alerts": 97663519,
+            "recall": 1.0,
+            "precision": 7.177705730632131e-06
+          }
+        ],
+        "budget": {
+          "budget_per_day": 100,
+          "alerts": 5700,
+          "caught": 7,
+          "recall": 0.009985734664764621,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.014736842105263158
+          }
+        }
+      },
+      "identity_day": {
+        "budget": {
+          "identity_day_recall": 0.39226519337016574,
+          "identity_days_caught": 71,
+          "events_covered": 436,
+          "event_recall": 0.6219686162624821,
+          "alerts": 5700,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.9178947368421052
+          }
+        }
+      }
+    },
+    "graph_plus_rules": {
+      "event": {
+        "average_precision": 0.00013039691334428737,
+        "pr_curve": [
+          {
+            "alerts": 1,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 2,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 6,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 10,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 16,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 27,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 43,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 69,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 111,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 179,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 287,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 460,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 738,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1182,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1896,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 3038,
+            "recall": 0.0014265335235378032,
+            "precision": 0.0003291639236339697
+          },
+          {
+            "alerts": 4870,
+            "recall": 0.0014265335235378032,
+            "precision": 0.0002053388090349076
+          },
+          {
+            "alerts": 7806,
+            "recall": 0.007132667617689016,
+            "precision": 0.0006405329233922624
+          },
+          {
+            "alerts": 12511,
+            "recall": 0.011412268188302425,
+            "precision": 0.0006394372951802414
+          },
+          {
+            "alerts": 20052,
+            "recall": 0.011412268188302425,
+            "precision": 0.00039896269698783165
+          },
+          {
+            "alerts": 32138,
+            "recall": 0.011412268188302425,
+            "precision": 0.0002489265044495613
+          },
+          {
+            "alerts": 51510,
+            "recall": 0.014265335235378032,
+            "precision": 0.00019413706076490002
+          },
+          {
+            "alerts": 82557,
+            "recall": 0.025677603423680456,
+            "precision": 0.00021803117845851957
+          },
+          {
+            "alerts": 132319,
+            "recall": 0.07132667617689016,
+            "precision": 0.0003778746816405807
+          },
+          {
+            "alerts": 212074,
+            "recall": 0.1369472182596291,
+            "precision": 0.0004526721804653093
+          },
+          {
+            "alerts": 339901,
+            "recall": 0.14978601997146934,
+            "precision": 0.0003089134777479325
+          },
+          {
+            "alerts": 544776,
+            "recall": 0.19543509272467904,
+            "precision": 0.0002514795071735906
+          },
+          {
+            "alerts": 873138,
+            "recall": 0.21540656205420827,
+            "precision": 0.0001729394437076384
+          },
+          {
+            "alerts": 1399419,
+            "recall": 0.23537803138373753,
+            "precision": 0.00011790607387780214
+          },
+          {
+            "alerts": 2242915,
+            "recall": 0.2582025677603424,
+            "precision": 8.06985552283524e-05
+          },
+          {
+            "alerts": 3594825,
+            "recall": 0.30099857346647646,
+            "precision": 5.8695485872052186e-05
+          },
+          {
+            "alerts": 5761595,
+            "recall": 0.7061340941512125,
+            "precision": 8.591370965852338e-05
+          },
+          {
+            "alerts": 9234379,
+            "recall": 0.8345221112696148,
+            "precision": 6.3350226366061e-05
+          },
+          {
+            "alerts": 14800372,
+            "recall": 0.9044222539229672,
+            "precision": 4.2836761130058083e-05
+          },
+          {
+            "alerts": 23721250,
+            "recall": 0.9300998573466477,
+            "precision": 2.7485903989039365e-05
+          },
+          {
+            "alerts": 38019158,
+            "recall": 0.9914407988587732,
+            "precision": 1.8280257548049854e-05
+          },
+          {
+            "alerts": 60935087,
+            "recall": 1.0,
+            "precision": 1.1504045280184797e-05
+          },
+          {
+            "alerts": 97663519,
+            "recall": 1.0,
+            "precision": 7.177705730632131e-06
+          }
+        ],
+        "budget": {
+          "budget_per_day": 100,
+          "alerts": 5700,
+          "caught": 1,
+          "recall": 0.0014265335235378032,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.002105263157894737
+          }
+        }
+      },
+      "identity_day": {
+        "budget": {
+          "identity_day_recall": 0.16022099447513813,
+          "identity_days_caught": 29,
+          "events_covered": 246,
+          "event_recall": 0.3509272467902996,
+          "alerts": 5700,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.5178947368421053
+          }
+        }
+      }
+    },
+    "rules_only": {
+      "event": {
+        "average_precision": 4.687442512994341e-06,
+        "pr_curve": [
+          {
+            "alerts": 1,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 2,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 6,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 10,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 16,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 27,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 43,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 69,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 111,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 179,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 287,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 460,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 738,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1182,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1896,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 3038,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4870,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 7806,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 12511,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 20052,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 32138,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 51510,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 82557,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 132319,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 212074,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 339901,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 544776,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 873138,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1399419,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 2242915,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 3594825,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 5761595,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 9234379,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 14800372,
+            "recall": 0.0028530670470756064,
+            "precision": 1.3513173858062486e-07
+          },
+          {
+            "alerts": 23721250,
+            "recall": 0.11126961483594865,
+            "precision": 3.2881909680139116e-06
+          },
+          {
+            "alerts": 38019158,
+            "recall": 0.21683309557774608,
+            "precision": 3.9979843846094645e-06
+          },
+          {
+            "alerts": 60935087,
+            "recall": 0.39372325249643364,
+            "precision": 4.529410124580605e-06
+          },
+          {
+            "alerts": 97663519,
+            "recall": 1.0,
+            "precision": 7.177705730632131e-06
+          }
+        ],
+        "budget": {
+          "budget_per_day": 100,
+          "alerts": 5700,
+          "caught": 0,
+          "recall": 0.0,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.0
+          }
+        }
+      },
+      "identity_day": {
+        "budget": {
+          "identity_day_recall": 0.011049723756906077,
+          "identity_days_caught": 2,
+          "events_covered": 4,
+          "event_recall": 0.005706134094151213,
+          "alerts": 5700,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.008421052631578947
+          }
+        }
+      }
+    },
+    "gnn": {
+      "event": {
+        "average_precision": 1.9333293651121295e-05,
+        "pr_curve": [
+          {
+            "alerts": 1,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 2,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 6,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 10,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 16,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 27,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 43,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 69,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 111,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 179,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 287,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 460,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 738,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1182,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 1896,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 3038,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 4870,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 7806,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 12511,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 20052,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 32138,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 51510,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 82557,
+            "recall": 0.0,
+            "precision": 0.0
+          },
+          {
+            "alerts": 132319,
+            "recall": 0.0028530670470756064,
+            "precision": 1.5114987265623228e-05
+          },
+          {
+            "alerts": 212074,
+            "recall": 0.0042796005706134095,
+            "precision": 1.4146005639540916e-05
+          },
+          {
+            "alerts": 339901,
+            "recall": 0.0042796005706134095,
+            "precision": 8.826099364226643e-06
+          },
+          {
+            "alerts": 544776,
+            "recall": 0.008559201141226819,
+            "precision": 1.1013701044098858e-05
+          },
+          {
+            "alerts": 873138,
+            "recall": 0.018544935805991442,
+            "precision": 1.488882627946556e-05
+          },
+          {
+            "alerts": 1399419,
+            "recall": 0.03281027104136947,
+            "precision": 1.6435392116299694e-05
+          },
+          {
+            "alerts": 2242915,
+            "recall": 0.06134094151212553,
+            "precision": 1.9171479971376534e-05
+          },
+          {
+            "alerts": 3594825,
+            "recall": 0.09415121255349501,
+            "precision": 1.8359725438651395e-05
+          },
+          {
+            "alerts": 5761595,
+            "recall": 0.15834522111269614,
+            "precision": 1.926549852948706e-05
+          },
+          {
+            "alerts": 9234379,
+            "recall": 0.24679029957203993,
+            "precision": 1.8734340446715473e-05
+          },
+          {
+            "alerts": 14800372,
+            "recall": 0.39229671897289586,
+            "precision": 1.8580614054835918e-05
+          },
+          {
+            "alerts": 23721250,
+            "recall": 0.7532097004279601,
+            "precision": 2.2258523475786477e-05
+          },
+          {
+            "alerts": 38019158,
+            "recall": 0.9500713266761769,
+            "precision": 1.7517484211512522e-05
+          },
+          {
+            "alerts": 60935087,
+            "recall": 0.9843081312410842,
+            "precision": 1.1323525311451512e-05
+          },
+          {
+            "alerts": 97663519,
+            "recall": 1.0,
+            "precision": 7.177705730632131e-06
+          }
+        ],
+        "budget": {
+          "budget_per_day": 100,
+          "alerts": 5700,
+          "caught": 0,
+          "recall": 0.0,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.0
+          }
+        }
+      },
+      "identity_day": {
+        "budget": {
+          "identity_day_recall": 0.022099447513812154,
+          "identity_days_caught": 4,
+          "events_covered": 8,
+          "event_recall": 0.011412268188302425,
+          "alerts": 5700,
+          "workload": {
+            "alerts_per_day": 100.0,
+            "analyst_hours_per_day": 8.333333333333334,
+            "attack_events_per_analyst_hour": 0.016842105263157894
+          }
+        }
+      }
+    }
+  }
+}

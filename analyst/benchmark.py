@@ -188,15 +188,20 @@ def score(out_dir: Path, result: Path, data_label: str, model: str) -> dict:
     truth = {b["alert_id"]: b["truth"] for b in bench["items"]}
     results = {"data": data_label, "model": model, "benchmark_size": bench["size"],
                "alert_stream": bench["stream"], "accept_at": ACCEPT_AT}
+    arms = {}
     for name, fname in (("with_graph_tools", "runs_graph.jsonl"),
                         ("without_graph_tools", "runs_nograph.jsonl")):
         path = out_dir / fname
-        if not path.exists():
-            results[name] = None
-            continue
-        runs = [json.loads(x) for x in path.read_text().splitlines() if x.strip()]
-        runs = [{**r, "truth": truth[r["alert_id"]]} for r in runs if r["alert_id"] in truth]
-        results[name] = score_runs(runs, stream=bench["stream"]) if runs else None
+        runs = [json.loads(x) for x in path.read_text().splitlines() if x.strip()]             if path.exists() else []
+        arms[name] = {r["alert_id"]: r for r in runs if r["alert_id"] in truth}
+    # Both arms are scored on the same alerts, the ones each has finished. Otherwise a run that
+    # stopped early would be compared against a different, larger set of alerts.
+    common = sorted(set.intersection(*(set(a) for a in arms.values()))) if all(arms.values())         else []
+    results["alerts_scored"] = len(common)
+    results["complete"] = len(common) == bench["size"]
+    for name, runs in arms.items():
+        picked = [{**runs[i], "truth": truth[i]} for i in common]
+        results[name] = score_runs(picked, stream=bench["stream"]) if picked else None
     result.write_text(json.dumps(results, indent=2) + "\n")
     return results
 
