@@ -1,0 +1,2405 @@
+{
+ "data": "full LANL auth log, 1,051,430,459 events, local lake built from auth.txt.gz and redteam.txt.gz",
+ "labels": {
+  "rows": 749,
+  "distinct": 715,
+  "in_log": 701,
+  "not_in_log": 14,
+  "in_candidates": 701,
+  "in_log_test_window": 701,
+  "redteam_identity_days_test_window": 181
+ },
+ "budget_per_day": 100,
+ "triage_minutes": 5,
+ "compare": {
+  "v1_best": {
+   "identity_day_recall": 0.11602209944751381,
+   "identity_days_caught": 21,
+   "events_covered": 256,
+   "event_recall": 0.3651925820256776,
+   "alerts": 5631,
+   "workload": {
+    "alerts_per_day": 98.78947368421052,
+    "analyst_hours_per_day": 8.232456140350877,
+    "attack_events_per_analyst_hour": 0.5455514118273841
+   }
+  },
+  "headline": {
+   "identity_day_recall": 0.16022099447513813,
+   "identity_days_caught": 29,
+   "events_covered": 246,
+   "event_recall": 0.3509272467902996,
+   "alerts": 5700,
+   "workload": {
+    "alerts_per_day": 100.0,
+    "analyst_hours_per_day": 8.333333333333334,
+    "attack_events_per_analyst_hour": 0.5178947368421053
+   }
+  },
+  "graph_only": {
+   "identity_day_recall": 0.39226519337016574,
+   "identity_days_caught": 71,
+   "events_covered": 436,
+   "event_recall": 0.6219686162624821,
+   "alerts": 5700,
+   "workload": {
+    "alerts_per_day": 100.0,
+    "analyst_hours_per_day": 8.333333333333334,
+    "attack_events_per_analyst_hour": 0.9178947368421052
+   }
+  },
+  "gnn": {
+   "identity_day_recall": 0.022099447513812154,
+   "identity_days_caught": 4,
+   "events_covered": 8,
+   "event_recall": 0.011412268188302425,
+   "alerts": 5700,
+   "workload": {
+    "alerts_per_day": 100.0,
+    "analyst_hours_per_day": 8.333333333333334,
+    "attack_events_per_analyst_hour": 0.016842105263157894
+   }
+  }
+ },
+ "normal_day": {
+  "day": 40,
+  "attack_events_that_day": 0,
+  "alerts": [
+   {
+    "alert_id": 3901,
+    "time": 3456261,
+    "account": "U358@C466",
+    "source": "C466",
+    "destination": "C3699",
+    "score": 64.52,
+    "is_attack": false,
+    "top_reason": "last reached about 131072s earlier"
+   },
+   {
+    "alert_id": 3902,
+    "time": 3458814,
+    "account": "U3294@DOM1",
+    "source": "C8823",
+    "destination": "C2619",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3903,
+    "time": 3459692,
+    "account": "U8@DOM1",
+    "source": "C62",
+    "destination": "C17725",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3904,
+    "time": 3459701,
+    "account": "U8@DOM1",
+    "source": "C62",
+    "destination": "C921",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3905,
+    "time": 3460009,
+    "account": "U990@DOM1",
+    "source": "C835",
+    "destination": "C16926",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3906,
+    "time": 3461457,
+    "account": "U396@DOM1",
+    "source": "C11059",
+    "destination": "C20203",
+    "score": 60.78,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3907,
+    "time": 3467864,
+    "account": "U6739@DOM1",
+    "source": "C15064",
+    "destination": "C4426",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3908,
+    "time": 3470487,
+    "account": "U1099@DOM1",
+    "source": "C1685",
+    "destination": "C15888",
+    "score": 60.78,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3909,
+    "time": 3470636,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C25799",
+    "score": 59.64,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 3910,
+    "time": 3477370,
+    "account": "U6500@DOM1",
+    "source": "C3959",
+    "destination": "C10781",
+    "score": 57.06,
+    "is_attack": false,
+    "top_reason": "last reached about 131072s earlier"
+   },
+   {
+    "alert_id": 3911,
+    "time": 3480094,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18357",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3912,
+    "time": 3480104,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C5864",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3913,
+    "time": 3483623,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16289",
+    "score": 59.37,
+    "is_attack": false,
+    "top_reason": "last reached about 1048576s earlier"
+   },
+   {
+    "alert_id": 3914,
+    "time": 3483651,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16182",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3915,
+    "time": 3483686,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C941",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3916,
+    "time": 3483703,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18787",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3917,
+    "time": 3484196,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18483",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3918,
+    "time": 3484280,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16426",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3919,
+    "time": 3484282,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18819",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3920,
+    "time": 3484316,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18502",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3921,
+    "time": 3484342,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18610",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3922,
+    "time": 3484378,
+    "account": "U453@DOM1",
+    "source": "C21191",
+    "destination": "C3219",
+    "score": 57.06,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 3923,
+    "time": 3485026,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18674",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3924,
+    "time": 3485086,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16173",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3925,
+    "time": 3485109,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C21457",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3926,
+    "time": 3485434,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16383",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3927,
+    "time": 3485613,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1091",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3928,
+    "time": 3485717,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C16811",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3929,
+    "time": 3485764,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C21469",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3930,
+    "time": 3486253,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C21493",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3931,
+    "time": 3486336,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C16191",
+    "score": 58.22,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3932,
+    "time": 3486546,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16171",
+    "score": 59.37,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3933,
+    "time": 3486912,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18914",
+    "score": 59.37,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3934,
+    "time": 3488371,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C20750",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3935,
+    "time": 3488522,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16775",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3936,
+    "time": 3489869,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16820",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3937,
+    "time": 3489903,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C21201",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3938,
+    "time": 3489912,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C17122",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3939,
+    "time": 3490036,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18951",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3940,
+    "time": 3490102,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18945",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3941,
+    "time": 3491378,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18099",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3942,
+    "time": 3491432,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1455",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3943,
+    "time": 3492115,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C2814",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3944,
+    "time": 3492355,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C19945",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3945,
+    "time": 3492603,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1935",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3946,
+    "time": 3493030,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18531",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3947,
+    "time": 3493261,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18880",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3948,
+    "time": 3493434,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19116",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3949,
+    "time": 3493650,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18898",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3950,
+    "time": 3493675,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18637",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3951,
+    "time": 3493689,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19052",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3952,
+    "time": 3493973,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19446",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 3953,
+    "time": 3494227,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C19382",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3954,
+    "time": 3494321,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19965",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3955,
+    "time": 3495176,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C21052",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3956,
+    "time": 3495929,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C22027",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3957,
+    "time": 3495965,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19006",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3958,
+    "time": 3497417,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18298",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3959,
+    "time": 3497446,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18852",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3960,
+    "time": 3497557,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C21394",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3961,
+    "time": 3497694,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C12313",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3962,
+    "time": 3497725,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19651",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3963,
+    "time": 3500049,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18988",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3964,
+    "time": 3502559,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19096",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3965,
+    "time": 3503278,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C5609",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3966,
+    "time": 3505665,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C19410",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3967,
+    "time": 3505897,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C11407",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3968,
+    "time": 3506487,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C22585",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 3969,
+    "time": 3507815,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19477",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3970,
+    "time": 3508117,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16650",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3971,
+    "time": 3508260,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19791",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3972,
+    "time": 3508359,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C20340",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3973,
+    "time": 3508433,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19643",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3974,
+    "time": 3508840,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18694",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3975,
+    "time": 3509002,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C20942",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 524288s earlier"
+   },
+   {
+    "alert_id": 3976,
+    "time": 3509561,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C17843",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3977,
+    "time": 3509675,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C20007",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3978,
+    "time": 3510182,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C20023",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3979,
+    "time": 3510271,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C19848",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3980,
+    "time": 3510309,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19900",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3981,
+    "time": 3510536,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19803",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3982,
+    "time": 3510676,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19499",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3983,
+    "time": 3510956,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C17039",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3984,
+    "time": 3511747,
+    "account": "U7735@DOM1",
+    "source": "C21899",
+    "destination": "C1909",
+    "score": 57.06,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 3985,
+    "time": 3511874,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19821",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3986,
+    "time": 3511923,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16746",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3987,
+    "time": 3511985,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C17297",
+    "score": 58.17,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3988,
+    "time": 3516626,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C18939",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3989,
+    "time": 3518505,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C20347",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3990,
+    "time": 3518974,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19290",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3991,
+    "time": 3519100,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C15661",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3992,
+    "time": 3523294,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19969",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3993,
+    "time": 3523987,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16974",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3994,
+    "time": 3530300,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19636",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3995,
+    "time": 3530688,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16754",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 1048576s earlier"
+   },
+   {
+    "alert_id": 3996,
+    "time": 3531868,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16770",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3997,
+    "time": 3532122,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16516",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3998,
+    "time": 3532154,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C891",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 3999,
+    "time": 3532215,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C10995",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 2097152s earlier"
+   },
+   {
+    "alert_id": 4000,
+    "time": 3533455,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C17895",
+    "score": 56.62,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   }
+  ]
+ },
+ "attack_day": {
+  "day": 8,
+  "attack_events_that_day": 261,
+  "alerts": [
+   {
+    "alert_id": 701,
+    "time": 691436,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C21838",
+    "score": 69.16,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 702,
+    "time": 691593,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C21857",
+    "score": 72.67,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 703,
+    "time": 691876,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C4948",
+    "score": 72.67,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 704,
+    "time": 692047,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C8705",
+    "score": 59.25,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 705,
+    "time": 692168,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C2689",
+    "score": 59.25,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 706,
+    "time": 692228,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C21174",
+    "score": 68.67,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 707,
+    "time": 692292,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C18996",
+    "score": 72.67,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 708,
+    "time": 692389,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C20263",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 709,
+    "time": 692929,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16436",
+    "score": 65.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 710,
+    "time": 692965,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C15857",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 711,
+    "time": 693086,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C10901",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 712,
+    "time": 693386,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C17666",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 713,
+    "time": 693902,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C17907",
+    "score": 65.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 714,
+    "time": 694006,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C20605",
+    "score": 63.85,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 715,
+    "time": 694022,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16241",
+    "score": 63.85,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 716,
+    "time": 694124,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C6731",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 717,
+    "time": 694462,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C11182",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 718,
+    "time": 694738,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C1208",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 719,
+    "time": 694790,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C3420",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 720,
+    "time": 695214,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C20405",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 721,
+    "time": 695239,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C16886",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 722,
+    "time": 695281,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C17342",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 723,
+    "time": 696198,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C20244",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 724,
+    "time": 696656,
+    "account": "U396@DOM1",
+    "source": "C11059",
+    "destination": "C20203",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 725,
+    "time": 696939,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16766",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 726,
+    "time": 697138,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C648",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 727,
+    "time": 697386,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1281",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 728,
+    "time": 697502,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C3625",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 729,
+    "time": 698174,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C5474",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 730,
+    "time": 698185,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1035",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 731,
+    "time": 698486,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C883",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 732,
+    "time": 698518,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C2150",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 733,
+    "time": 698940,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C2813",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 734,
+    "time": 699029,
+    "account": "U1967@DOM1",
+    "source": "C6117",
+    "destination": "C5769",
+    "score": 57.44,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 735,
+    "time": 699254,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C1961",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 736,
+    "time": 699385,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1752",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 737,
+    "time": 699390,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C4016",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 738,
+    "time": 699567,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C3728",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 739,
+    "time": 699576,
+    "account": "U6631@?",
+    "source": "C5802",
+    "destination": "C4016",
+    "score": 61.14,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 740,
+    "time": 700060,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C1208",
+    "score": 63.51,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 741,
+    "time": 700355,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C3286",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 742,
+    "time": 700380,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C155",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 743,
+    "time": 700385,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C844",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 744,
+    "time": 700419,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C4403",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 745,
+    "time": 700690,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C3635",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 746,
+    "time": 700967,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C3482",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 747,
+    "time": 700974,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C1121",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 748,
+    "time": 701147,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C5683",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 749,
+    "time": 701314,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C4827",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 750,
+    "time": 701402,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C687",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 751,
+    "time": 701559,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C3421",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 752,
+    "time": 701695,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C2622",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 753,
+    "time": 702109,
+    "account": "U1600@DOM1",
+    "source": "C16088",
+    "destination": "C16090",
+    "score": 60.78,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 754,
+    "time": 702201,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C3429",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 755,
+    "time": 702266,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C2603",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 756,
+    "time": 702383,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C2012",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 757,
+    "time": 702981,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C3074",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 758,
+    "time": 703347,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C3422",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 759,
+    "time": 703400,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C5575",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 760,
+    "time": 703592,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C5185",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 761,
+    "time": 703937,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C2940",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 762,
+    "time": 703948,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C5612",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 763,
+    "time": 703970,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C2196",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 764,
+    "time": 704030,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C3194",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 765,
+    "time": 704488,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C58",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 766,
+    "time": 704524,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C198",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 767,
+    "time": 704618,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19587",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 768,
+    "time": 705018,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C589",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 769,
+    "time": 705183,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C179",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 770,
+    "time": 705280,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19772",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 771,
+    "time": 705807,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C15661",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 772,
+    "time": 705863,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C19622",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 773,
+    "time": 705927,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C17957",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 774,
+    "time": 706024,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C19096",
+    "score": 62.98,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 775,
+    "time": 706410,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19930",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 776,
+    "time": 706413,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C17668",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 777,
+    "time": 706701,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C21205",
+    "score": 69.92,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 778,
+    "time": 708461,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C576",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 779,
+    "time": 708637,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C19558",
+    "score": 70.26,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 780,
+    "time": 708894,
+    "account": "U1718@?",
+    "source": "C5802",
+    "destination": "C1416",
+    "score": 63.32,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 781,
+    "time": 708910,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C10870",
+    "score": 56.84,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 782,
+    "time": 714795,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C5864",
+    "score": 57.82,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 783,
+    "time": 724856,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C16707",
+    "score": 61.55,
+    "is_attack": false,
+    "top_reason": "last reached about 131072s earlier"
+   },
+   {
+    "alert_id": 784,
+    "time": 725099,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C16555",
+    "score": 61.55,
+    "is_attack": false,
+    "top_reason": "last reached about 524288s earlier"
+   },
+   {
+    "alert_id": 785,
+    "time": 738455,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C17968",
+    "score": 61.55,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 786,
+    "time": 738800,
+    "account": "U1718@?",
+    "source": "C5782",
+    "destination": "C16397",
+    "score": 57.82,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 787,
+    "time": 739734,
+    "account": "U1600@DOM1",
+    "source": "C17693",
+    "destination": "C16088",
+    "score": 58.79,
+    "is_attack": true,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 788,
+    "time": 742140,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C16820",
+    "score": 61.55,
+    "is_attack": false,
+    "top_reason": "last reached about 524288s earlier"
+   },
+   {
+    "alert_id": 789,
+    "time": 745606,
+    "account": "U7998@DOM1",
+    "source": "C754",
+    "destination": "C17968",
+    "score": 59.92,
+    "is_attack": false,
+    "top_reason": "last reached about 131072s earlier"
+   },
+   {
+    "alert_id": 790,
+    "time": 746609,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C18656",
+    "score": 61.21,
+    "is_attack": false,
+    "top_reason": "last reached about 262144s earlier"
+   },
+   {
+    "alert_id": 791,
+    "time": 749607,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C5776",
+    "score": 57.48,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 792,
+    "time": 752606,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C2720",
+    "score": 57.82,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 793,
+    "time": 753535,
+    "account": "U1718@?",
+    "source": "C5787",
+    "destination": "C21356",
+    "score": 57.82,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 794,
+    "time": 763312,
+    "account": "U1718@?",
+    "source": "C5808",
+    "destination": "C17378",
+    "score": 61.55,
+    "is_attack": false,
+    "top_reason": "last reached about 524288s earlier"
+   },
+   {
+    "alert_id": 795,
+    "time": 771537,
+    "account": "U2412@DOM1",
+    "source": "C17693",
+    "destination": "C14431",
+    "score": 58.61,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 796,
+    "time": 772173,
+    "account": "U6691@DOM1",
+    "source": "C17693",
+    "destination": "C1096",
+    "score": 58.61,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 797,
+    "time": 772728,
+    "account": "U218@DOM1",
+    "source": "C17693",
+    "destination": "C824",
+    "score": 58.61,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 798,
+    "time": 773121,
+    "account": "U4112@DOM1",
+    "source": "C17693",
+    "destination": "C708",
+    "score": 58.61,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 799,
+    "time": 773163,
+    "account": "U4112@DOM1",
+    "source": "C17693",
+    "destination": "C10794",
+    "score": 57.28,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   },
+   {
+    "alert_id": 800,
+    "time": 773513,
+    "account": "U2310@DOM1",
+    "source": "C17693",
+    "destination": "C6787",
+    "score": 58.61,
+    "is_attack": false,
+    "top_reason": "computer unseen on day 0"
+   }
+  ]
+ },
+ "explained": {
+  "alert_id": 787,
+  "time": 739734,
+  "day": 8,
+  "account": "U1600@DOM1",
+  "source": "C17693",
+  "destination": "C16088",
+  "score": 58.7921257019043,
+  "contributions": [
+   {
+    "feature": "gap",
+    "value": 19,
+    "meaning": "last reached about 262144s earlier",
+    "surprise": 13.593184
+   },
+   {
+    "feature": "dst_hub",
+    "value": 0,
+    "meaning": "computer unseen on day 0",
+    "surprise": 13.593179
+   },
+   {
+    "feature": "hv_delta",
+    "value": 6,
+    "meaning": "3 hops closer to a high-value host",
+    "surprise": 13.593163
+   },
+   {
+    "feature": "r_fail_1h",
+    "value": 1,
+    "meaning": "five or more failed logins in the hour (v1 rule Q4)",
+    "surprise": 5.193397
+   },
+   {
+    "feature": "src_new_users_24h",
+    "value": 5,
+    "meaning": "about 16 accounts used this source for the first time in the past day",
+    "surprise": 5.034263
+   },
+   {
+    "feature": "burst_1h",
+    "value": 3,
+    "meaning": "about 4 new computers for this account in the past hour",
+    "surprise": 4.958909
+   },
+   {
+    "feature": "r_new_hosts_today",
+    "value": 0,
+    "meaning": "rule Q3 quiet",
+    "surprise": 2.811018
+   },
+   {
+    "feature": "edge_new",
+    "value": 0,
+    "meaning": "has been here before",
+    "surprise": 0.012852
+   },
+   {
+    "feature": "src_new",
+    "value": 0,
+    "meaning": "known source",
+    "surprise": 0.002158
+   },
+   {
+    "feature": "r_off_hours",
+    "value": 0,
+    "meaning": "normal hours",
+    "surprise": 1e-06
+   }
+  ],
+  "explained_score": 58.792124,
+  "subgraph": {
+   "account_logins": [
+    {
+     "seconds_before": 28,
+     "source": "C17693",
+     "destination": "C92"
+    },
+    {
+     "seconds_before": 40,
+     "source": "C16088",
+     "destination": "C2106"
+    },
+    {
+     "seconds_before": 41,
+     "source": "C16088",
+     "destination": "C2106"
+    },
+    {
+     "seconds_before": 41,
+     "source": "C16088",
+     "destination": "C625"
+    },
+    {
+     "seconds_before": 60,
+     "source": "C17693",
+     "destination": "C16625"
+    },
+    {
+     "seconds_before": 61,
+     "source": "C16088",
+     "destination": "C1065"
+    },
+    {
+     "seconds_before": 74,
+     "source": "C17693",
+     "destination": "C18720"
+    },
+    {
+     "seconds_before": 86,
+     "source": "C16088",
+     "destination": "C1065"
+    }
+   ],
+   "source_accounts": [
+    {
+     "seconds_before": 336,
+     "account": "U293@DOM1",
+     "destination": "C42"
+    },
+    {
+     "seconds_before": 520,
+     "account": "U293@DOM1",
+     "destination": "C3153"
+    },
+    {
+     "seconds_before": 642,
+     "account": "U293@DOM1",
+     "destination": "C3422"
+    },
+    {
+     "seconds_before": 818,
+     "account": "U250@DOM1",
+     "destination": "C2849"
+    },
+    {
+     "seconds_before": 1023,
+     "account": "U293@DOM1",
+     "destination": "C2609"
+    },
+    {
+     "seconds_before": 1311,
+     "account": "U8946@DOM1",
+     "destination": "C19402"
+    },
+    {
+     "seconds_before": 1343,
+     "account": "U293@DOM1",
+     "destination": "C1767"
+    },
+    {
+     "seconds_before": 1352,
+     "account": "U293@DOM1",
+     "destination": "C2597"
+    }
+   ],
+   "hops_to_high_value": {
+    "source": 4,
+    "destination": 1
+   }
+  }
+ },
+ "verdicts": {
+  "graph": {
+   "verdict": {
+    "verdict": "true_positive",
+    "confidence": 0.95,
+    "account": "U748@DOM1",
+    "launch_host": "C17693",
+    "path": [
+     "C17693",
+     "C332"
+    ],
+    "linked_accounts": [
+     "U1723@C1759"
+    ],
+    "reason": "Multiple accounts (U748@DOM1 and U1723@C1759) are actively using the same previously unseen source host C17693 to reach new destinations, indicating a coordinated lateral movement campaign from that foothold."
+   },
+   "tool_calls": 6,
+   "tools_used": [
+    "who_is",
+    "recent_auth_history",
+    "hosts_reached",
+    "path_to",
+    "similar_alerts",
+    "who_is"
+   ],
+   "hallucinated_calls": 0,
+   "tokens": 8964
+  },
+  "nograph": {
+   "verdict": {
+    "verdict": "false_positive",
+    "confidence": 0.95,
+    "account": "",
+    "launch_host": "",
+    "path": [],
+    "linked_accounts": [],
+    "reason": "The account U748@DOM1 is a known legitimate user with established patterns, and the alert source C17693 was used only once in a burst of logins from its usual host C2677, indicating normal behavior rather than lateral movement."
+   },
+   "tool_calls": 3,
+   "tools_used": [
+    "who_is",
+    "recent_auth_history",
+    "who_is"
+   ],
+   "hallucinated_calls": 0,
+   "tokens": 3342
+  },
+  "alert": {
+   "account": "U748@DOM1",
+   "source": "C17693",
+   "destination": "C332",
+   "day": 1
+  },
+  "truth": {
+   "is_attack": true,
+   "account": "U748@DOM1",
+   "launch_host": "C17693",
+   "destination": "C332",
+   "linked_accounts": [
+    "U6115@DOM1",
+    "U620@DOM1",
+    "U636@DOM1"
+   ]
+  }
+ },
+ "analyst": {
+  "model": "qwen/qwen3.5-9b",
+  "size": 600,
+  "scored": 49,
+  "with": {
+   "alerts": 49,
+   "attack_alerts": 5,
+   "benign_alerts": 44,
+   "decided": 49,
+   "accuracy_on_decided": 0.9183673469387755,
+   "attack_recall_on_decided": 0.4,
+   "escalation_rate": 0.0,
+   "attacks_closed_as_benign": 3,
+   "path_correct_on_attacks": 0.4,
+   "linked_account_recall": 0.0,
+   "calibration": {
+    "ece": 0.038163265306122865,
+    "curve": [
+     {
+      "bin": [
+       0.8,
+       0.9
+      ],
+      "n": 2,
+      "confidence": 0.85,
+      "accuracy": 1.0
+     },
+     {
+      "bin": [
+       0.9,
+       1.0
+      ],
+      "n": 47,
+      "confidence": 0.948297872340426,
+      "accuracy": 0.9148936170212766
+     }
+    ]
+   },
+   "tool_calls_per_alert": 5.244897959183674,
+   "hallucinated_calls": 0,
+   "tokens_per_alert": 6851.897959183673,
+   "cascade": {
+    "accept_at": 0.8,
+    "accepted": 49,
+    "escalated": 0,
+    "escalated_attack_share": 0.0,
+    "escalated_benign_share": 0.0,
+    "attack_recall": 0.4
+   },
+   "workload": {
+    "alerts_read_without_agent": 57000,
+    "alerts_read_with_agent": 0.0,
+    "triage_minutes_per_alert": 5,
+    "analyst_hours_without_agent": 4750.0,
+    "analyst_hours_with_agent": 0.0
+   }
+  },
+  "without": {
+   "alerts": 49,
+   "attack_alerts": 5,
+   "benign_alerts": 44,
+   "decided": 49,
+   "accuracy_on_decided": 0.8979591836734694,
+   "attack_recall_on_decided": 0.0,
+   "escalation_rate": 0.0,
+   "attacks_closed_as_benign": 5,
+   "path_correct_on_attacks": 0.0,
+   "linked_account_recall": 0.0,
+   "calibration": {
+    "ece": 0.05102040816326536,
+    "curve": [
+     {
+      "bin": [
+       0.9,
+       1.0
+      ],
+      "n": 49,
+      "confidence": 0.9489795918367347,
+      "accuracy": 0.8979591836734694
+     }
+    ]
+   },
+   "tool_calls_per_alert": 2.6122448979591835,
+   "hallucinated_calls": 0,
+   "tokens_per_alert": 2877.4489795918366,
+   "cascade": {
+    "accept_at": 0.8,
+    "accepted": 49,
+    "escalated": 0,
+    "escalated_attack_share": 0.0,
+    "escalated_benign_share": 0.0,
+    "attack_recall": 0.0
+   },
+   "workload": {
+    "alerts_read_without_agent": 57000,
+    "alerts_read_with_agent": 0.0,
+    "triage_minutes_per_alert": 5,
+    "analyst_hours_without_agent": 4750.0,
+    "analyst_hours_with_agent": 0.0
+   }
+  }
+ }
+}

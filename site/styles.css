@@ -539,3 +539,22 @@ header.top, main, footer { position: relative; z-index: 1; }
 .lookalike-controls .field { flex: 1 1 320px; margin: 0; }
 tr.is-hit td { background: color-mix(in srgb, var(--critical) 14%, transparent); }
 tr.is-hit td:first-child { box-shadow: inset 2px 0 0 var(--critical); }
+
+/* v2 triage section */
+.tri-line { color: var(--fg-muted); margin: var(--s3) 0; max-width: 72ch; }
+.tri-table td, .tri-table th { white-space: nowrap; }
+.tri-table tr.is-attack td { color: var(--fg); background: var(--surface-3); }
+.tag { font-size: 0.78rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--fg-dim); }
+.tag.attack { color: var(--fg); border-color: var(--border-strong); font-weight: 600; }
+.tri-bars { display: grid; gap: var(--s2); margin: var(--s4) 0; }
+.tri-bar { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 6ch; gap: var(--s3); align-items: center; font-size: 0.9rem; }
+.tri-bar-track { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.tri-bar-track span { display: block; height: 100%; background: var(--accent, var(--fg-muted)); }
+.tri-sub, .tri-verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s4); }
+.tri-sub ul { margin: 0; padding-left: 1.1em; font-size: 0.88rem; color: var(--fg-muted); }
+.tri-verdict { border: 1px solid var(--border); border-radius: 10px; padding: var(--s4); }
+.tri-verdict h4, .tri-sub h4 { margin: 0 0 var(--s2); font-size: 0.95rem; }
+.tri-call { font-weight: 600; text-transform: capitalize; }
+.tri-meta { font-size: 0.82rem; color: var(--fg-dim); }
+.tri-toggle { display: flex; gap: var(--s2); align-items: center; margin: var(--s3) 0; cursor: pointer; }
+.tri-work { display: flex; flex-wrap: wrap; gap: var(--s6); margin-top: var(--s3); }

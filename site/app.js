@@ -8,6 +8,7 @@
 import * as duckdb from './vendor/duckdb/duckdb-browser.mjs';
 import { barChart, lineChart, table, fmt } from './charts.js';
 import { PathExplorer } from './graph.js';
+import { setupTriage } from './triage.js';
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
@@ -1013,6 +1014,8 @@ async function main() {
       runQuery(editor.value, status, result);
     }
   });
+
+  setupTriage().catch((err) => console.error(err));
 
   // DuckDB last. The page is fully readable before the wasm lands.
   try {

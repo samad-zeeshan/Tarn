@@ -109,6 +109,42 @@
   <div class="pipeline" id="pipeline"></div>
 </section>
 
+<!-- ============================================================ TRIAGE -->
+<section id="triage" class="wrap">
+  <div class="section-head">
+    <p class="eyebrow">Version 2 · <span class="badge recorded"><span class="dot"></span>recorded runs</span></p>
+    <h2>Would the new detector have caught them?</h2>
+    <p>
+      Version 2 draws a map of who logged into which machine and scores each login as it
+      arrives, using only what happened before it. Each day, the highest scores become alerts.
+      Then an AI analyst, a small model running on a laptop, reads each alert and asks the map
+      questions before it decides. Every run below was recorded and is replayed here.
+    </p>
+    <p>
+      Every detector gets the same daily number of alerts, since that is what a person can read.
+      This is how many compromised account-days each one put in front of that person.
+    </p>
+  </div>
+
+  <div class="scale-line" id="tri-compare"></div>
+
+  <div class="card" style="margin-top:var(--s4)">
+    <div class="wb-presets" id="tri-buttons" role="group" aria-label="What to show">
+      <button class="preset" data-view="normal" aria-pressed="false">A normal day</button>
+      <button class="preset" data-view="attack" aria-pressed="false">An attack day</button>
+      <button class="preset" data-view="explain" aria-pressed="false">One alert, explained</button>
+      <button class="preset" data-view="verdict" aria-pressed="false">The analyst's verdict</button>
+    </div>
+    <div id="tri-view" aria-live="polite"></div>
+  </div>
+
+  <div class="card" style="margin-top:var(--s4)">
+    <div class="chart-title">Who has to read the alerts</div>
+    <label class="tri-toggle"><input type="checkbox" id="tri-agent"> Let the analyst agent read first</label>
+    <div id="tri-work"></div>
+  </div>
+</section>
+
 <!-- ============================================================ SQL WORKBENCH -->
 <section id="workbench" class="wrap">
   <div class="section-head">
