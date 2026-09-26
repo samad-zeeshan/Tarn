@@ -2303,95 +2303,104 @@
  "analyst": {
   "model": "qwen/qwen3.5-9b",
   "size": 600,
-  "scored": 49,
+  "scored": 600,
   "with": {
-   "alerts": 49,
-   "attack_alerts": 5,
-   "benign_alerts": 44,
-   "decided": 49,
-   "accuracy_on_decided": 0.9183673469387755,
-   "attack_recall_on_decided": 0.4,
-   "escalation_rate": 0.0,
-   "attacks_closed_as_benign": 3,
-   "path_correct_on_attacks": 0.4,
-   "linked_account_recall": 0.0,
+   "alerts": 600,
+   "attack_alerts": 51,
+   "benign_alerts": 549,
+   "decided": 595,
+   "accuracy_on_decided": 0.8823529411764706,
+   "attack_recall_on_decided": 0.2978723404255319,
+   "escalation_rate": 0.008333333333333333,
+   "attacks_closed_as_benign": 33,
+   "path_correct_on_attacks": 0.49019607843137253,
+   "linked_account_recall": 0.08862530196584988,
    "calibration": {
-    "ece": 0.038163265306122865,
+    "ece": 0.06826890756302532,
     "curve": [
      {
       "bin": [
        0.8,
        0.9
       ],
-      "n": 2,
+      "n": 3,
       "confidence": 0.85,
-      "accuracy": 1.0
+      "accuracy": 0.6666666666666666
      },
      {
       "bin": [
        0.9,
        1.0
       ],
-      "n": 47,
-      "confidence": 0.948297872340426,
-      "accuracy": 0.9148936170212766
+      "n": 592,
+      "confidence": 0.9511317567567569,
+      "accuracy": 0.8834459459459459
      }
     ]
    },
-   "tool_calls_per_alert": 5.244897959183674,
+   "tool_calls_per_alert": 5.15,
    "hallucinated_calls": 0,
-   "tokens_per_alert": 6851.897959183673,
+   "tokens_per_alert": 7489.405,
    "cascade": {
     "accept_at": 0.8,
-    "accepted": 49,
-    "escalated": 0,
-    "escalated_attack_share": 0.0,
-    "escalated_benign_share": 0.0,
-    "attack_recall": 0.4
+    "accepted": 595,
+    "escalated": 5,
+    "escalated_attack_share": 0.0784313725490196,
+    "escalated_benign_share": 0.0018214936247723133,
+    "attack_recall": 0.35294117647058826
    },
    "workload": {
     "alerts_read_without_agent": 57000,
-    "alerts_read_with_agent": 0.0,
+    "alerts_read_with_agent": 107.73224043715847,
     "triage_minutes_per_alert": 5,
     "analyst_hours_without_agent": 4750.0,
-    "analyst_hours_with_agent": 0.0
+    "analyst_hours_with_agent": 8.97768670309654
    }
   },
   "without": {
-   "alerts": 49,
-   "attack_alerts": 5,
-   "benign_alerts": 44,
-   "decided": 49,
-   "accuracy_on_decided": 0.8979591836734694,
-   "attack_recall_on_decided": 0.0,
+   "alerts": 600,
+   "attack_alerts": 51,
+   "benign_alerts": 549,
+   "decided": 600,
+   "accuracy_on_decided": 0.8983333333333333,
+   "attack_recall_on_decided": 0.0784313725490196,
    "escalation_rate": 0.0,
-   "attacks_closed_as_benign": 5,
-   "path_correct_on_attacks": 0.0,
+   "attacks_closed_as_benign": 47,
+   "path_correct_on_attacks": 0.058823529411764705,
    "linked_account_recall": 0.0,
    "calibration": {
-    "ece": 0.05102040816326536,
+    "ece": 0.05130000000000014,
     "curve": [
+     {
+      "bin": [
+       0.8,
+       0.9
+      ],
+      "n": 1,
+      "confidence": 0.85,
+      "accuracy": 0.0
+     },
      {
       "bin": [
        0.9,
        1.0
       ],
-      "n": 49,
-      "confidence": 0.9489795918367347,
-      "accuracy": 0.8979591836734694
+      "n": 599,
+      "confidence": 0.9497996661101837,
+      "accuracy": 0.8998330550918197
      }
     ]
    },
-   "tool_calls_per_alert": 2.6122448979591835,
+   "tool_calls_per_alert": 2.4916666666666667,
    "hallucinated_calls": 0,
-   "tokens_per_alert": 2877.4489795918366,
+   "tokens_per_alert": 2775.375,
    "cascade": {
     "accept_at": 0.8,
-    "accepted": 49,
+    "accepted": 600,
     "escalated": 0,
     "escalated_attack_share": 0.0,
     "escalated_benign_share": 0.0,
-    "attack_recall": 0.0
+    "attack_recall": 0.0784313725490196
    },
    "workload": {
     "alerts_read_without_agent": 57000,

@@ -430,7 +430,7 @@ export async function setupNight(night, triage) {
   }
   const workNote = () => {
     const a = triage.analyst;
-    const base = `Measured on the ${int(a.scored)} of ${int(a.size)} benchmark alerts the agent finished before the model became unavailable.`;
+    const base = `Measured on ${int(a.scored)} of ${int(a.size)} benchmark alerts.`;
     $('#wk-note').textContent = agentOn
       ? `The agent closes anything it is ${w.cascade.accept_at} sure of or more, and it was that sure almost every time. It closed ${int(w.attacks_closed_as_benign)} real attacks as false alarms. ${base}`
       : `Without the agent a person reads every alert in the wider feed of the detector. ${base}`;

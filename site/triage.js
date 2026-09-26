@@ -112,7 +112,7 @@ function verdictCard(title, v) {
 
 function verdicts(t) {
   const v = t.verdicts;
-  if (!v.alert) return '<p class="tri-line">The agent did not finish an attack alert before the model became unavailable.</p>';
+  if (!v.alert) return '<p class="tri-line">The agent has no answer on file for an attack alert.</p>';
   const a = v.alert;
   return `<p class="tri-line">A real attack from the benchmark: <strong>${esc(a.account)}</strong> logged into
     <strong>${esc(a.destination)}</strong> from <strong>${esc(a.source)}</strong> on day ${a.day}. The answer key says the

@@ -58,19 +58,19 @@ Alert counts drop because day 0, where every login looks new, is no longer score
 | control that looks an hour ahead | 5,079,642 | 478 | fails, as it should |
 <!-- /results -->
 
-**Analyst agent.** qwen3.5-9b in LM Studio with reasoning off, run on a laptop and committed. The benchmark holds 600 alerts from the detector's wider feed of 1,000 a day, with answers worked out by code from the labels. The run stopped early when another job took over the laptop's GPU and the model could no longer load, so both arms are scored only on the alerts both finished, which are the earliest ones, not a random sample.
+**Analyst agent.** qwen3.5-9b in LM Studio with reasoning off, run on a laptop and committed. The benchmark holds 600 alerts from the detector's wider feed of 1,000 a day, with answers worked out by code from the labels. The agent ran twice, once with graph tools and once without, and both runs answered all 600 alerts.
 
 <!-- results:analyst -->
-| 49 of 600 alerts scored, 5 of them attacks | with graph tools | without |
+| 600 of 600 alerts scored, 51 of them attacks | with graph tools | without |
 |---|---|---|
-| right, when it decided | 91.8% | 89.8% |
-| handed to a person | 0.0% | 0.0% |
-| attacks closed as false alarms at confidence 0.8 or more | 3 | 5 |
-| launch host and path right, on attacks | 40.0% | 0.0% |
-| calibration error (ECE, lower is better) | 0.04 | 0.05 |
-| tool calls, invented calls refused, tokens per alert | 5.2, 0, 6,852 | 2.6, 0, 2,877 |
+| right, when it decided | 88.2% | 89.8% |
+| handed to a person | 0.8% | 0.0% |
+| attacks closed as false alarms at confidence 0.8 or more | 33 | 47 |
+| launch host and path right, on attacks | 49.0% | 5.9% |
+| calibration error (ECE, lower is better) | 0.07 | 0.05 |
+| tool calls, invented calls refused, tokens per alert | 5.2, 0, 7,489 | 2.5, 0, 2,775 |
 | analyst hours a day for the 1,000-a-day feed, before and after the agent | 83 to 0 | 83 to 0 |
-| attack alerts still called attacks or passed to a person | 40.0% | 0.0% |
+| attack alerts still called attacks or passed to a person | 35.3% | 7.8% |
 <!-- /results -->
 
 ## What the numbers say
@@ -79,7 +79,7 @@ Alert counts drop because day 0, where every login looks new, is no longer score
 - The same detector without v1's rules does much better. The quiet-hours rule pushes ordinary night logins to the top. I found this after scoring, so it is an ablation, not the headline.
 - As single-login alerts everything is poor. The attack makes hundreds of logins on its busiest day, and 100 slots hold few of them.
 - The graph neural network, trained on day 0 alone, is close to useless. A fifth of test logins involve an account or computer day 0 never saw.
-- On the alerts it finished, the agent with graph tools called some attacks attacks and the agent without them called none. Both said 0.95 confidence almost every time and never asked for a person, so the cascade drops every attack they miss. The sample is small, and the numbers only point in a direction.
+- The agent is not good enough to trust on its own. With graph tools it still closed 33 of the 51 attack alerts as false alarms. Without them it closed 47. So the graph tools help, but the agent still lost most attacks. It said it was about 95 percent sure almost every time and passed only 5 alerts to a person, and those 5 were replies it failed to finish, not doubts. The drop in analyst hours above only holds if losing most attacks is acceptable, and it is not.
 
 ## What this does not show
 
